@@ -108,6 +108,21 @@ def test_apply_marker_not_exposed():
     assert "⟦" not in out and "⟧" not in out
 
 
+# ── 하위작업 5: generate 프롬프트 마커 지시 ──────────────────────────────────────
+def test_system_prompt_has_marker_instruction():
+    from ai_worker.rag import prompt_builder
+    assert "⟦" in prompt_builder.SYSTEM_PROMPT
+
+
+# ── 하위작업 6: analogy 노드 ──────────────────────────────────────────────────
+def test_analogy_node_applies_to_generation():
+    from ai_worker.rag import nodes
+    state = {"generation": "하루 약 48g⟦단백질:48:g⟧입니다."}
+    out = nodes.analogy_node(state)
+    assert "닭가슴살" in out["generation"]
+    assert "⟦" not in out["generation"]
+
+
 # ── 직접 실행 ──────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
