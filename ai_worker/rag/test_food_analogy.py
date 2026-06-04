@@ -37,6 +37,12 @@ def test_parse_no_marker_returns_empty():
     assert fa.parse_markers("마커 없는 일반 답변") == []
 
 
+def test_parse_integer_value():
+    """정수 값 마커도 float 로 파싱됨."""
+    out = fa.parse_markers("⟦칼륨:2000:mg⟧")
+    assert out == [("칼륨", 2000.0, "mg")]
+
+
 # ── 하위작업 3: convert ───────────────────────────────────────────────────────
 def test_convert_protein_two_foods():
     out = fa.convert("단백질", 48.0)
