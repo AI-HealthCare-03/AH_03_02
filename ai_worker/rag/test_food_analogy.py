@@ -111,12 +111,14 @@ def test_apply_marker_not_exposed():
 # ── 하위작업 5: generate 프롬프트 마커 지시 ──────────────────────────────────────
 def test_system_prompt_has_marker_instruction():
     from ai_worker.rag import prompt_builder
+
     assert "⟦" in prompt_builder.SYSTEM_PROMPT
 
 
 # ── 하위작업 6: analogy 노드 ──────────────────────────────────────────────────
 def test_analogy_node_applies_to_generation():
     from ai_worker.rag import nodes
+
     state = {"generation": "하루 약 48g⟦단백질:48:g⟧입니다."}
     out = nodes.analogy_node(state)
     assert "닭가슴살" in out["generation"]
@@ -157,6 +159,7 @@ def test_apply_duplicate_same_nutrient_markers():
 
 def test_analogy_node_no_marker_no_disclaimer():
     from ai_worker.rag import nodes
+
     out = nodes.analogy_node({"generation": "마커 없는 일반 답변"})
     assert out["generation"] == "마커 없는 일반 답변"  # 비유·면책 없음
 

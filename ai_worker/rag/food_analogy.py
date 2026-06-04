@@ -21,10 +21,7 @@ _MARKER_RE = re.compile(r"⟦([^:⟧]+):([\d.]+):([^⟧]+)⟧")
 # 느슨한 마커 제거용 정규식 — 음수·형식 이상 등 _MARKER_RE가 놓친 잔여 마커까지 제거
 _LOOSE_MARKER_RE = re.compile(r"⟦[^⟧]*⟧")
 
-ANALOGY_DISCLAIMER = (
-    "\n\n💡 음식 비유는 양을 가늠하기 위한 참고용이며, "
-    "실제 식품 선택은 영양사·주치의와 상담하세요."
-)
+ANALOGY_DISCLAIMER = "\n\n💡 음식 비유는 양을 가늠하기 위한 참고용이며, 실제 식품 선택은 영양사·주치의와 상담하세요."
 
 
 def load_food_table() -> dict:
