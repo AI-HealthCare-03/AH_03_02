@@ -54,10 +54,20 @@ class Config(BaseSettings):
     GOOGLE_CLIENT_SECRET: str = ""
     GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/google/callback"
 
-    # 이메일 (REQ-AUTH 비밀번호 재설정)
-    # EMAIL_MODE: demo = 응답에 코드 반환 (시연용, 외부 호출 X) / production = Resend 실제 발송
+    # 이메일 (REQ-AUTH 비밀번호 재설정 + REQ-AUTH-003 회원가입 인증)
+    # EMAIL_MODE:
+    #   demo       = 응답에 코드 노출, 외부 호출 X (시연 안전, 발표 기본값)
+    #   gmail      = Gmail SMTP 실제 발송 + 응답에도 코드 노출(시연 fallback 유지)
+    #                — SMTP_USERNAME/SMTP_PASSWORD 미설정 시 demo로 강등
+    #   production = Resend API 실제 발송, 응답 코드 null
+    #                — RESEND_API_KEY 미설정 시 demo로 강등
     EMAIL_MODE: str = "demo"
     RESEND_API_KEY: str = ""
     EMAIL_FROM: str = "CKD Care <onboarding@resend.dev>"
+    # Gmail SMTP (EMAIL_MODE=gmail 일 때 사용)
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ""  # 본인 Gmail 주소
+    SMTP_PASSWORD: str = ""  # Gmail 앱 비밀번호 (16자, 2FA 활성화 후 발급)
     PASSWORD_RESET_CODE_TTL_SECONDS: int = 300  # 5분
     PASSWORD_RESET_MAX_ATTEMPTS: int = 5
