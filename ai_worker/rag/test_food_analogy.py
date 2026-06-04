@@ -57,6 +57,22 @@ def test_convert_unknown_nutrient_empty():
     assert fa.convert("비타민C", 30.0) == []
 
 
+def test_convert_sodium_g_unit():
+    """나트륨 2000mg → 소금·간장 g/큰술 환산."""
+    out = fa.convert("나트륨", 2000.0)
+    # 소금: 2000/388*1 = 5.15g → step5(100 미만) → 5g
+    assert out[0][0] == "소금"
+    assert "g" in out[0][1]
+    # 간장: 큰술 단위 — 개수 계산
+    assert out[1][0] == "간장"
+
+
+def test_convert_max_two_results():
+    """대표 음식이 3개여도 최대 2개만 반환."""
+    out = fa.convert("단백질", 48.0)
+    assert len(out) == 2  # 닭가슴살·달걀만 (두부는 제외)
+
+
 # ── 하위작업 4: apply_analogies ───────────────────────────────────────────────
 def test_apply_replaces_marker_and_adds_disclaimer():
     out = fa.apply_analogies("하루 약 48g⟦단백질:48:g⟧입니다.")
