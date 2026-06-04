@@ -16,8 +16,10 @@ from pathlib import Path
 _TABLE_PATH = Path(__file__).resolve().parent / "food_table.json"
 _table: dict | None = None
 
-# ⟦영양소:값:단위⟧ 마커 정규식
+# ⟦영양소:값:단위⟧ 마커 정규식 (양수 값만 매칭 — 정상 치환용)
 _MARKER_RE = re.compile(r"⟦([^:⟧]+):([\d.]+):([^⟧]+)⟧")
+# 느슨한 마커 제거용 정규식 — 음수·형식 이상 등 _MARKER_RE가 놓친 잔여 마커까지 제거
+_LOOSE_MARKER_RE = re.compile(r"⟦[^⟧]*⟧")
 
 ANALOGY_DISCLAIMER = (
     "\n\n💡 음식 비유는 양을 가늠하기 위한 참고용이며, "
@@ -52,6 +54,8 @@ def convert(nutrient: str, value: float) -> list[tuple[str, str]]:
     generate 노드의 마커가 이 단위로 기록한다고 가정한다
     (단위 불일치 시 조용히 틀린 비유가 나올 수 있음).
     """
+    if value <= 0:  # 0/음수 값은 비유 무의미 → 빈 리스트
+        return []
     table = load_food_table()
     result: list[tuple[str, str]] = []
     for food in table["representative"].get(nutrient, []):
@@ -103,6 +107,6 @@ def apply_analogies(text: str) -> str:
         return f" ({phrase} 분량)"
 
     out = _MARKER_RE.sub(_sub, text)
-    # 혹시 남은 마커(중첩 치환 등) 제거 보호
-    out = _MARKER_RE.sub("", out)
+    # 형식 이상(음수 등) 잔여 마커까지 제거 → 노출 0 보장
+    out = _LOOSE_MARKER_RE.sub("", out)
     return out + ANALOGY_DISCLAIMER if inserted else out

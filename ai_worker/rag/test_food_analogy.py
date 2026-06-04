@@ -63,7 +63,7 @@ def test_convert_sodium_g_unit():
     # 소금: 2000/388*1 = 5.15g → step5(100 미만) → round(5.15/5)*5 = 5g
     assert out[0][0] == "소금"
     assert out[0][1] == "약 5g"
-    # 간장: 큰술 단위 — 2000/825 = 2.42 → round = 2 → "약 2큰술"
+    # 간장: 큰술 단위 — 2000/900 = 2.22 → round = 2 → "약 2큰술"
     assert out[1][0] == "간장"
     assert out[1][1] == "약 2큰술"
 
@@ -134,6 +134,31 @@ def test_apply_unit_match_ok():
     """올바른 단위(나트륨 mg)는 정상 비유 생성."""
     out = fa.apply_analogies("나트륨 2000mg⟦나트륨:2000:mg⟧")
     assert "소금" in out and "참고용" in out
+
+
+# ── 수정1: 음수 마커 노출 방지 ────────────────────────────────────────────────
+def test_apply_negative_marker_not_exposed():
+    # 음수 등 형식 이상 마커도 노출되면 안 됨 (마커 누출 0 불변식)
+    out = fa.apply_analogies("단백질 약 -10g⟦단백질:-10:g⟧입니다")
+    assert "⟦" not in out and "⟧" not in out
+
+
+# ── 수정2: value=0 비유 방지 ──────────────────────────────────────────────────
+def test_convert_zero_value_empty():
+    assert fa.convert("단백질", 0.0) == []
+
+
+# ── 수정4: 회귀 보호 테스트 ───────────────────────────────────────────────────
+def test_apply_duplicate_same_nutrient_markers():
+    # 동일 영양소 마커 2회도 각각 정상 치환·마커 미노출
+    out = fa.apply_analogies("아침 ⟦단백질:48:g⟧ 저녁 ⟦단백질:48:g⟧")
+    assert out.count("닭가슴살") == 2 and "⟦" not in out
+
+
+def test_analogy_node_no_marker_no_disclaimer():
+    from ai_worker.rag import nodes
+    out = nodes.analogy_node({"generation": "마커 없는 일반 답변"})
+    assert out["generation"] == "마커 없는 일반 답변"  # 비유·면책 없음
 
 
 # ── 직접 실행 ──────────────────────────────────────────────────────────────────
