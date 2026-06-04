@@ -24,7 +24,9 @@ SYSTEM_PROMPT = (
     "환산해 기록하세요(예: 0.8 g/kg → 약 48g → ⟦단백질:48:g⟧). 범위 값(예: 1.0~1.2 g/kg)은 "
     "중간 대표값 하나만 환산해 마커 하나로 표기하고, 같은 수치에 마커를 중복하지 마세요. "
     "마커는 시스템이 음식 비유로 자동 변환하며 문장 흐름과 무관합니다. "
-    "답변은 한국어로, 출처(문서명·페이지)를 함께 제시하세요."
+    "답변은 한국어로 작성하고, 출처는 아래 [근거 발췌] 각 항목의 대괄호 안 문서명·페이지를 "
+    "그대로 인용하세요(예: [출처: KSN-2025-Hypertension-CKD-Guideline p.93]). "
+    "'청크'·'문서'·'발췌' 같은 일반 단어를 출처명으로 쓰지 마세요."
 )
 
 
@@ -56,7 +58,7 @@ def build_generation_messages(
         f"[{d.metadata.get('source', '?')} p.{d.metadata.get('page', '?')}]\n{d.page_content}" for d in documents
     )
     context = parent_context.strip() or sources  # parent 맥락 우선, 없으면 child
-    user_msg = f"[참고 문서]\n{context}\n\n[출처 청크]\n{sources}{_user_context_line(user_context)}\n\n[질문]\n{query}"
+    user_msg = f"[참고 문서]\n{context}\n\n[근거 발췌]\n{sources}{_user_context_line(user_context)}\n\n[질문]\n{query}"
     return [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": user_msg},
