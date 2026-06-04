@@ -51,6 +51,7 @@ services:
     env_file: .env
     environment:
       REDIS_HOST: redis   # docker 네트워크 내부 서비스명 (env_file의 localhost 값을 override)
+      DB_HOST: postgres   # postgres 서비스명 (env_file의 localhost 값을 override)
     command: |
       sh -c "uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     volumes:
@@ -82,6 +83,7 @@ services:
       # docker 내부 서비스명으로 접속 (env_file의 localhost 값을 override)
       REDIS_HOST: redis
       QDRANT_URL: http://qdrant:6333
+      DB_HOST: postgres
     restart: always
     mem_limit: 4G
     networks:

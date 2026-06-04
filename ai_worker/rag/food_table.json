@@ -1,0 +1,29 @@
+{
+  "foods": {
+    "닭가슴살": { "serving_label": "100g", "serving_g": 100, "nutrients": { "단백질": 23, "나트륨": 65, "칼륨": 370, "인": 210, "열량": 110 } },
+    "달걀":     { "serving_label": "개", "serving_g": 50,  "nutrients": { "단백질": 6.2, "나트륨": 70, "칼륨": 69, "인": 99, "열량": 78 } },
+    "두부":     { "serving_label": "100g", "serving_g": 100, "nutrients": { "단백질": 8.0, "나트륨": 8, "칼륨": 90, "인": 84, "열량": 79 } },
+    "소금":     { "serving_label": "g", "serving_g": 1, "nutrients": { "나트륨": 388 } },
+    "간장":     { "serving_label": "큰술", "serving_g": 15, "nutrients": { "나트륨": 900 } },
+    "바나나":   { "serving_label": "개", "serving_g": 120, "nutrients": { "칼륨": 430, "열량": 105 } },
+    "감자":     { "serving_label": "개", "serving_g": 150, "nutrients": { "칼륨": 620, "열량": 110 } },
+    "우유":     { "serving_label": "컵", "serving_g": 200, "nutrients": { "인": 180, "칼륨": 300, "열량": 122 } },
+    "치즈":     { "serving_label": "장", "serving_g": 20, "nutrients": { "인": 110, "나트륨": 215, "열량": 70 } },
+    "밥":       { "serving_label": "공기", "serving_g": 210, "nutrients": { "열량": 310, "단백질": 5.6 } },
+    "식빵":     { "serving_label": "쪽", "serving_g": 35, "nutrients": { "열량": 90, "나트륨": 160 } }
+  },
+  "representative": {
+    "단백질": ["닭가슴살", "달걀", "두부"],
+    "나트륨": ["소금", "간장"],
+    "칼륨":   ["바나나", "감자"],
+    "인":     ["우유", "치즈"],
+    "열량":   ["밥", "식빵"]
+  },
+  "nutrient_units": {
+    "단백질": "g",
+    "나트륨": "mg",
+    "칼륨":   "mg",
+    "인":     "mg",
+    "열량":   "kcal"
+  }
+}

@@ -2,7 +2,8 @@
 
 guard → retrieve → grade ─(부족)→ rewrite → retrieve(≤2)
        → generate → hallucination ─(환각)→ generate(≤1) / answer_grade
-                   → answer_grade ─(미해결)→ rewrite → post_guard → END
+                   → answer_grade ─(미해결)→ rewrite
+                   → analogy → post_guard → END
 
 컴파일된 그래프는 모듈 lazy 싱글턴으로 1회만 만든다(노드 함수의 LLM은 호출 시점 lazy라 컴파일에
 키 불요). Phase 5에서 ai_worker task가 get_graph().invoke(...) 로 호출한다.
@@ -28,6 +29,7 @@ def build_graph():
         ("generate", nodes.generate_node),
         ("hallucination", nodes.hallucination_node),
         ("answer_grade", nodes.answer_node),
+        ("analogy", nodes.analogy_node),
         ("post_guard", nodes.post_guard_node),
         # 검색 실패 폴백 차등 라우팅
         ("classify_fallback", nodes.classify_fallback_node),
@@ -56,9 +58,10 @@ def build_graph():
     b.add_conditional_edges(
         "hallucination",
         nodes.grounded_router,
-        {"generate": "generate", "answer_grade": "answer_grade", "post_guard": "post_guard"},
+        {"generate": "generate", "answer_grade": "answer_grade", "post_guard": "analogy"},
     )
-    b.add_conditional_edges("answer_grade", nodes.answer_router, {"post_guard": "post_guard", "rewrite": "rewrite"})
+    b.add_conditional_edges("answer_grade", nodes.answer_router, {"post_guard": "analogy", "rewrite": "rewrite"})
+    b.add_edge("analogy", "post_guard")
     b.add_edge("post_guard", END)
 
     # 검색 실패 폴백 분기
@@ -120,7 +123,7 @@ if __name__ == "__main__":
     ]
     if len(sys.argv) > 1:
         cases = [(" ".join(sys.argv[1:]), None)]
-    print("[그래프 컴파일] 노드 8 + 조건부 엣지 4")
+    print("[그래프 컴파일] 정상경로 노드 9(analogy 포함) + 조건부 엣지 5")
     for q, uc in cases:
         print(f"\n{'=' * 72}\n질문: {q}" + (f"  (user_context={uc})" if uc else ""))
         print(f"{'─' * 72}")

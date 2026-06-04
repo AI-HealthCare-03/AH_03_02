@@ -1,9 +1,9 @@
-"""StateGraph 노드 (ai_worker/rag/nodes.py) — PoC 8노드 이관 + 실제 모듈 연결.
+"""StateGraph 노드 (ai_worker/rag/nodes.py) — PoC 9노드 이관 + 실제 모듈 연결.
 
 흐름: guard → retrieve → grade ─(부족)→ rewrite → retrieve(재검색 ≤2)
             → generate → hallucination ─(환각)→ 재생성(≤1)
                         → answer_grade ─(미해결)→ rewrite
-                        → post_guard → END
+                        → analogy → post_guard → END
 PoC(poc_langgraph_rag)의 노드·라우터 로직을 그대로 옮기되, 검색은 retriever(Parent-Child·age_group),
 가드는 safety_guard(05 명세 전체), 프롬프트는 prompt_builder를 쓴다.
 """
@@ -13,7 +13,7 @@ from __future__ import annotations
 from langchain_core.messages import HumanMessage
 
 from . import config as cfg
-from . import llm_client, prompt_builder, retriever, safety_guard
+from . import food_analogy, llm_client, prompt_builder, retriever, safety_guard
 from .state import RAGState
 
 
@@ -77,6 +77,12 @@ def hallucination_node(state: RAGState) -> dict:
 def answer_node(state: RAGState) -> dict:
     g = llm_client.answer_grader().invoke(f"질문: {_q(state)}\n답변: {state['generation']}\n답변이 질문을 해결합니까?")
     return {"addresses": g.addresses}
+
+
+def analogy_node(state: RAGState) -> dict:
+    """generate 답변의 영양 수치 마커를 음식 비유로 후처리(결정론적). hallucination 통과 후 실행."""
+    gen = state.get("generation") or ""
+    return {"generation": food_analogy.apply_analogies(gen)}
 
 
 def post_guard_node(state: RAGState) -> dict:
