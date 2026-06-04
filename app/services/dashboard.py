@@ -59,6 +59,7 @@ class DashboardService:
                 drinking_frequency=lifestyle.drinking_frequency,
                 exercise_days_per_week=lifestyle.exercise_days_per_week,
                 stress_level=lifestyle.stress_level,
+                is_pregnant=lifestyle.is_pregnant,
             )
 
         return DashboardSummaryResponse(
