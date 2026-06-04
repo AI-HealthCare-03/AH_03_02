@@ -2,6 +2,9 @@
 
 generate가 영양 수치 뒤에 붙인 ⟦영양소:값:단위⟧ 마커를 큐레이션 테이블 기반으로
 음식 비유(영양소당 2개)로 치환한다. 환각 가드 통과 후 실행되어 충돌 0.
+
+food_table.json serving_label 규칙:
+  "g"로 끝나면 무게(g) 기준 환산, 그 외(개·컵·장·공기·쪽·큰술 등)는 개수 기준 환산.
 """
 
 from __future__ import annotations
@@ -42,7 +45,13 @@ def _round_amount(grams: float) -> str:
 
 
 def convert(nutrient: str, value: float) -> list[tuple[str, str]]:
-    """영양소 값 → 대표 음식(최대 2개)의 양 환산. [(음식, '약 200g'|'약 8개'), ...]."""
+    """영양소 값 → 대표 음식(최대 2개)의 양 환산. [(음식, '약 200g'|'약 8개'), ...].
+
+    입력 ``value``의 단위는 테이블 영양소 기준 단위와 일치해야 한다 —
+    단백질 g, 나트륨·칼륨·인 mg, 열량 kcal.
+    generate 노드의 마커가 이 단위로 기록한다고 가정한다
+    (단위 불일치 시 조용히 틀린 비유가 나올 수 있음).
+    """
     table = load_food_table()
     result: list[tuple[str, str]] = []
     for food in table["representative"].get(nutrient, []):
@@ -52,7 +61,7 @@ def convert(nutrient: str, value: float) -> list[tuple[str, str]]:
         if not data:
             continue
         per = data["nutrients"].get(nutrient)
-        if not per:
+        if per is None or per == 0:  # 영양소 미보유(None) 또는 0나눗셈 방지
             continue
         label = data["serving_label"]
         if label.endswith("g"):

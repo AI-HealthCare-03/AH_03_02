@@ -60,11 +60,12 @@ def test_convert_unknown_nutrient_empty():
 def test_convert_sodium_g_unit():
     """나트륨 2000mg → 소금·간장 g/큰술 환산."""
     out = fa.convert("나트륨", 2000.0)
-    # 소금: 2000/388*1 = 5.15g → step5(100 미만) → 5g
+    # 소금: 2000/388*1 = 5.15g → step5(100 미만) → round(5.15/5)*5 = 5g
     assert out[0][0] == "소금"
-    assert "g" in out[0][1]
-    # 간장: 큰술 단위 — 개수 계산
+    assert out[0][1] == "약 5g"
+    # 간장: 큰술 단위 — 2000/825 = 2.42 → round = 2 → "약 2큰술"
     assert out[1][0] == "간장"
+    assert out[1][1] == "약 2큰술"
 
 
 def test_convert_max_two_results():
