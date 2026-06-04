@@ -28,6 +28,7 @@ def build_graph():
         ("generate", nodes.generate_node),
         ("hallucination", nodes.hallucination_node),
         ("answer_grade", nodes.answer_node),
+        ("analogy", nodes.analogy_node),
         ("post_guard", nodes.post_guard_node),
         # 검색 실패 폴백 차등 라우팅
         ("classify_fallback", nodes.classify_fallback_node),
@@ -56,9 +57,10 @@ def build_graph():
     b.add_conditional_edges(
         "hallucination",
         nodes.grounded_router,
-        {"generate": "generate", "answer_grade": "answer_grade", "post_guard": "post_guard"},
+        {"generate": "generate", "answer_grade": "answer_grade", "post_guard": "analogy"},
     )
-    b.add_conditional_edges("answer_grade", nodes.answer_router, {"post_guard": "post_guard", "rewrite": "rewrite"})
+    b.add_conditional_edges("answer_grade", nodes.answer_router, {"post_guard": "analogy", "rewrite": "rewrite"})
+    b.add_edge("analogy", "post_guard")
     b.add_edge("post_guard", END)
 
     # 검색 실패 폴백 분기

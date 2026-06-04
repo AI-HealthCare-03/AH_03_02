@@ -13,7 +13,7 @@ from __future__ import annotations
 from langchain_core.messages import HumanMessage
 
 from . import config as cfg
-from . import llm_client, prompt_builder, retriever, safety_guard
+from . import food_analogy, llm_client, prompt_builder, retriever, safety_guard
 from .state import RAGState
 
 
@@ -77,6 +77,12 @@ def hallucination_node(state: RAGState) -> dict:
 def answer_node(state: RAGState) -> dict:
     g = llm_client.answer_grader().invoke(f"질문: {_q(state)}\n답변: {state['generation']}\n답변이 질문을 해결합니까?")
     return {"addresses": g.addresses}
+
+
+def analogy_node(state: RAGState) -> dict:
+    """generate 답변의 영양 수치 마커를 음식 비유로 후처리(결정론적). hallucination 통과 후 실행."""
+    gen = state.get("generation") or ""
+    return {"generation": food_analogy.apply_analogies(gen)}
 
 
 def post_guard_node(state: RAGState) -> dict:
