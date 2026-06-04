@@ -1,71 +1,200 @@
-import { Bot } from "lucide-react";
+import { Bot, Send, User as UserIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { TopNav } from "../components/TopNav";
 import { ScreenLabel } from "../components/ScreenLabel";
-import { BtnPrimary } from "../components/BtnPrimary";
+import { chatApi } from "../api/chat";
+
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  created_at: string;
+}
+
+const QUESTION_MAX = 2000;
+
+const SUGGESTED_QUESTIONS = [
+  "만성콩팥병 초기에 피해야 할 음식은 무엇인가요?",
+  "혈압을 낮추는 데 효과적인 생활습관을 알려주세요.",
+  "수면 부족이 신장에 어떤 영향을 주나요?",
+];
 
 export function RAGChatbotPage() {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [messages, loading]);
+
+  async function send(question: string) {
+    const trimmed = question.trim();
+    if (!trimmed || loading) return;
+    if (trimmed.length > QUESTION_MAX) {
+      setError(`질문은 ${QUESTION_MAX}자 이내로 입력해주세요.`);
+      return;
+    }
+    setError(null);
+    setInput("");
+    const userMsg: ChatMessage = {
+      role: "user",
+      content: trimmed,
+      created_at: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, userMsg]);
+    setLoading(true);
+    try {
+      const res = await chatApi.ask(trimmed);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: res.answer, created_at: res.created_at },
+      ]);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "답변 생성 중 오류가 발생했습니다.";
+      setError(msg);
+    } finally {
+      setLoading(false);
+      inputRef.current?.focus();
+    }
+  }
+
+  function onKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      send(input);
+    }
+  }
+
+  const isEmpty = messages.length === 0 && !loading;
+
   return (
     <div className="flex h-screen flex-col bg-bg-alt">
-      <ScreenLabel label="22 · RAG 챗봇 (P2, REQ-RAG-004/005 - KDIGO + 신장학회)" />
+      <ScreenLabel label="22 · RAG 챗봇 (REQ-RAG-004/005 — KDIGO + 신장학회)" />
       <TopNav />
 
-      <main className="flex flex-1 flex-col items-center gap-[12px] overflow-hidden p-[32px]">
-        <div className="flex w-[760px] flex-1 flex-col rounded-md border border-border bg-bg">
+      <main className="flex flex-1 flex-col items-center overflow-hidden p-[16px]">
+        <div className="flex h-full w-full max-w-[760px] flex-col rounded-md border border-border bg-bg">
           {/* 헤더 */}
-          <div className="flex items-center gap-[12px] bg-bg-alt p-[12px]">
+          <div className="flex items-center gap-[12px] border-b border-border bg-bg-alt p-[12px]">
             <Bot size={24} className="text-accent" />
-            <h2 className="text-md font-bold text-text-primary">
-              신장 케어 AI 어시스턴트
-            </h2>
+            <div className="flex flex-col">
+              <h2 className="text-md font-bold text-text-primary">신장 케어 AI 어시스턴트</h2>
+              <p className="text-xs text-text-muted">
+                KDIGO 가이드라인·대한신장학회 자료 기반 일반 정보 제공 (의학적 진단·처방 아님)
+              </p>
+            </div>
           </div>
 
           {/* 채팅 영역 */}
-          <div className="flex flex-1 flex-col gap-[12px] overflow-y-auto p-[16px]">
-            {/* 유저 메시지 */}
-            <div className="flex justify-end">
-              <div className="rounded-md bg-accent p-[12px]">
-                <p className="text-sm text-bg">
-                  만성콩팥병 초기인데 어떤 음식을 피해야 하나요?
-                </p>
+          <div ref={scrollRef} className="flex flex-1 flex-col gap-[16px] overflow-y-auto p-[16px]">
+            {isEmpty && (
+              <div className="flex flex-1 flex-col items-center justify-center gap-[16px] text-center">
+                <div className="flex h-[64px] w-[64px] items-center justify-center rounded-full bg-bg-alt">
+                  <Bot size={32} className="text-accent" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-text-primary">무엇을 도와드릴까요?</p>
+                  <p className="mt-[4px] text-xs text-text-secondary">
+                    신장 건강·생활습관에 대해 궁금한 점을 물어보세요.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-[8px] pt-[8px]">
+                  {SUGGESTED_QUESTIONS.map((q) => (
+                    <button
+                      key={q}
+                      type="button"
+                      onClick={() => send(q)}
+                      disabled={loading}
+                      className="rounded-md border border-border bg-bg px-[12px] py-[8px] text-left text-xs text-text-secondary transition-colors hover:border-accent hover:text-text-primary disabled:opacity-50"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* AI 응답 */}
-            <div className="flex gap-[8px]">
-              <div className="h-[32px] w-[32px] shrink-0 rounded-full bg-accent" />
-              <div className="flex flex-col gap-[8px] rounded-md bg-bg-alt p-[12px]">
-                <p className="text-sm font-bold text-text-primary">
-                  CKD 초기 식단 가이드
-                </p>
-                <p className="text-xs leading-[1.6] text-text-secondary">
-                  만성콩팥병 초기(G1~G2)에서는 다음 식이 원칙이 권장됩니다:
-                </p>
-                <ul className="list-inside list-disc text-xs leading-[1.8] text-text-secondary">
-                  <li>나트륨: 하루 2g 이하 (국·찌개 국물 절반 남기기)</li>
-                  <li>단백질: 체중 kg당 0.8~1.0g (과다 섭취 주의)</li>
-                  <li>칼륨: 바나나·감자·토마토 등 고칼륨 식품 제한</li>
-                  <li>수분: 하루 1.5~2L 유지 (의사 권고량 우선)</li>
-                </ul>
-                <p className="text-xs text-text-muted">
-                  출처: KDIGO 2024 CKD 가이드라인, 대한신장학회 식단 권고안
-                </p>
+            {messages.map((m, i) => (
+              <MessageBubble key={i} message={m} />
+            ))}
+
+            {loading && (
+              <div className="flex gap-[8px]">
+                <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-accent">
+                  <Bot size={18} className="text-bg" />
+                </div>
+                <div className="flex items-center gap-[6px] rounded-md bg-bg-alt p-[12px]">
+                  <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-text-muted" />
+                  <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-text-muted [animation-delay:150ms]" />
+                  <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-text-muted [animation-delay:300ms]" />
+                  <span className="ml-[6px] text-xs text-text-secondary">답변을 생성하고 있어요…</span>
+                </div>
               </div>
-            </div>
+            )}
+
+            {error && (
+              <div className="rounded-md border border-danger bg-danger/5 p-[12px] text-xs text-danger">
+                {error}
+              </div>
+            )}
           </div>
 
           {/* 입력 영역 */}
-          <div className="flex gap-[8px] border-t border-border bg-bg p-[12px]">
-            <div className="flex h-[40px] flex-1 items-center rounded-sm bg-bg-alt px-[12px] py-[8px]">
-              <input
-                type="text"
-                placeholder="신장 건강에 대해 궁금한 것을 물어보세요 (Langfuse 트레이싱)"
-                className="w-full bg-transparent text-sm text-text-primary outline-none placeholder:text-text-muted"
-              />
-            </div>
-            <BtnPrimary label="전송" />
+          <div className="flex items-end gap-[8px] border-t border-border bg-bg p-[12px]">
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={onKeyDown}
+              disabled={loading}
+              rows={1}
+              maxLength={QUESTION_MAX}
+              placeholder="신장 건강에 대해 궁금한 것을 물어보세요. (Enter 전송 · Shift+Enter 줄바꿈)"
+              className="max-h-[120px] min-h-[40px] flex-1 resize-none rounded-sm bg-bg-alt px-[12px] py-[10px] text-sm text-text-primary outline-none placeholder:text-text-muted disabled:opacity-50"
+            />
+            <button
+              type="button"
+              onClick={() => send(input)}
+              disabled={loading || !input.trim()}
+              className="flex h-[40px] items-center gap-[6px] rounded-md bg-accent px-[16px] text-sm font-bold text-bg transition-opacity hover:opacity-90 disabled:opacity-40"
+            >
+              <Send size={16} />
+              전송
+            </button>
+          </div>
+          <div className="border-t border-border bg-bg px-[12px] py-[6px] text-right text-[10px] text-text-muted">
+            {input.length} / {QUESTION_MAX}
           </div>
         </div>
       </main>
+    </div>
+  );
+}
+
+function MessageBubble({ message }: { message: ChatMessage }) {
+  if (message.role === "user") {
+    return (
+      <div className="flex items-start justify-end gap-[8px]">
+        <div className="max-w-[80%] whitespace-pre-wrap rounded-md bg-accent px-[12px] py-[10px] text-sm text-bg">
+          {message.content}
+        </div>
+        <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-bg-alt text-text-secondary">
+          <UserIcon size={18} />
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-start gap-[8px]">
+      <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-accent">
+        <Bot size={18} className="text-bg" />
+      </div>
+      <div className="max-w-[80%] whitespace-pre-wrap rounded-md bg-bg-alt px-[12px] py-[10px] text-sm leading-[1.6] text-text-primary">
+        {message.content}
+      </div>
     </div>
   );
 }
