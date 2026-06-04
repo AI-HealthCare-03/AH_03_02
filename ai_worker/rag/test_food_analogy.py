@@ -123,6 +123,19 @@ def test_analogy_node_applies_to_generation():
     assert "⟦" not in out["generation"]
 
 
+# ── 하위작업 7: 단위 검증 (수정1) ───────────────────────────────────────────────
+def test_apply_unit_mismatch_removed():
+    """단위 불일치(나트륨을 g로 오기록) → 마커 제거, 잘못된 비유 안 나옴."""
+    out = fa.apply_analogies("나트륨 약 2g⟦나트륨:2:g⟧")
+    assert "⟦" not in out and "소금" not in out and "참고용" not in out
+
+
+def test_apply_unit_match_ok():
+    """올바른 단위(나트륨 mg)는 정상 비유 생성."""
+    out = fa.apply_analogies("나트륨 2000mg⟦나트륨:2000:mg⟧")
+    assert "소금" in out and "참고용" in out
+
+
 # ── 직접 실행 ──────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]

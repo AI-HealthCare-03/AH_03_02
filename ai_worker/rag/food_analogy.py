@@ -79,12 +79,22 @@ def apply_analogies(text: str) -> str:
     """답변의 ⟦영양소:값:단위⟧ 마커를 음식 비유로 치환. 매칭 실패 마커는 제거.
 
     비유가 1개 이상 삽입되면 면책 부착. 마커는 절대 노출하지 않는다.
+
+    단위 검증: food_table.json의 nutrient_units와 마커 단위가 다르면 조용히 제거
+    (LLM이 프롬프트 지시를 어겨 단위를 오기록한 경우 엉터리 비유 방지).
+    기대 단위 정보가 없는 영양소는 기존대로 통과(하위호환).
     """
     inserted = False
+    table = load_food_table()
+    units = table.get("nutrient_units", {})
 
     def _sub(m: re.Match) -> str:
         nonlocal inserted
-        nutrient, value = m.group(1), float(m.group(2))
+        nutrient, value, unit = m.group(1), float(m.group(2)), m.group(3).strip().lower()
+        # 단위 검증: 기대 단위가 있고 마커 단위와 다르면 → 마커 제거 (잘못된 비유 방지)
+        expected = units.get(nutrient)
+        if expected and unit != expected.lower():
+            return ""
         foods = convert(nutrient, value)
         if not foods:
             return ""  # 매칭 실패 → 마커 제거
