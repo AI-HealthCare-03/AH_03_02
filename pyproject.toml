@@ -36,6 +36,7 @@ rag = [
 ]
 app = [
     "aerich>=0.9.2",
+    "aiosmtplib>=3.0",
     "asyncpg>=0.30.0",
     "bcrypt<=4.0.1",
     "fastapi[standard]>=0.128.0",
