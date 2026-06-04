@@ -30,6 +30,7 @@ class LifestyleSurveyRepository:
         family_history_diabetes: bool = False,
         family_history_hypertension: bool = False,
         family_history_heart_disease: bool = False,
+        is_pregnant: bool = False,
     ) -> LifestyleSurvey:
         return await LifestyleSurvey.create(
             user_id=user_id,
@@ -49,6 +50,7 @@ class LifestyleSurveyRepository:
             family_history_diabetes=family_history_diabetes,
             family_history_hypertension=family_history_hypertension,
             family_history_heart_disease=family_history_heart_disease,
+            is_pregnant=is_pregnant,
         )
 
     async def get_by_user(
