@@ -11,6 +11,10 @@ from app.core import config
 from app.core.config import Env
 from app.core.rate_limit import limiter
 from app.dtos.auth import (
+    EmailVerificationRequestBody,
+    EmailVerificationRequestResponse,
+    EmailVerificationVerifyBody,
+    EmailVerificationVerifyResponse,
     ForgotPasswordRequest,
     ForgotPasswordResponse,
     LoginRequest,
@@ -20,10 +24,11 @@ from app.dtos.auth import (
     PasswordResetVerifyBody,
     PasswordResetVerifyResponse,
     SignUpRequest,
+    SignUpResponse,
     TokenRefreshResponse,
 )
 from app.repositories.user_repository import UserRepository
-from app.services.auth import AuthService
+from app.services.auth import EMAIL_VERIFICATION_TTL_HOURS, AuthService
 from app.services.charge_mode import ChargeModeService
 from app.services.jwt import JwtService
 from app.services.points import PointService
@@ -32,15 +37,81 @@ from app.services.streak_protect import StreakProtectService
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@auth_router.post("/signup", status_code=status.HTTP_201_CREATED)
+@auth_router.post("/signup", response_model=SignUpResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/minute")
 async def signup(
     request: Request,
     body: SignUpRequest,
     auth_service: Annotated[AuthService, Depends(AuthService)],
 ) -> Response:
-    await auth_service.signup(body)
-    return Response(content={"detail": "회원가입이 성공적으로 완료되었습니다."}, status_code=status.HTTP_201_CREATED)
+    """REQ-AUTH-003: 회원가입 직후 자동으로 이메일 인증 코드 발송.
+
+    demo 모드면 응답에 코드가 포함돼 시연 안전. production 모드면 demo_code=null.
+    """
+    user = await auth_service.signup(body)
+    delivery = await auth_service.request_email_verification(user.id)
+    return Response(
+        content={
+            "user_id": user.id,
+            "email": user.email,
+            "email_verification": {
+                "sent": delivery.sent,
+                "mode": delivery.mode,
+                "demo_code": delivery.demo_code,
+                "expires_in_hours": EMAIL_VERIFICATION_TTL_HOURS,
+            },
+        },
+        status_code=status.HTTP_201_CREATED,
+    )
+
+
+@auth_router.post(
+    "/email-verification/request",
+    response_model=EmailVerificationRequestResponse,
+    status_code=status.HTTP_200_OK,
+    summary="REQ-AUTH-003 이메일 인증 코드 재발송",
+)
+@limiter.limit("3/hour")
+async def email_verification_request(
+    request: Request,
+    body: EmailVerificationRequestBody,
+    auth_service: Annotated[AuthService, Depends(AuthService)],
+    user_repo: Annotated[UserRepository, Depends(UserRepository)],
+) -> Response:
+    """이메일 기준 인증 코드 재발송. 1시간 3회 제한 (명세 v0.8 REQ-AUTH-003)."""
+    user = await user_repo.get_user_by_email(str(body.email))
+    if user is None or not user.is_active:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="등록된 이메일이 없습니다.")
+    delivery = await auth_service.request_email_verification(user.id)
+    return Response(
+        content={
+            "sent": delivery.sent,
+            "mode": delivery.mode,
+            "demo_code": delivery.demo_code,
+            "expires_in_hours": EMAIL_VERIFICATION_TTL_HOURS,
+        },
+        status_code=status.HTTP_200_OK,
+    )
+
+
+@auth_router.post(
+    "/email-verification/verify",
+    response_model=EmailVerificationVerifyResponse,
+    status_code=status.HTTP_200_OK,
+    summary="REQ-AUTH-003 이메일 인증 코드 검증",
+)
+@limiter.limit("10/minute")
+async def email_verification_verify(
+    request: Request,
+    body: EmailVerificationVerifyBody,
+    auth_service: Annotated[AuthService, Depends(AuthService)],
+    user_repo: Annotated[UserRepository, Depends(UserRepository)],
+) -> Response:
+    user = await user_repo.get_user_by_email(str(body.email))
+    if user is None or not user.is_active:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="등록된 이메일이 없습니다.")
+    await auth_service.verify_email_code(user.id, body.code)
+    return Response(content={"verified": True}, status_code=status.HTTP_200_OK)
 
 
 @auth_router.post("/login", response_model=LoginResponse, status_code=status.HTTP_200_OK)

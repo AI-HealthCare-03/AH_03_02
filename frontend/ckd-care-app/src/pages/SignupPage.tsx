@@ -48,7 +48,7 @@ export function SignupPage() {
     setError("");
     setLoading(true);
     try {
-      await authApi.signup({
+      const res = await authApi.signup({
         name: form.name,
         email: form.email,
         password: form.password,
@@ -56,7 +56,15 @@ export function SignupPage() {
         phone_number: form.phone_number,
         gender: form.gender as "MALE" | "FEMALE",
       });
-      navigate("/");
+      // REQ-AUTH-003: 회원가입 직후 이메일 인증 페이지로. demo 모드면 코드 함께 전달
+      navigate("/email-verify", {
+        state: {
+          email: res.email,
+          demoCode: res.email_verification.demo_code,
+          mode: res.email_verification.mode,
+          expiresInHours: res.email_verification.expires_in_hours,
+        },
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "회원가입에 실패했습니다.");
     } finally {

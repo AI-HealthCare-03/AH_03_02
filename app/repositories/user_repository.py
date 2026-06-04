@@ -73,6 +73,8 @@ class UserRepository:
             gender=Gender.MALE,
             birthday=date(2000, 1, 1),
             is_active=True,
+            # REQ-AUTH-003: 소셜 로그인 계정은 별도 이메일 인증 불필요 (Kakao/Google이 검증)
+            email_verified=True,
         )
         return user, True
 

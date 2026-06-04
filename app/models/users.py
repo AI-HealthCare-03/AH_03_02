@@ -23,6 +23,8 @@ class User(models.Model):
     # REQ-AUTH-007 비밀번호 오류 잠금
     failed_login_count = fields.IntField(default=0, description="연속 비밀번호 실패 횟수")
     locked_until = fields.DatetimeField(null=True, description="계정 잠금 해제 시각 (null=미잠금)")
+    # REQ-AUTH-003 회원가입 이메일 인증
+    email_verified = fields.BooleanField(default=False, description="이메일 인증 완료 여부 (소셜 로그인은 True 유지)")
     # 챌린지 숙련도 (1=입문/잔디, 2=초보/산스장, 3=중급/헬스장, 4=숙련/지옥). EggWidget 배경 결정용.
     proficiency = fields.IntField(default=1, description="챌린지 숙련도 1~4 (1=입문, 4=숙련)")
     created_at = fields.DatetimeField(auto_now_add=True)

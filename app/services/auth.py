@@ -14,6 +14,7 @@ from app.core.jwt.tokens import AccessToken, RefreshToken
 from app.core.utils.common import normalize_phone_number
 from app.core.utils.security import hash_password, verify_password
 from app.dtos.auth import LoginRequest, SignUpRequest
+from app.models.email_verification import EmailVerificationCode
 from app.models.password_reset import PasswordResetCode
 from app.models.users import User
 from app.repositories.user_repository import UserRepository
@@ -23,6 +24,10 @@ from app.services.jwt import JwtService
 # REQ-AUTH-007 비밀번호 오류 잠금
 MAX_FAILED_ATTEMPTS = 5
 LOCK_DURATION_MINUTES = 30
+
+# REQ-AUTH-003 이메일 인증
+EMAIL_VERIFICATION_TTL_HOURS = 24
+EMAIL_VERIFICATION_MAX_ATTEMPTS = 5
 
 
 def _hash_code(code: str) -> str:
@@ -69,6 +74,13 @@ class AuthService:
         # 비활성 계정 (탈퇴 등) 우선 차단
         if not user.is_active:
             raise HTTPException(status_code=status.HTTP_423_LOCKED, detail="비활성화된 계정입니다.")
+
+        # REQ-AUTH-003: 이메일 미인증 차단 (소셜 로그인 계정은 가입 시 True로 처리)
+        if not user.email_verified and not user.hashed_password.startswith("SOCIAL:"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="이메일 인증이 필요합니다. 가입 시 발송된 인증 코드로 인증을 완료해주세요.",
+            )
 
         # REQ-AUTH-007: 잠금 상태 체크
         now = datetime.now(UTC)
@@ -220,3 +232,86 @@ class AuthService:
             user.locked_until = None
             await user.save(update_fields=["failed_login_count", "locked_until", "updated_at"])
         return temp_pw
+
+    async def request_email_verification(self, user_id: int) -> EmailDeliveryResult:
+        """REQ-AUTH-003 이메일 인증 6자리 코드 발급·발송.
+
+        기존 사용자당 활성 코드는 무효화하고 새 코드 1개만 활성 상태로 유지.
+        이미 인증 완료된 경우 400 반환.
+        """
+        user = await User.get_or_none(id=user_id)
+        if user is None or not user.is_active:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="등록된 계정이 없습니다.")
+        if user.email_verified:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="이미 인증이 완료된 계정입니다.",
+            )
+        if user.hashed_password.startswith("SOCIAL:"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="소셜 로그인 계정은 별도 이메일 인증이 필요하지 않습니다.",
+            )
+
+        now = datetime.now(UTC)
+        await EmailVerificationCode.filter(user_id=user.id, used_at__isnull=True, expires_at__gt=now).update(
+            used_at=now
+        )
+
+        code = f"{secrets.randbelow(1_000_000):06d}"
+        await EmailVerificationCode.create(
+            user_id=user.id,
+            code_hash=_hash_code(code),
+            expires_at=now + timedelta(hours=EMAIL_VERIFICATION_TTL_HOURS),
+        )
+
+        email_service = EmailService()
+        return await email_service.send_email_verification_code(
+            to_email=user.email, code=code, expires_hours=EMAIL_VERIFICATION_TTL_HOURS
+        )
+
+    async def verify_email_code(self, user_id: int, code: str) -> None:
+        """REQ-AUTH-003 코드 검증 + email_verified 갱신.
+
+        실패 시 attempts +1, 5회 초과 시 코드 무효화.
+        """
+        user = await User.get_or_none(id=user_id)
+        if user is None or not user.is_active:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="등록된 계정이 없습니다.")
+        if user.email_verified:
+            return  # 이미 인증 완료 — idempotent
+
+        now = datetime.now(UTC)
+        record = (
+            await EmailVerificationCode.filter(user_id=user.id, used_at__isnull=True, expires_at__gt=now)
+            .order_by("-created_at")
+            .first()
+        )
+        if record is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="발급된 인증 코드가 없거나 만료되었습니다. 코드를 다시 요청해주세요.",
+            )
+
+        if record.attempts >= EMAIL_VERIFICATION_MAX_ATTEMPTS:
+            record.used_at = now
+            await record.save(update_fields=["used_at"])
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="인증 시도 횟수를 초과했습니다. 코드를 다시 요청해주세요.",
+            )
+
+        if record.code_hash != _hash_code(code):
+            record.attempts += 1
+            await record.save(update_fields=["attempts"])
+            remaining = EMAIL_VERIFICATION_MAX_ATTEMPTS - record.attempts
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"인증 코드가 일치하지 않습니다. ({remaining}회 남음)",
+            )
+
+        # 검증 성공 — 코드 소비 + email_verified True
+        record.used_at = now
+        await record.save(update_fields=["used_at"])
+        user.email_verified = True
+        await user.save(update_fields=["email_verified", "updated_at"])
