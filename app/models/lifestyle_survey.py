@@ -62,6 +62,10 @@ class LifestyleSurvey(models.Model):
     family_history_hypertension = fields.BooleanField(default=False, description="가족력: 고혈압")
     family_history_heart_disease = fields.BooleanField(default=False, description="가족력: 심장질환")
 
+    # 임신 여부 — 임신 중에는 신장 수치·정상 범위 해석이 일반과 달라 본 선별 결과를 그대로 적용하기 어려움.
+    # 대시보드 상단 안전 안내 배너 노출용 (산부인과·주치의 상담 권고).
+    is_pregnant = fields.BooleanField(default=False, description="임신 여부 (체크 시 대시보드 안전 안내 노출)")
+
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
 

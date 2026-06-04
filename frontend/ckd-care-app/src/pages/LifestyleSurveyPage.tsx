@@ -83,6 +83,7 @@ export function LifestyleSurveyPage() {
   const [famDiabetes, setFamDiabetes] = useState(false);
   const [famHypertension, setFamHypertension] = useState(false);
   const [famHeart, setFamHeart] = useState(false);
+  const [isPregnant, setIsPregnant] = useState(false);
 
   async function handleSubmit() {
     if (!smoking || !drinking) {
@@ -109,6 +110,7 @@ export function LifestyleSurveyPage() {
         family_history_diabetes: famDiabetes,
         family_history_hypertension: famHypertension,
         family_history_heart_disease: famHeart,
+        is_pregnant: isPregnant,
       });
       navigate("/dashboard");
     } catch (e) {
@@ -281,6 +283,22 @@ export function LifestyleSurveyPage() {
                   <span className="text-sm text-text-primary">심장질환</span>
                 </label>
               </div>
+            </div>
+
+            <div className="rounded-md border border-border bg-bg p-[16px]">
+              <p className="mb-[12px] text-md font-bold text-text-primary">임신 여부</p>
+              <p className="mb-[8px] text-xs text-text-muted">
+                임신 중에는 신장 수치 해석이 달라 별도 안전 안내가 표시됩니다. 해당될 때만 체크하세요.
+              </p>
+              <label className="flex items-center gap-[8px] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isPregnant}
+                  onChange={(e) => setIsPregnant(e.target.checked)}
+                  className="h-4 w-4 accent-accent"
+                />
+                <span className="text-sm text-text-primary">현재 임신 중입니다</span>
+              </label>
             </div>
 
             <div className="rounded-md border border-border bg-bg p-[16px]">

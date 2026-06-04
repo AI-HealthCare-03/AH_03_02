@@ -24,6 +24,7 @@ export interface LatestLifestyleSummary {
   drinking_frequency: string;
   exercise_days_per_week: number;
   stress_level: string | null;
+  is_pregnant: boolean;
 }
 
 export interface DashboardSummary {

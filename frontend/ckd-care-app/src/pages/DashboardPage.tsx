@@ -29,7 +29,8 @@ function EgfrGauge({ value }: { value: number | null }) {
   const y2 = cy + r * Math.sin(toRad(endAngle));
   const largeArc = pct * 270 > 180 ? 1 : 0;
   return (
-    <div className="flex flex-col items-center justify-center gap-3 p-4 rounded-md border border-border bg-bg" style={{ height: 360 }}>
+    <div className="relative flex flex-col items-center justify-center gap-3 p-4 rounded-md border border-border bg-bg" style={{ height: 360 }}>
+      <span className="absolute right-3 top-3 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">예상값 · 진단 아님</span>
       <svg width="280" height="220" viewBox="0 0 280 220">
         <path d={`M ${cx + r * Math.cos(toRad(-135))} ${cy + r * Math.sin(toRad(-135))} A ${r} ${r} 0 1 1 ${cx + r * Math.cos(toRad(135))} ${cy + r * Math.sin(toRad(135))}`}
           fill="none" stroke="#E5E7EB" strokeWidth="18" strokeLinecap="round" />
@@ -39,6 +40,7 @@ function EgfrGauge({ value }: { value: number | null }) {
         )}
         <text x={cx} y={cy - 6} textAnchor="middle" fontSize="42" fontWeight="bold" fill={color}>{Math.round(value)}</text>
         <text x={cx} y={cy + 22} textAnchor="middle" fontSize="16" fill="#6B7280">mL/min</text>
+        <text x={cx} y={cy + 70} textAnchor="middle" fontSize="28" fill="#9CA3AF" opacity="0.18" fontWeight="bold" pointerEvents="none">예상값</text>
         <line x1={cx} y1={cy} x2={cx + (r - 18) * Math.cos(toRad(angle))} y2={cy + (r - 18) * Math.sin(toRad(angle))}
           stroke="#1F2937" strokeWidth="4" strokeLinecap="round" />
         <circle cx={cx} cy={cy} r="6" fill="#1F2937"/>
@@ -54,12 +56,14 @@ function RiskGauge({ score }: { score: number | null }) {
   const color = score < 30 ? "#059669" : score < 60 ? "#D97706" : "#DC2626";
   const level = score < 30 ? "낮음" : score < 60 ? "중간" : "높음";
   return (
-    <div className="flex flex-col items-center justify-center gap-3 p-4 rounded-md border border-border bg-bg" style={{ height: 360 }}>
+    <div className="relative flex flex-col items-center justify-center gap-3 p-4 rounded-md border border-border bg-bg" style={{ height: 360 }}>
+      <span className="absolute right-3 top-3 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">예상값 · 진단 아님</span>
       <div className="relative flex h-[180px] w-[180px] items-center justify-center rounded-full border-[14px]" style={{ borderColor: color }}>
         <div className="flex flex-col items-center">
           <span className="text-5xl font-bold leading-none" style={{ color }}>{Math.round(score)}%</span>
           <span className="mt-2 text-base font-semibold text-text-secondary">{level}</span>
         </div>
+        <span className="pointer-events-none absolute inset-x-0 bottom-2 text-center text-[14px] font-bold text-text-muted/30">예상값</span>
       </div>
       <p className="text-base font-bold text-text-primary">CKD 위험도</p>
       <p className="text-xs text-text-muted">※ 예상값 (의료 진단 아님)</p>
@@ -196,6 +200,21 @@ export function DashboardPage() {
 
         {error && (
           <div className="mb-4 rounded-sm bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>
+        )}
+
+        {/* 임신 안전 안내 — LifestyleSurvey is_pregnant=true 일 때만 노출. ML 선별 결과 해석 주의·산부인과 상담 권고. */}
+        {ls?.is_pregnant && (
+          <div
+            role="alert"
+            className="mb-4 rounded-md border border-amber-400 bg-amber-50 p-4 text-amber-900"
+          >
+            <p className="text-sm font-bold">임신 중 안전 안내</p>
+            <p className="mt-1 text-xs leading-[1.7]">
+              임신 중에는 신장 수치와 정상 범위 해석이 일반과 달라, 본 선별 결과를 그대로 적용하기 어렵습니다.
+              신장 건강은 산부인과·주치의와 상담해 확인하시는 게 가장 안전합니다.
+              (균형 잡힌 식사·충분한 휴식·수분은 일반적으로 도움이 되지만, 식이·수분 제한은 임의로 하지 마세요.)
+            </p>
+          </div>
         )}
 
         {/* 헤더 + 출석체크 CTA */}

@@ -39,6 +39,7 @@ class LatestLifestyleSummary(BaseSerializerModel):
     drinking_frequency: DrinkingFrequency
     exercise_days_per_week: int
     stress_level: StressLevel | None
+    is_pregnant: bool = False
 
 
 class DashboardSummaryResponse(BaseSerializerModel):
