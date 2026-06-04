@@ -65,6 +65,30 @@ class EmailService:
                 detail="이메일 발송 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요.",
             ) from None
 
+    async def send_email_verification_code(
+        self, to_email: str, code: str, expires_hours: int = 24
+    ) -> EmailDeliveryResult:
+        """REQ-AUTH-003 회원가입 이메일 인증 6자리 코드 발송."""
+        if self.effective_mode == "demo":
+            return EmailDeliveryResult(sent=True, mode="demo", demo_code=code)
+
+        try:
+            resend.api_key = self._api_key
+            params: resend.Emails.SendParams = {
+                "from": self._from,
+                "to": [to_email],
+                "subject": "[CKD Care] 이메일 인증 코드",
+                "html": _render_email_verification_html(code, expires_hours),
+            }
+            response = resend.Emails.send(params)
+            message_id = response.get("id") if isinstance(response, dict) else None
+            return EmailDeliveryResult(sent=True, mode="production", message_id=message_id)
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="이메일 발송 서비스를 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도해주세요.",
+            ) from None
+
 
 def _render_password_reset_html(code: str, expires_minutes: int) -> str:
     return f"""<!DOCTYPE html>
@@ -77,6 +101,24 @@ def _render_password_reset_html(code: str, expires_minutes: int) -> str:
       <p style="margin:0; font-size:32px; font-weight:bold; letter-spacing:8px; color:#0ea5e9;">{code}</p>
     </div>
     <p style="color:#94a3b8; font-size:13px; margin:0;">코드는 {expires_minutes}분 동안 유효하며, 본인이 요청하지 않았다면 이 메일을 무시하세요.</p>
+    <hr style="border:none; border-top:1px solid #e2e8f0; margin:24px 0;" />
+    <p style="color:#94a3b8; font-size:12px; margin:0;">CKD Care · 만성신부전 생활습관 챌린지</p>
+  </div>
+</body>
+</html>"""
+
+
+def _render_email_verification_html(code: str, expires_hours: int) -> str:
+    return f"""<!DOCTYPE html>
+<html lang="ko">
+<body style="font-family: -apple-system, 'Noto Sans KR', sans-serif; background:#f8fafc; padding:32px;">
+  <div style="max-width:520px; margin:0 auto; background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:32px;">
+    <h2 style="margin:0 0 16px; color:#0f172a;">이메일 인증 코드</h2>
+    <p style="color:#475569; line-height:1.6;">CKD Care에 가입해주셔서 감사합니다. 아래 6자리 인증 코드를 앱에 입력하시면 가입이 완료됩니다.</p>
+    <div style="margin:24px 0; padding:20px; background:#f1f5f9; border-radius:8px; text-align:center;">
+      <p style="margin:0; font-size:32px; font-weight:bold; letter-spacing:8px; color:#0ea5e9;">{code}</p>
+    </div>
+    <p style="color:#94a3b8; font-size:13px; margin:0;">코드는 {expires_hours}시간 동안 유효하며, 본인이 요청하지 않았다면 이 메일을 무시하세요.</p>
     <hr style="border:none; border-top:1px solid #e2e8f0; margin:24px 0;" />
     <p style="color:#94a3b8; font-size:12px; margin:0;">CKD Care · 만성신부전 생활습관 챌린지</p>
   </div>

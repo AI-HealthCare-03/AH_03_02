@@ -19,7 +19,16 @@ class TestSignupAPI(TestCase):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post("/api/v1/auth/signup", json=signup_data)
         assert response.status_code == status.HTTP_201_CREATED
-        assert response.json() == {"detail": "회원가입이 성공적으로 완료되었습니다."}
+        body = response.json()
+        assert body["email"] == "test@example.com"
+        assert isinstance(body["user_id"], int)
+        # REQ-AUTH-003 인증 코드 자동 발송 (demo 모드 응답에 코드 포함)
+        ev = body["email_verification"]
+        assert ev["sent"] is True
+        assert ev["mode"] == "demo"
+        assert ev["demo_code"] is not None
+        assert len(ev["demo_code"]) == 6
+        assert ev["expires_in_hours"] == 24
 
     async def test_signup_invalid_email(self):
         signup_data = {

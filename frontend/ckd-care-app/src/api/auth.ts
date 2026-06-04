@@ -35,9 +35,22 @@ export interface PasswordResetRequestResponse {
   expires_in_seconds: number;
 }
 
+export interface EmailVerificationRequestResponse {
+  sent: boolean;
+  mode: "demo" | "production";
+  demo_code: string | null;
+  expires_in_hours: number;
+}
+
+export interface SignUpResponse {
+  user_id: number;
+  email: string;
+  email_verification: EmailVerificationRequestResponse;
+}
+
 export const authApi = {
   login: (body: LoginRequest) => api.post<LoginResponse>("/auth/login", body),
-  signup: (body: SignUpRequest) => api.post<{ detail: string }>("/auth/signup", body),
+  signup: (body: SignUpRequest) => api.post<SignUpResponse>("/auth/signup", body),
   logout: () => api.post<void>("/auth/logout", {}),
   me: () => api.get<UserInfo>("/users/me"),
   changePassword: (body: { current_password: string; new_password: string }) =>
@@ -49,4 +62,9 @@ export const authApi = {
     api.post<PasswordResetRequestResponse>("/auth/password-reset/request", { email }),
   verifyPasswordReset: (email: string, code: string) =>
     api.post<{ temp_password: string }>("/auth/password-reset/verify", { email, code }),
+  // REQ-AUTH-003 이메일 인증
+  requestEmailVerification: (email: string) =>
+    api.post<EmailVerificationRequestResponse>("/auth/email-verification/request", { email }),
+  verifyEmail: (email: string, code: string) =>
+    api.post<{ verified: boolean }>("/auth/email-verification/verify", { email, code }),
 };

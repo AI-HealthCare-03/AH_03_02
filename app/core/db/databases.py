@@ -14,6 +14,7 @@ TORTOISE_APP_MODELS = [
     "app.models.notification_setting",
     "app.models.gamification",
     "app.models.password_reset",
+    "app.models.email_verification",
     "app.models.chat",
 ]
 
