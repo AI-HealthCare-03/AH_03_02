@@ -93,6 +93,20 @@ def test_apply_no_marker_unchanged():
     assert fa.apply_analogies(src) == src
 
 
+def test_apply_multiple_markers():
+    """마커 2개 모두 치환되고 면책은 1번만 붙음."""
+    out = fa.apply_analogies("단백질 48g⟦단백질:48:g⟧, 나트륨 2000mg⟦나트륨:2000:mg⟧.")
+    assert "닭가슴살" in out
+    assert "소금" in out
+    assert out.count("참고용") == 1  # 면책 중복 없음
+
+
+def test_apply_marker_not_exposed():
+    """⟦⟧ 문자가 출력에 절대 노출되지 않음."""
+    out = fa.apply_analogies("칼륨 3500mg⟦칼륨:3500:mg⟧입니다.")
+    assert "⟦" not in out and "⟧" not in out
+
+
 # ── 직접 실행 ──────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_") and callable(v)]
