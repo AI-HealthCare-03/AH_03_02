@@ -21,8 +21,16 @@ _MARRIED = "MARRIED"
 
 # build_model_input이 직접 인덱싱하는 필수 키 (누락 시 KeyError 대신 명시적 ValueError로 전환)
 _REQUIRED_KEYS = (
-    "gender", "birthday", "systolic_bp", "diastolic_bp", "fasting_glucose",
-    "height", "weight", "bmi", "smoking_status", "drinking_frequency",
+    "gender",
+    "birthday",
+    "systolic_bp",
+    "diastolic_bp",
+    "fasting_glucose",
+    "height",
+    "weight",
+    "bmi",
+    "smoking_status",
+    "drinking_frequency",
 )
 
 

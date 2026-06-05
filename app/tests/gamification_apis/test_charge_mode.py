@@ -14,14 +14,14 @@ from app.repositories.gamification_repository import ChargeModeRepository, Inven
 from app.services.charge_mode import ChargeModeService
 
 
-async def _make_user(email: str = "c1@test.com") -> User:
+async def _make_user(email: str = "c1@test.com", phone_number: str = "01000000002") -> User:
     return await User.create(
         email=email,
         hashed_password="$2b$12$dummy",
         name="충전테스터",
         gender="MALE",
         birthday=date(1990, 1, 1),
-        phone_number="01000000002",
+        phone_number=phone_number,
     )
 
 
@@ -81,7 +81,7 @@ class TestChargeMode(TestCase):
         today = date.today()
         # 각 일자마다 새 사용자로 테스트해 latest_checkin_date가 정확히 그 값이 되도록
         for d in [4, 5, 6]:
-            user = await _make_user(email=f"warn{d}@test.com")
+            user = await _make_user(email=f"warn{d}@test.com", phone_number=f"0100000000{d}")
             await _make_uc(user, last_checkin=today - timedelta(days=d))
             event = await cs.evaluate(user.id, today)
             assert event.entered is False, f"day={d}"
