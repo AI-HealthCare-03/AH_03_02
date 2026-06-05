@@ -37,3 +37,10 @@ frontend/ckd-care-app/dist/
 # 부하 테스트 산출물 (재생성 가능, README.md만 추적)
 docs/load-test/report.html
 docs/load-test/result_*.csv
+
+# CKD 학습 전용 venv (AutoGluon 3.11)
+.venv-train/
+
+# CKD 모델 아티팩트·학습셋 (재학습 가능 / 대용량 — git 제외, 외부 스토리지)
+models/
+data/ckd/
