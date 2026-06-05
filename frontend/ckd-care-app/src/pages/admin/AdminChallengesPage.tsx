@@ -24,7 +24,7 @@ export function AdminChallengesPage() {
   async function load() {
     setLoading(true);
     try {
-      const res = await adminApi.listChallenges(100, 0);
+      const res = await adminApi.listChallenges(500, 0);
       setRows(res.items); setTotal(res.total); setError("");
     } catch (e) {
       setError(e instanceof Error ? e.message : "목록 로딩 실패");
@@ -173,7 +173,7 @@ export function AdminChallengesPage() {
           </tbody>
         </table>
       </div>
-      <p className="text-right text-[10px] text-slate-500">총 {total}건 (상위 100건 표시)</p>
+      <p className="text-right text-[10px] text-slate-500">총 {total}건</p>
     </div>
   );
 }
