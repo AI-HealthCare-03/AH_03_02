@@ -21,6 +21,7 @@ from datetime import UTC, date, datetime
 
 from fastapi import HTTPException
 from starlette import status
+from tortoise.exceptions import IntegrityError
 from tortoise.transactions import in_transaction
 
 from app.models.challenge import UserChallenge
@@ -152,7 +153,14 @@ class SlumpService:
         last_date = await _last_activity_date(user_id)
         was_in_slump = last_date is None or (today - last_date).days >= SLUMP_THRESHOLD_DAYS
         async with in_transaction():
-            await SlumpMicroLog.create(user_id=user_id, micro_code=micro_code, log_date=today)
+            try:
+                await SlumpMicroLog.create(user_id=user_id, micro_code=micro_code, log_date=today)
+            except IntegrityError as err:
+                # exists 검사와 create 사이 TOCTOU — (user·micro_code·log_date) UNIQUE 충돌 시 동일 400으로 변환(500 방지)
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="오늘 이미 같은 마이크로 챌린지를 완료하셨어요.",
+                ) from err
             # 슬럼프 복귀 시에만 알림
             if was_in_slump:
                 await Notification.create(

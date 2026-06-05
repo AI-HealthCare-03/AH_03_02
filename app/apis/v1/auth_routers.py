@@ -301,13 +301,15 @@ async def google_callback(code: str | None = None, error: str | None = None) -> 
 
 
 @auth_router.get("/token/refresh", response_model=TokenRefreshResponse, status_code=status.HTTP_200_OK)
+@limiter.limit("30/minute")
 async def token_refresh(
+    request: Request,
     jwt_service: Annotated[JwtService, Depends(JwtService)],
     refresh_token: Annotated[str | None, Cookie()] = None,
 ) -> Response:
     if not refresh_token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token is missing.")
-    access_token = jwt_service.refresh_jwt(refresh_token)
+    access_token = await jwt_service.refresh_jwt(refresh_token)
     return Response(
         content=TokenRefreshResponse(access_token=str(access_token)).model_dump(), status_code=status.HTTP_200_OK
     )

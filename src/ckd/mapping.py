@@ -19,6 +19,20 @@ _SMOKING = {"NEVER": 0, "PAST": 1, "CURRENT": 2}
 _DRINKING6 = {"NONE": 0, "LT_MONTHLY": 1, "MONTHLY": 2, "M2_4": 3, "W2_3": 4, "W4_PLUS": 5}
 _MARRIED = "MARRIED"
 
+# build_model_input이 직접 인덱싱하는 필수 키 (누락 시 KeyError 대신 명시적 ValueError로 전환)
+_REQUIRED_KEYS = (
+    "gender",
+    "birthday",
+    "systolic_bp",
+    "diastolic_bp",
+    "fasting_glucose",
+    "height",
+    "weight",
+    "bmi",
+    "smoking_status",
+    "drinking_frequency",
+)
+
 
 def calc_age(birthday: date, ref: date) -> int:
     """만 나이 (검진일 기준)."""
@@ -29,8 +43,21 @@ def _to_bool_int(v) -> int:
     return int(bool(v))
 
 
+def _lookup(mapping: dict, value, field: str) -> int:
+    """enum 값 안전 룩업 — 미등록 값이면 어떤 필드·값인지 명시하는 ValueError(KeyError 무방비 전파 방지)."""
+    try:
+        return mapping[value]
+    except KeyError as err:
+        raise ValueError(f"미등록 {field} 값: {value!r} (허용: {list(mapping)})") from err
+
+
 def _map_drinking(v) -> int:
-    return v if isinstance(v, int) else _DRINKING6[v]
+    if isinstance(v, int):
+        return v
+    code = _DRINKING6.get(v)
+    if code is None:
+        raise ValueError(f"미등록 drinking_frequency 값: {v!r} (허용: {list(_DRINKING6)})")
+    return code
 
 
 def build_model_input(data: dict, ref_date: date) -> pd.DataFrame:
@@ -41,9 +68,12 @@ def build_model_input(data: dict, ref_date: date) -> pd.DataFrame:
     ldl_cholesterol 없으면 None → 이후 preprocess.add_ldl_friedewald가 추정.
     파생변수는 features.py가 계산하므로 여기서는 raw 컬럼만 생성한다.
     """
+    missing = [k for k in _REQUIRED_KEYS if data.get(k) is None]
+    if missing:
+        raise ValueError(f"CKD 예측 입력 필수 필드 누락/None: {missing}")
     row = {
         # User
-        "gender": _GENDER[data["gender"]],
+        "gender": _lookup(_GENDER, data["gender"], "gender"),
         "age": calc_age(data["birthday"], ref_date),
         # HealthCheck (기존)
         "sbp": data["systolic_bp"],
@@ -65,7 +95,7 @@ def build_model_input(data: dict, ref_date: date) -> pd.DataFrame:
         "urine_protein_qual": data.get("urine_protein_qual"),
         "urine_glucose": data.get("urine_glucose"),
         # LifestyleSurvey
-        "smoking_current": _SMOKING[data["smoking_status"]],
+        "smoking_current": _lookup(_SMOKING, data["smoking_status"], "smoking_status"),
         "drinking_freq": _map_drinking(data["drinking_frequency"]),
         "marital": 1 if data.get("marital_status") == _MARRIED else 0,
         "vigorous_days": data.get("vigorous_exercise_days", 0),

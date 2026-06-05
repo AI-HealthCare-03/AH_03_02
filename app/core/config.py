@@ -5,6 +5,7 @@ from dataclasses import field
 from enum import StrEnum
 from pathlib import Path
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -15,7 +16,7 @@ class Env(StrEnum):
 
 
 class Config(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="allow")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     ENV: Env = Env.LOCAL
     SECRET_KEY: str = f"default-secret-key{uuid.uuid4().hex}"
@@ -71,3 +72,17 @@ class Config(BaseSettings):
     SMTP_PASSWORD: str = ""  # Gmail 앱 비밀번호 (16자, 2FA 활성화 후 발급)
     PASSWORD_RESET_CODE_TTL_SECONDS: int = 300  # 5분
     PASSWORD_RESET_MAX_ATTEMPTS: int = 5
+
+    @model_validator(mode="after")
+    def _enforce_real_secret_key(self) -> "Config":
+        # REQ-SEC: dev/prod에서 SECRET_KEY가 기본값/placeholder면 부팅 실패(fail-fast).
+        # 미설정 시 매 프로세스 랜덤 키로 조용히 동작 → 멀티워커 토큰 검증 붕괴·재시작 시 세션 전멸하는 footgun 방지.
+        # 로컬(LOCAL)은 개발 편의상 허용.
+        if self.ENV in (Env.DEV, Env.PROD) and (
+            self.SECRET_KEY.startswith("default-secret-key") or self.SECRET_KEY.startswith("CHANGE_ME")
+        ):
+            raise ValueError("SECRET_KEY must be set to a real secret in dev/prod (no default/placeholder value)")
+        # REQ-AUTH-003: prod에서 EMAIL_MODE=demo면 인증/재설정 코드가 API 응답(demo_code)에 노출 → 부팅 실패
+        if self.ENV == Env.PROD and self.EMAIL_MODE == "demo":
+            raise ValueError("EMAIL_MODE must not be 'demo' in prod (인증/재설정 코드가 응답에 노출됨)")
+        return self

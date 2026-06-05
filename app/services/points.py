@@ -13,6 +13,8 @@ import secrets
 from dataclasses import dataclass, field
 from datetime import date, datetime, time, timedelta
 
+from tortoise.exceptions import IntegrityError
+
 from app.models.gamification import PointReason, PointTransaction
 from app.repositories.challenge_repository import UserChallengeRepository
 from app.repositories.gamification_repository import DailyLoginRepository, PointRepository
@@ -50,7 +52,11 @@ class PointService:
         """당일 첫 로그인이면 +10 적립. True 반환. 이미 받았으면 False."""
         if await self._daily.exists_today(user_id, today):
             return False
-        await self._daily.record(user_id, today)
+        try:
+            await self._daily.record(user_id, today)
+        except IntegrityError:
+            # 동시 호출 race — (user, login_date) UNIQUE 충돌 시 이미 적립된 것으로 멱등 처리(500 방지)
+            return False
         await self._points.create_transaction(
             user_id=user_id,
             amount=LOGIN_BONUS,

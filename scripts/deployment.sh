@@ -37,14 +37,15 @@ build_and_push () {
 # ---------- Docker login Prompt ----------
 echo "${COLOR_BLUE}도커 유저네임과 비밀번호(PAT)을 입력해주세요.${COLOR_NC}"
 read -p "username: " docker_user
-read -p "password: " docker_pw
+read -s -p "password: " docker_pw
 echo ""
 
 
 # ---------- Docker Login ----------
 echo "${COLOR_BLUE}Docker login${COLOR_NC}"
-if ! docker login -u ${docker_user} -p ${docker_pw} ; then
+if ! echo "${docker_pw}" | docker login -u "${docker_user}" --password-stdin ; then
   echo "${COLOR_RED}도커 로그인에 실패했습니다. 도커 유저네임과 비밀번호를 확인해주세요.${COLOR_NC}"
+  exit 1
 fi
 echo "${COLOR_GREEN}도커 로그인 성공!${COLOR_NC}"
 echo ""
