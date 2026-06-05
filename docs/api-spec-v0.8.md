@@ -10,7 +10,15 @@
 > - 회원 탈퇴 시 민감의료 즉시 파기 (REQ-SEC-008)
 > - 캐릭터 3단계 진화 (10/40/100, 보너스 +100/+400/+750)
 >
-> 최종 갱신: 2026-05-20 (이후 변경은 xlsx 우선)
+> 🆕 2026-06-04~05 머지된 PR 6건 반영:
+> - PR #5 `POST /chat/messages` — RAG 챗봇 (10/분)
+> - PR #6 임신 안전 안내 (REQ-DASH-005) + REQ-DASH-002 예상값 워터마크
+> - PR #7 `GET /dashboard/egfr-simulation` — What-if 시뮬레이션 (명세 v0.8 `POST /simulations/run` 갱신)
+> - PR #9 `POST /auth/email-verification/{request,verify}` — REQ-AUTH-003 회원가입 인증 (차단 정책), 명세 v0.8 `GET /auth/verify-email` 갱신
+> - PR #10 EMAIL_MODE=gmail 옵션 (Gmail SMTP + demo fallback, REQ-AUTH-013)
+> - PR #12 `GET·POST /challenges/slump-micro` — REQ-CHAL-006 슬럼프 + 마이크로 챌린지
+>
+> 최종 갱신: 2026-06-05 (이후 변경은 xlsx 우선)
 > Base URL: `https://{host}/api/v1`
 > 인증: Bearer JWT (`Authorization: Bearer <access_token>`)
 > 응답 형식: `application/json`
@@ -78,27 +86,41 @@
 
 ---
 
-### 🔲 GET `/auth/verify-email` — 이메일 인증 링크 검증 (P0)
-> REQ-AUTH-003
+### ✅ POST `/auth/email-verification/request` — 이메일 인증 코드 재발송 (P0)
+> REQ-AUTH-003 — 1시간 3회 제한 (PR #9)
+> v0.8 `GET /auth/verify-email` 토큰 링크 방식 → 6자리 코드 방식 + 24h TTL로 갱신 (비밀번호 재설정과 패턴 통일)
 
 인증 불필요
 
-**쿼리 파라미터**
+**요청**
+```json
+{ "email": "user@example.com" }
+```
 
-| 파라미터 | 타입 | 설명 |
-|----------|------|------|
-| token | string | 이메일 인증 토큰 (24시간 유효) |
+**응답 `200`**
+```json
+{ "sent": true, "mode": "demo", "demo_code": "123456", "expires_in_hours": 24 }
+```
+`mode`: `demo`(응답에 코드 노출, 시연 안전) / `gmail`(SMTP 발송 + fallback) / `production`(Resend, demo_code=null)
 
-**응답 `200`** — 인증 성공
-**에러** `400` — 만료·유효하지 않은 토큰
+**에러** `404` 등록된 이메일 없음 / `429` Rate Limit 초과
 
 ---
 
-### 🔲 POST `/auth/verify-email/resend` — 인증 메일 재발송 (P0)
-> REQ-AUTH-003 — 1시간 3회 제한
+### ✅ POST `/auth/email-verification/verify` — 이메일 인증 코드 검증 (P0)
+> REQ-AUTH-003 — 10/분 제한, 5회 시도 후 코드 무효 (PR #9)
 
-**응답 `200`**
-**에러** `429` — Rate Limit 초과
+인증 불필요
+
+**요청**
+```json
+{ "email": "user@example.com", "code": "123456" }
+```
+
+**응답 `200`** — `{ "verified": true }`
+**에러** `400` 코드 불일치/만료 / `404` 등록된 이메일 없음 / `429` Rate Limit
+
+미인증 사용자는 로그인 시도 시 `403 "이메일 인증이 필요합니다…"` 차단.
 
 ---
 
@@ -694,10 +716,53 @@
 
 ---
 
-### 🔲 GET `/challenges/slump-micro` — 슬럼프 감지 + 마이크로 챌린지 (P0)
-> REQ-CHAL-006 — 5일 이상 미수행 시 자동 제공
+### ✅ GET `/challenges/slump-micro` — 슬럼프 감지 + 오늘의 마이크로 챌린지 (P0)
+> REQ-CHAL-006 — 5일 이상 미체크인 시 슬럼프로 분류 (PR #12)
 
 인증 필요
+
+**응답 `200`**
+```json
+{
+  "is_slump": true,
+  "days_since_last_checkin": 6,
+  "threshold_days": 5,
+  "micro": {
+    "code": "HYDRATION_CUP",
+    "category": "HYDRATION",
+    "title": "물 1컵 마시기",
+    "icon": "💧",
+    "minutes": 1,
+    "hint": "지금 물 1컵을 천천히 드세요."
+  },
+  "already_checked_in_today": false
+}
+```
+마이크로 챌린지 5종(HYDRATION_CUP·EXERCISE_STRETCH·DIET_VEGGIE·SLEEP_EARLY·STRESS_BREATH)을 일자 기반으로 순환.
+
+---
+
+### ✅ POST `/challenges/slump-micro/checkin` — 마이크로 챌린지 체크인 (P0)
+> REQ-CHAL-006 — 일별 중복 차단, 슬럼프 상태에서 첫 체크인이면 SLUMP_RECOVERED 알림 (PR #12)
+
+인증 필요
+
+**요청**
+```json
+{ "micro_code": "HYDRATION_CUP" }
+```
+
+**응답 `200`**
+```json
+{
+  "recovered": true,
+  "micro_code": "HYDRATION_CUP",
+  "checked_at": "2026-06-05T01:23:45+00:00",
+  "message": "복귀를 환영해요! 작은 한 걸음이 큰 변화의 시작입니다."
+}
+```
+
+**에러** `400` 오늘 이미 같은 코드로 체크인 / `404` 등록된 계정 없음
 
 ---
 
@@ -740,19 +805,38 @@
 
 ## 9. 시뮬레이션 (`/simulations`)
 
-### 🔲 POST `/simulations/run` — 예상 eGFR 시뮬레이션 (P0)
-> REQ-DASH-003 — G4·G5(eGFR<30) 미적용, 실측 eGFR과 명확히 구분
+### ✅ GET `/dashboard/egfr-simulation` — What-if 예상 eGFR 시뮬레이션 (P0)
+> REQ-DASH-003 — G4·G5(eGFR<30) 미적용, 실측 eGFR과 명확히 구분 (PR #7)
+> v0.8 `POST /simulations/run` 갱신 — 카테고리별 실측 진행률 기반 자동 시뮬레이션 + 프론트가 클라이언트 사이드 What-if 슬라이더로 재계산
 
 인증 필요
 
-**요청**
+**응답 `200`** (`applicable=true`)
 ```json
-{ "scenario": { "exercise_days": 5, "smoking_status": "NEVER" } }
+{
+  "actual_egfr": 88.4,
+  "predicted_egfr": 91.2,
+  "boost_amount": 2.8,
+  "applicable": true,
+  "reason": null,
+  "contributions": [
+    { "category": "DIET", "weight": 0.35, "progress_percent": 70, "contribution": 1.96 }
+  ],
+  "max_boost_mlmin": 8.0
+}
 ```
 
-**응답 `200`**
+**미적용 응답** (`applicable=false`) — G4~G5 또는 검진 없음
 ```json
-{ "simulated_egfr": 76.2, "improvement_pct": 5.4, "disclaimer": "예상값입니다." }
+{
+  "actual_egfr": null,
+  "predicted_egfr": null,
+  "boost_amount": 0.0,
+  "applicable": false,
+  "reason": "검진 데이터가 없습니다. 먼저 검진 정보를 입력해주세요.",
+  "contributions": [],
+  "max_boost_mlmin": 8.0
+}
 ```
 
 ---

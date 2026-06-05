@@ -16,12 +16,52 @@ from app.dtos.challenge import (
     UserChallengeResponse,
     WeeklyEmotionResponse,
 )
+from app.dtos.slump import (
+    SlumpMicroCheckinRequest,
+    SlumpMicroCheckinResponse,
+    SlumpStatusResponse,
+)
 from app.models.health_check import AppGroup
 from app.models.users import User
 from app.services.challenge import ChallengeService
+from app.services.slump import SlumpService
 
 challenge_router = APIRouter(prefix="/challenges", tags=["challenges"])
 user_challenge_router = APIRouter(prefix="/user-challenges", tags=["user-challenges"])
+
+
+# ────────────────────────────────────────────────────────────
+# REQ-CHAL-006 슬럼프 + 마이크로 챌린지
+# ────────────────────────────────────────────────────────────
+
+
+@challenge_router.get(
+    "/slump-micro",
+    response_model=SlumpStatusResponse,
+    status_code=status.HTTP_200_OK,
+    summary="REQ-CHAL-006 슬럼프 상태 + 오늘의 마이크로 챌린지",
+)
+async def get_slump_micro(
+    user: Annotated[User, Depends(get_request_user)],
+    slump_service: Annotated[SlumpService, Depends(SlumpService)],
+) -> Response:
+    result = await slump_service.get_status(user_id=user.id, today=date.today())
+    return Response(content=result, status_code=status.HTTP_200_OK)
+
+
+@challenge_router.post(
+    "/slump-micro/checkin",
+    response_model=SlumpMicroCheckinResponse,
+    status_code=status.HTTP_200_OK,
+    summary="REQ-CHAL-006 마이크로 챌린지 체크인 (슬럼프 해제)",
+)
+async def checkin_slump_micro(
+    body: SlumpMicroCheckinRequest,
+    user: Annotated[User, Depends(get_request_user)],
+    slump_service: Annotated[SlumpService, Depends(SlumpService)],
+) -> Response:
+    result = await slump_service.checkin_micro(user_id=user.id, micro_code=body.micro_code, today=date.today())
+    return Response(content=result, status_code=status.HTTP_200_OK)
 
 
 @challenge_router.get(

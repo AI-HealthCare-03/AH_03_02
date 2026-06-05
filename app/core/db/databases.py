@@ -16,6 +16,7 @@ TORTOISE_APP_MODELS = [
     "app.models.password_reset",
     "app.models.email_verification",
     "app.models.chat",
+    "app.models.slump",
 ]
 
 TORTOISE_ORM = {

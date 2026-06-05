@@ -14,6 +14,7 @@ class NotificationType(StrEnum):
     STAGE_BONUS = "STAGE_BONUS"
     CHARGE_MODE_IN = "CHARGE_MODE_IN"
     CHARGE_MODE_OUT = "CHARGE_MODE_OUT"
+    SLUMP_RECOVERED = "SLUMP_RECOVERED"
 
 
 class Notification(models.Model):
