@@ -34,6 +34,11 @@ class Token:
                 raise ExpiredTokenError("Token is expired") from err
             except TokenBackendError as err:
                 raise TokenError("Token is invalid") from err
+
+            # REQ-SEC: access/refresh 토큰 타입 엄격 검증 — 토큰 혼용(예: 7일 refresh를
+            # access 보호 엔드포인트에 제출) 차단. 동일 SECRET_KEY 서명이라 타입 미검증 시 통과됨.
+            if self.payload.get("type") != self.token_type:
+                raise TokenError("token type mismatch")
         else:
             self.payload = {"type": self.token_type}
             self.set_exp(from_time=self.current_time, lifetime=self.lifetime)
