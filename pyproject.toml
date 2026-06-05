@@ -3,7 +3,7 @@ name = "ai-health-example"
 version = "0.1.0"
 description = "AI 헬스케어 파이널 프로젝트 예시용"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
     "cryptography>=46.0.3",
     "pydantic>=2.12.5",
@@ -59,6 +59,10 @@ dev = [
     "ruff>=0.14.14",
     "types-passlib>=1.7.7.20250602",
     "types-python-dateutil>=2.9.0.20260124",
+]
+ckd = [
+    "numpy>=1.26",
+    "pandas>=2.0",
 ]
 
 [tool.uv.sources]

@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
@@ -12,8 +12,13 @@ COPY pyproject.toml uv.lock ./
 #    rag 그룹이 있어야 ai_worker.rag(langchain·langgraph·qdrant·openai)가 import 된다.
 RUN uv sync --group ai --group rag --no-dev --frozen
 
-# 4. ai_worker 패키지를 그대로 복사 (python -m ai_worker.main 모듈 경로 유지).
+# 3-1. AutoGluon predictor 추론용 — ai 그룹(torch)과 lock 충돌을 피하려 pyproject 밖에서 직접 설치.
+#      (autogluon stable이 requires-python>=3.11 전체를 만족 못 해 uv.lock 통합 resolve 실패하기 때문)
+RUN uv pip install "autogluon.tabular" lightgbm xgboost
+
+# 4. ai_worker·src(CKD predict 모듈) 패키지 복사.
 COPY ./ai_worker ./ai_worker
+COPY ./src ./src
 
 # 5. RAG Redis Stream consumer 기동 (rag_jobs 처리 → rag_resp:{job_id}).
 CMD ["uv", "run", "python", "-m", "ai_worker.main"]

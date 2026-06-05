@@ -1,0 +1,37 @@
+# 가상환경 (컨테이너에서 재생성)
+.venv
+.venv-train
+
+# git·IDE·도구
+.git
+.idea
+.vscode
+.claude
+
+# 데이터·모델 (볼륨/외부 스토리지로 주입)
+data/
+data_pipeline/
+models/
+
+# 캐시·임시
+__pycache__/
+**/__pycache__/
+*.py[oc]
+.pytest_cache/
+.ruff_cache/
+.coverage*
+.DS_Store
+**/.DS_Store
+
+# build에 불필요 (COPY 대상 아님)
+poc/
+frontend/
+docs/
+scripts/
+tests/
+infra/
+*.md
+
+# RAG 원본 자료·산출물 (대용량, 재생성/외부)
+src/rag_indexing/data/
+src/rag_indexing/chunks/
