@@ -33,6 +33,21 @@ async def _auto_verify_then_authenticate(self: AuthService, data):  # type: igno
 
 AuthService.authenticate = _auto_verify_then_authenticate  # type: ignore[method-assign]
 
+# 테스트는 외부 메일 발송을 하지 않는다. .local.env의 EMAIL_MODE가 gmail/production이어도
+# EmailService를 demo로 강제 — 응답에 코드 포함이 단정인 기존 테스트(test_signup_api·test_password_reset)
+# 회귀 방지.
+from app.services.email import EmailService  # noqa: E402
+
+_original_email_init = EmailService.__init__
+
+
+def _force_demo_email_init(self) -> None:  # type: ignore[no-untyped-def]
+    _original_email_init(self)
+    self._mode = "demo"
+
+
+EmailService.__init__ = _force_demo_email_init  # type: ignore[method-assign]
+
 TEST_BASE_URL = "http://test"
 
 
