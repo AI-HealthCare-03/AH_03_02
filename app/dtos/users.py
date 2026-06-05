@@ -42,4 +42,5 @@ class UserInfoResponse(BaseSerializerModel):
     phone_number: str
     birthday: date
     gender: Gender
+    is_admin: bool = False
     created_at: datetime

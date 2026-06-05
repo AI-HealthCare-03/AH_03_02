@@ -1,4 +1,4 @@
-import { User, Bell, LayoutDashboard, Trophy, Coins, Sparkles, Bot } from "lucide-react";
+import { User, Bell, LayoutDashboard, Trophy, Coins, Sparkles, Bot, Shield } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
@@ -10,7 +10,7 @@ interface TopNavProps {
 }
 
 export function TopNav({ brand = "CKD CARE" }: TopNavProps) {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const location = useLocation();
   const [unread, setUnread] = useState(0);
   const [balance, setBalance] = useState<number | null>(null);
@@ -53,6 +53,16 @@ export function TopNav({ brand = "CKD CARE" }: TopNavProps) {
       </div>
 
       <div className="flex items-center gap-[4px]">
+        {user?.is_admin && (
+          <Link
+            to="/admin"
+            className="flex items-center gap-[6px] rounded-md border border-amber-400 bg-amber-50 px-[10px] py-[6px] text-xs font-bold text-amber-700 hover:bg-amber-100"
+            title="관리자 화면"
+          >
+            <Shield size={14} />
+            관리자
+          </Link>
+        )}
         {balance !== null && (
           <Link
             to="/shop"

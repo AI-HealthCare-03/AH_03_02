@@ -47,6 +47,13 @@ import { ShopPage } from "./pages/ShopPage";
 import { PointHistoryPage } from "./pages/PointHistoryPage";
 import { CollectionPage } from "./pages/CollectionPage";
 import { RestModePage } from "./pages/RestModePage";
+import { AdminLayout } from "./components/AdminLayout";
+import { AdminOverviewPage } from "./pages/admin/AdminOverviewPage";
+import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
+import { AdminUserDetailPage } from "./pages/admin/AdminUserDetailPage";
+import { AdminChallengesPage } from "./pages/admin/AdminChallengesPage";
+import { AdminLogsPage } from "./pages/admin/AdminLogsPage";
+import { AdminSafetyPage } from "./pages/admin/AdminSafetyPage";
 import { DisclaimerFooter } from "./components/DisclaimerFooter";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -92,6 +99,16 @@ function AppRoutes() {
       <Route path="/points/transactions" element={<PrivateRoute><PointHistoryPage /></PrivateRoute>} />
       <Route path="/collection" element={<PrivateRoute><CollectionPage /></PrivateRoute>} />
       <Route path="/rest-mode" element={<PrivateRoute><RestModePage /></PrivateRoute>} />
+
+      {/* 관리자 페이지 — AdminLayout 내부에서 is_admin 가드 (false → /dashboard 리다이렉트) */}
+      <Route path="/admin" element={<PrivateRoute><AdminLayout /></PrivateRoute>}>
+        <Route index element={<AdminOverviewPage />} />
+        <Route path="users" element={<AdminUsersPage />} />
+        <Route path="users/:id" element={<AdminUserDetailPage />} />
+        <Route path="challenges" element={<AdminChallengesPage />} />
+        <Route path="safety" element={<AdminSafetyPage />} />
+        <Route path="logs" element={<AdminLogsPage />} />
+      </Route>
     </Routes>
   );
 }

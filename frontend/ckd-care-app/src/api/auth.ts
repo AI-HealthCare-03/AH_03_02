@@ -25,6 +25,7 @@ export interface UserInfo {
   phone_number: string;
   birthday: string;
   gender: "MALE" | "FEMALE";
+  is_admin: boolean;
   created_at: string;
 }
 

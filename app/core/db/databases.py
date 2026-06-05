@@ -17,6 +17,8 @@ TORTOISE_APP_MODELS = [
     "app.models.email_verification",
     "app.models.chat",
     "app.models.slump",
+    "app.models.admin_action_log",
+    "app.models.safety_event",
 ]
 
 TORTOISE_ORM = {
