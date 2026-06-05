@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, Navigate, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Trophy, BarChart3, ScrollText, LogOut, Shield, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, Users, Trophy, ScrollText, LogOut, Shield, ShieldAlert } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
 interface NavItem {
@@ -9,11 +9,10 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-  { to: "/admin", icon: LayoutDashboard, label: "통계 요약" },
+  { to: "/admin", icon: LayoutDashboard, label: "통계 대시보드" },
   { to: "/admin/users", icon: Users, label: "사용자 관리" },
   { to: "/admin/challenges", icon: Trophy, label: "챌린지 카탈로그" },
   { to: "/admin/safety", icon: ShieldAlert, label: "세이프티 이벤트" },
-  { to: "/admin/stats", icon: BarChart3, label: "통계 대시보드" },
   { to: "/admin/logs", icon: ScrollText, label: "감사 로그" },
 ];
 

@@ -57,6 +57,11 @@ export interface AdminChallengeListResponse {
   items: AdminChallenge[];
 }
 
+export interface SignupBucket {
+  date: string;
+  count: number;
+}
+
 export interface AdminStatsSummary {
   total_users: number;
   active_users: number;
@@ -69,6 +74,8 @@ export interface AdminStatsSummary {
   total_checkins: number;
   challenges_active_catalog: number;
   ckd_stage_distribution: Record<string, number>;
+  challenges_by_category: Record<string, number>;
+  signups_last_30d: SignupBucket[];
 }
 
 export interface AdminActionLogRow {

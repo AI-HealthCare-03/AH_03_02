@@ -90,6 +90,11 @@ class AdminChallengeDeactivateRequest(BaseModel):
 
 
 # ── 통계 ────────────────────────────────────────────
+class SignupBucket(BaseModel):
+    date: str  # YYYY-MM-DD
+    count: int
+
+
 class AdminStatsSummary(BaseModel):
     total_users: int
     active_users: int
@@ -102,6 +107,8 @@ class AdminStatsSummary(BaseModel):
     total_checkins: int
     challenges_active_catalog: int
     ckd_stage_distribution: dict[str, int]  # G1~G5 + UNKNOWN
+    challenges_by_category: dict[str, int]  # HYDRATION/EXERCISE/DIET/SLEEP/STRESS
+    signups_last_30d: list[SignupBucket]  # 일별 신규 가입 시계열
 
 
 # ── 감사 로그 ────────────────────────────────────────

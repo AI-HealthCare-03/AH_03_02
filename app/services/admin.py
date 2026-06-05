@@ -230,6 +230,32 @@ class AdminService:
         for row in raw:
             stage_key = row.get("ckd_stage") or "UNKNOWN"
             stage_dist[stage_key] = stage_dist.get(stage_key, 0) + 1
+
+        # 카테고리별 챌린지 카탈로그 분포 (활성만)
+        _, cat_rows = await conn.execute_query(
+            "SELECT category, COUNT(*) AS cnt FROM challenges WHERE is_active = true GROUP BY category"
+        )
+        cat_dist: dict[str, int] = {"HYDRATION": 0, "EXERCISE": 0, "DIET": 0, "SLEEP": 0, "STRESS": 0}
+        for row in cat_rows:
+            cat_dist[row["category"]] = row["cnt"]
+
+        # 지난 30일 일별 신규 가입 시계열 (가입 0인 날도 0으로 채움)
+        _, signup_rows = await conn.execute_query(
+            """
+            SELECT DATE(created_at) AS d, COUNT(*) AS cnt
+            FROM users
+            WHERE created_at >= $1
+            GROUP BY d
+            ORDER BY d
+            """,
+            [month_ago],
+        )
+        signup_map = {str(r["d"]): r["cnt"] for r in signup_rows}
+        signups: list[dict] = []
+        for i in range(30, -1, -1):
+            d = (now - timedelta(days=i)).date()
+            signups.append({"date": d.isoformat(), "count": signup_map.get(str(d), 0)})
+
         return {
             "total_users": total_users,
             "active_users": active_users,
@@ -242,6 +268,8 @@ class AdminService:
             "total_checkins": total_checkins,
             "challenges_active_catalog": active_catalog,
             "ckd_stage_distribution": stage_dist,
+            "challenges_by_category": cat_dist,
+            "signups_last_30d": signups,
         }
 
     # ── 감사 로그 ────────────────────────────────────

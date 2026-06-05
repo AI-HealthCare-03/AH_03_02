@@ -107,7 +107,6 @@ function AppRoutes() {
         <Route path="users/:id" element={<AdminUserDetailPage />} />
         <Route path="challenges" element={<AdminChallengesPage />} />
         <Route path="safety" element={<AdminSafetyPage />} />
-        <Route path="stats" element={<AdminOverviewPage />} />
         <Route path="logs" element={<AdminLogsPage />} />
       </Route>
     </Routes>
