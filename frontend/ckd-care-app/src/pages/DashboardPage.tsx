@@ -11,6 +11,7 @@ import { WeeklyProgressWidget } from "../components/WeeklyProgressWidget";
 import { EgfrSimulationWidget } from "../components/EgfrSimulationWidget";
 import { dashboardApi, type DashboardSummary, type EgfrTrend } from "../api/dashboard";
 import { pointsApi } from "../api/gamification";
+import { slumpApi, type SlumpStatusResponse } from "../api/slump";
 import { useAuth } from "../contexts/AuthContext";
 
 function EgfrGauge({ value }: { value: number | null }) {
@@ -159,6 +160,7 @@ export function DashboardPage() {
   const [error, setError] = useState("");
   const [attendanceLoading, setAttendanceLoading] = useState(false);
   const [attendanceMsg, setAttendanceMsg] = useState("");
+  const [slump, setSlump] = useState<SlumpStatusResponse | null>(null);
 
   async function handleAttendance() {
     setAttendanceLoading(true);
@@ -178,6 +180,8 @@ export function DashboardPage() {
       .then(([s, t]) => { setSummary(s); setTrend(t); })
       .catch((e) => setError(e instanceof Error ? e.message : "데이터를 불러오지 못했습니다."))
       .finally(() => setLoading(false));
+    // REQ-CHAL-006 슬럼프 상태 조회 — 실패해도 대시보드 본 흐름에 영향 없음
+    slumpApi.status().then(setSlump).catch(() => setSlump(null));
   }, []);
 
   if (loading) return (
@@ -200,6 +204,24 @@ export function DashboardPage() {
 
         {error && (
           <div className="mb-4 rounded-sm bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>
+        )}
+
+        {/* REQ-CHAL-006 슬럼프 카드 — 5일 이상 미체크인 시 자동 노출 (오늘 마이크로 안 했을 때만) */}
+        {slump?.is_slump && !slump.already_checked_in_today && (
+          <Link
+            to="/slump"
+            className="mb-4 flex items-center gap-[12px] rounded-md border border-amber-400 bg-amber-50 p-4 text-amber-900 transition-colors hover:bg-amber-100"
+          >
+            <span className="text-2xl">{slump.micro.icon}</span>
+            <div className="flex-1">
+              <p className="text-sm font-bold">잠시 쉬어가도 괜찮아요</p>
+              <p className="mt-[2px] text-xs leading-[1.6]">
+                {slump.days_since_last_checkin}일 동안 체크인을 못 하셨어요.
+                오늘은 <span className="font-bold">{slump.micro.title}</span> ({slump.micro.minutes}분)부터 다시 시작해볼까요?
+              </p>
+            </div>
+            <span className="text-xs font-bold">자세히 보기 →</span>
+          </Link>
         )}
 
         {/* 임신 안전 안내 — LifestyleSurvey is_pregnant=true 일 때만 노출. ML 선별 결과 해석 주의·산부인과 상담 권고. */}
