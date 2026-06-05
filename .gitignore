@@ -42,5 +42,7 @@ docs/load-test/result_*.csv
 .venv-train/
 
 # CKD 모델 아티팩트·학습셋 (재학습 가능 / 대용량 — git 제외, 외부 스토리지)
-models/
+# 루트 models/ 만 제외 — 'models/'(앞 슬래시 없음)는 app/models·db/migrations/models까지
+# 잡아 새 모델·마이그레이션 파일이 무시되는 함정이 있어 '/models/'로 한정
+/models/
 data/ckd/
