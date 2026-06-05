@@ -3,7 +3,8 @@ from app.dtos.health_check import (
     HealthCheckListResponse,
     HealthCheckResponse,
 )
-from app.models.health_check import AppGroup, CkdStage
+from app.models.health_check import AppGroup, CkdStage, HealthCheck
+from app.models.safety_event import SafetyEvent, SafetyEventType
 from app.models.users import Gender
 from app.repositories.health_check_repository import HealthCheckRepository
 
@@ -163,9 +164,55 @@ class HealthCheckService:
 
         safety_warning = self._check_safety_warning(dto.systolic_bp, dto.diastolic_bp, dto.fasting_glucose, egfr)
 
+        # 위험 감지 시 SafetyEvent 영구 기록 (관리자 모니터링용)
+        await self._record_safety_events(user_id=user_id, health_check=hc, dto=dto, egfr=egfr)
+
         response = HealthCheckResponse.model_validate(hc)
         response.safety_warning = safety_warning
         return response
+
+    @staticmethod
+    async def _record_safety_events(
+        *,
+        user_id: int,
+        health_check: HealthCheck,
+        dto: HealthCheckCreateRequest,
+        egfr: float | None,
+    ) -> None:
+        """위험 수치 발견 시 SafetyEvent 1건씩 영구 기록. 관리자 화면에서 모니터링."""
+        if dto.systolic_bp >= _BP_CRISIS_SYSTOLIC or dto.diastolic_bp >= _BP_CRISIS_DIASTOLIC:
+            await SafetyEvent.create(
+                user_id=user_id,
+                health_check_id=health_check.id,
+                event_type=SafetyEventType.BP_CRISIS,
+                value=float(dto.systolic_bp),
+                message=(
+                    f"혈압이 매우 높습니다 ({dto.systolic_bp}/{dto.diastolic_bp} mmHg). "
+                    "즉시 가까운 의료기관을 방문하거나 119에 연락하세요."
+                ),
+            )
+        if dto.fasting_glucose >= _GLUCOSE_CRISIS:
+            await SafetyEvent.create(
+                user_id=user_id,
+                health_check_id=health_check.id,
+                event_type=SafetyEventType.GLUCOSE_CRISIS,
+                value=float(dto.fasting_glucose),
+                message=(
+                    f"공복혈당이 매우 높습니다 ({dto.fasting_glucose:.0f} mg/dL). "
+                    "즉시 가까운 의료기관을 방문하거나 119에 연락하세요."
+                ),
+            )
+        if egfr is not None and egfr < _EGFR_G5_THRESHOLD:
+            await SafetyEvent.create(
+                user_id=user_id,
+                health_check_id=health_check.id,
+                event_type=SafetyEventType.EGFR_CRISIS,
+                value=float(egfr),
+                message=(
+                    f"신장 기능이 매우 저하되어 있습니다 (eGFR {egfr} mL/min/1.73m²). "
+                    "즉시 신장내과 전문의 진료를 받으세요."
+                ),
+            )
 
     async def get_health_checks(
         self,
