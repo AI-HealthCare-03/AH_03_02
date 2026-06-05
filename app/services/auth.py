@@ -143,7 +143,10 @@ class AuthService:
             )
         alphabet = string.ascii_letters + string.digits + "!@#$"
         temp_pw = "".join(secrets.choice(alphabet) for _ in range(12))
-        await self.user_repo.update_instance(user=user, data={"hashed_password": hash_password(temp_pw)})
+        await self.user_repo.update_instance(
+            user=user,
+            data={"hashed_password": hash_password(temp_pw), "token_version": user.token_version + 1},
+        )
         return temp_pw
 
     async def request_password_reset(self, email: str) -> EmailDeliveryResult:
@@ -225,7 +228,10 @@ class AuthService:
 
         alphabet = string.ascii_letters + string.digits + "!@#$"
         temp_pw = "".join(secrets.choice(alphabet) for _ in range(12))
-        await self.user_repo.update_instance(user=user, data={"hashed_password": hash_password(temp_pw)})
+        await self.user_repo.update_instance(
+            user=user,
+            data={"hashed_password": hash_password(temp_pw), "token_version": user.token_version + 1},
+        )
         # 로그인 잠금 상태가 있으면 초기화 (정상 사용 흐름 복귀)
         if user.failed_login_count > 0 or user.locked_until is not None:
             user.failed_login_count = 0
