@@ -116,7 +116,7 @@ def impute_missing(df: pd.DataFrame, impute_stats: dict) -> pd.DataFrame:
         overall = impute_stats["overall"].get(col)
         na = df[col].isna()
         for idx in df.index[na]:
-            key = f"{df.at[idx, 'gender']}|{grp.at[idx]}"
+            key = f"{int(df.at[idx, 'gender'])}|{grp.at[idx]}"
             df.at[idx, col] = table.get(key, overall)
 
     # 연령군 중앙값
@@ -134,4 +134,24 @@ def impute_missing(df: pd.DataFrame, impute_stats: dict) -> pd.DataFrame:
         if col in df.columns:
             df[col] = df[col].fillna(impute_stats["mode"].get(col))
 
+    return df
+
+
+def add_ldl_friedewald(df: pd.DataFrame) -> pd.DataFrame:
+    """LDL 결측 시 Friedewald 추정 — LDL = TC − HDL − TG/5 (TG<400). 노트북① cell 10.
+
+    ldl_is_estimated: 추정 적용 행 1, 그 외 0. 학습·서비스 공유.
+    """
+    df = df.copy()
+    mask = (
+        df["ldl_cholesterol"].isna()
+        & (df["triglycerides"] < 400)
+        & df["total_cholesterol"].notna()
+        & df["hdl_cholesterol"].notna()
+        & df["triglycerides"].notna()
+    )
+    df["ldl_is_estimated"] = mask.astype(int)
+    df.loc[mask, "ldl_cholesterol"] = (
+        df.loc[mask, "total_cholesterol"] - df.loc[mask, "hdl_cholesterol"] - df.loc[mask, "triglycerides"] / 5
+    )
     return df

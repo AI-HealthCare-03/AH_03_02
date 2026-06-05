@@ -18,7 +18,7 @@ import json
 
 import pandas as pd
 
-from . import config
+from . import config, preprocess
 
 
 def extract_stats(train_df: pd.DataFrame) -> dict:
@@ -42,6 +42,34 @@ def extract_stats(train_df: pd.DataFrame) -> dict:
     hi = float(v2.max())
     median_val = float(v2.median())
     stats["tg_hdl_v2"] = {"lo": lo, "hi": hi, "median": median_val}
+
+    # 결측 대치 통계 (노트북② cell 17~20)
+    # final_v2는 대치 완료본이라 그룹 통계는 근사이나, 중요도 낮은 변수 위주라 수용.
+    grp = train_df["age"].apply(preprocess.assign_age_group)
+    ga_median: dict = {}
+    for col in config.IMPUTE_GENDER_AGE_MEDIAN:
+        if col not in train_df.columns:
+            continue
+        med = train_df.groupby([train_df["gender"], grp])[col].median()
+        ga_median[col] = {f"{int(g)}|{a}": float(v) for (g, a), v in med.items() if pd.notna(v)}
+    age_median: dict = {}
+    for col in config.IMPUTE_AGE_MEDIAN:
+        if col not in train_df.columns:
+            continue
+        med = train_df.groupby(grp)[col].median()
+        age_median[col] = {a: float(v) for a, v in med.items() if pd.notna(v)}
+    mode = {col: float(train_df[col].mode().iloc[0]) for col in config.IMPUTE_MODE if col in train_df.columns}
+    overall = {
+        col: float(train_df[col].median())
+        for col in config.IMPUTE_GENDER_AGE_MEDIAN + config.IMPUTE_AGE_MEDIAN
+        if col in train_df.columns
+    }
+    stats["impute"] = {
+        "gender_age_median": ga_median,
+        "age_median": age_median,
+        "mode": mode,
+        "overall": overall,
+    }
 
     return stats
 
