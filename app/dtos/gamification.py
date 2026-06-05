@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.dtos.base import BaseSerializerModel
 from app.models.gamification import CharacterSpecies, ItemCode
@@ -30,6 +30,15 @@ class EggHistoryItem(BaseSerializerModel):
 
 class CharacterRenameRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=30)
+
+    @field_validator("name")
+    @classmethod
+    def _strip_not_empty(cls, v: str) -> str:
+        # min_length=1은 공백만("   ")도 통과시키므로 strip 후 비어있지 않음을 강제
+        stripped = v.strip()
+        if not stripped:
+            raise ValueError("이름은 공백일 수 없습니다.")
+        return stripped
 
 
 class SkinEquipRequest(BaseModel):

@@ -82,4 +82,7 @@ class Config(BaseSettings):
             self.SECRET_KEY.startswith("default-secret-key") or self.SECRET_KEY.startswith("CHANGE_ME")
         ):
             raise ValueError("SECRET_KEY must be set to a real secret in dev/prod (no default/placeholder value)")
+        # REQ-AUTH-003: prod에서 EMAIL_MODE=demo면 인증/재설정 코드가 API 응답(demo_code)에 노출 → 부팅 실패
+        if self.ENV == Env.PROD and self.EMAIL_MODE == "demo":
+            raise ValueError("EMAIL_MODE must not be 'demo' in prod (인증/재설정 코드가 응답에 노출됨)")
         return self
