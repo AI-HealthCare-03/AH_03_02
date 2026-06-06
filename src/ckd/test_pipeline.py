@@ -81,6 +81,13 @@ def test_run_inference_egfr(stats: dict) -> None:
     assert out["ckd_stage"] in {"G1", "G2", "G3A", "G3B", "G4", "G5"}
 
 
+def test_run_inference_egfr_override(stats: dict) -> None:
+    """egfr_override를 주면 calc_egfr를 건너뛰고 그 값으로 그룹·스테이지를 정한다."""
+    out = pipeline.run_inference(_sample(), date(2024, 6, 1), FakePredictor(), 0.5, stats, egfr_override=48.0)
+    assert out["egfr_estimated"] == 48.0
+    assert out["app_group"] == "G1"  # eGFR<60 → A(G1)
+
+
 def test_run_inference_missing_imputed(stats: dict) -> None:
     """일부 검사수치 결측 시 impute_missing이 보완해 끝까지 동작."""
     data = {**_sample()}

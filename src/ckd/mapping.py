@@ -20,9 +20,9 @@ _DRINKING6 = {"NONE": 0, "LT_MONTHLY": 1, "MONTHLY": 2, "M2_4": 3, "W2_3": 4, "W
 _MARRIED = "MARRIED"
 
 # build_model_input이 직접 인덱싱하는 필수 키 (누락 시 KeyError 대신 명시적 ValueError로 전환)
+# birthday는 age 직접 주입으로 대체 가능 → _REQUIRED_KEYS에서 제외 (_resolve_age에서 검증)
 _REQUIRED_KEYS = (
     "gender",
-    "birthday",
     "systolic_bp",
     "diastolic_bp",
     "fasting_glucose",
@@ -37,6 +37,17 @@ _REQUIRED_KEYS = (
 def calc_age(birthday: date, ref: date) -> int:
     """만 나이 (검진일 기준)."""
     return ref.year - birthday.year - ((ref.month, ref.day) < (birthday.month, birthday.day))
+
+
+def _resolve_age(data: dict, ref_date: date) -> int:
+    """age 직접 주입 우선, 없으면 birthday+ref_date로 만 나이 계산."""
+    age = data.get("age")
+    if age is not None:
+        return int(age)
+    birthday = data.get("birthday")
+    if birthday is not None:
+        return calc_age(birthday, ref_date)
+    raise ValueError("CKD 예측 입력: age 또는 birthday 중 하나가 필요합니다")
 
 
 def _to_bool_int(v) -> int:
@@ -74,7 +85,7 @@ def build_model_input(data: dict, ref_date: date) -> pd.DataFrame:
     row = {
         # User
         "gender": _lookup(_GENDER, data["gender"], "gender"),
-        "age": calc_age(data["birthday"], ref_date),
+        "age": _resolve_age(data, ref_date),
         # HealthCheck (기존)
         "sbp": data["systolic_bp"],
         "dbp": data["diastolic_bp"],

@@ -121,6 +121,24 @@ def test_raw_columns_present() -> None:
     assert not missing, f"raw 컬럼 누락: {missing}"
 
 
+def test_age_direct_injection() -> None:
+    """age를 직접 주면 birthday 없이도 그 값을 사용한다."""
+    data = {**_sample(), "age": 58}
+    del data["birthday"]
+    df = mapping.build_model_input(data, date(2024, 6, 1))
+    assert df.iloc[0]["age"] == 58
+
+
+def test_age_requires_age_or_birthday() -> None:
+    """age·birthday 둘 다 없으면 명시적 ValueError."""
+    import pytest
+
+    data = {**_sample()}
+    del data["birthday"]
+    with pytest.raises(ValueError, match="age 또는 birthday"):
+        mapping.build_model_input(data, date(2024, 6, 1))
+
+
 def test_ldl_friedewald_formula() -> None:
     """Friedewald 공식·TG≥400 제외·실측 보존·ldl_is_estimated (노트북① cell 10).
 
