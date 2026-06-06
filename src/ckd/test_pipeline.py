@@ -88,6 +88,13 @@ def test_run_inference_egfr_override(stats: dict) -> None:
     assert out["app_group"] == "G1"  # eGFR<60 → A(G1)
 
 
+def test_run_inference_egfr_override_nan(stats: dict) -> None:
+    """egfr_override가 NaN이면 egfr_estimated=None이고 G1 배정이 안 된다."""
+    out = pipeline.run_inference(_sample(), date(2024, 6, 1), FakePredictor(), 0.5, stats, egfr_override=float("nan"))
+    assert out["egfr_estimated"] is None
+    assert out["app_group"] != "G1"
+
+
 def test_run_inference_missing_imputed(stats: dict) -> None:
     """일부 검사수치 결측 시 impute_missing이 보완해 끝까지 동작."""
     data = {**_sample()}

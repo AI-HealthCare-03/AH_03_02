@@ -139,6 +139,13 @@ def test_age_requires_age_or_birthday() -> None:
         mapping.build_model_input(data, date(2024, 6, 1))
 
 
+def test_age_overrides_birthday() -> None:
+    """age와 birthday가 모두 있으면 age 우선 (실제 worker 시나리오)."""
+    data = {**_sample(), "age": 58}  # birthday도 남아 있음
+    df = mapping.build_model_input(data, date(2024, 6, 1))
+    assert df.iloc[0]["age"] == 58
+
+
 def test_ldl_friedewald_formula() -> None:
     """Friedewald 공식·TG≥400 제외·실측 보존·ldl_is_estimated (노트북① cell 10).
 
