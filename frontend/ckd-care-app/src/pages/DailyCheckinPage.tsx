@@ -73,6 +73,7 @@ export function DailyCheckinPage() {
       setResultModal(res);
       // 개별 체크인 완료 후 대시보드 챌린지 통계 즉시 갱신
       queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["challenges"] });
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "체크인 실패");
@@ -94,6 +95,7 @@ export function DailyCheckinPage() {
       if (lastResult) setResultModal(lastResult);
       // 전체 체크인 완료 후 대시보드 챌린지 통계 즉시 갱신
       queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["challenges"] });
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "체크인 실패");

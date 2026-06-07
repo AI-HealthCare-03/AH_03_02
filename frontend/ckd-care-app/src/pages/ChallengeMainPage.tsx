@@ -76,8 +76,9 @@ export function ChallengeMainPage() {
     try {
       const res = await challengeApi.checkin(ucId);
       setCheckinResult(res);  // 보상 모달 표시
-      // 체크인 완료 후 대시보드 챌린지 통계 즉시 갱신
+      // 체크인 완료 후 대시보드 챌린지 통계·카테고리 위젯 즉시 갱신
       queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["challenges"] });
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "체크인 실패");

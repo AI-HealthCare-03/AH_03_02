@@ -73,12 +73,15 @@ function RiskGauge({ score, calculating }: { score: number | null; calculating?:
   return (
     <div className="relative flex flex-col items-center justify-center gap-3 p-4 rounded-md border border-border bg-bg" style={{ height: 360 }}>
       <span className="absolute right-3 top-3 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">예상값 · 진단 아님</span>
-      <div className="relative flex h-[180px] w-[180px] items-center justify-center rounded-full border-[14px]" style={{ borderColor: color }}>
-        <div className="flex flex-col items-center">
+      <div
+        className="relative flex h-[180px] w-[180px] items-center justify-center rounded-full"
+        style={{ background: `conic-gradient(${color} ${score * 3.6}deg, #E5E7EB ${score * 3.6}deg)` }}
+      >
+        <div className="flex h-[150px] w-[150px] flex-col items-center justify-center rounded-full bg-bg">
           <span className="text-5xl font-bold leading-none" style={{ color }}>{Math.round(score)}%</span>
-          <span className="mt-2 text-base font-semibold text-text-secondary">{level}</span>
+          <span className="mt-1 text-base font-semibold text-text-secondary">{level}</span>
+          <span className="pointer-events-none mt-1 text-[12px] font-bold text-text-muted/40">예상값</span>
         </div>
-        <span className="pointer-events-none absolute inset-x-0 bottom-2 text-center text-[14px] font-bold text-text-muted/30">예상값</span>
       </div>
       <p className="text-base font-bold text-text-primary">CKD 위험도</p>
       <p className="text-xs text-text-muted">※ 예상값 (의료 진단 아님)</p>
@@ -154,11 +157,6 @@ function EgfrTrendChart({ trend }: { trend: EgfrTrend | null }) {
     </div>
   );
 }
-
-const CKD_STAGE_LABEL: Record<string, string> = {
-  G1: "G1 · 정상", G2: "G2 · 경계군", G3a: "G3a · 경증", G3b: "G3b · 중등도",
-  G4: "G4 · 중증", G5: "G5 · 신부전",
-};
 
 // ML 케어군(app_group) — KDIGO eGFR 단계(G1~G5)와 구분되도록 A/B/C/D로 표기
 const APP_GROUP_LABEL: Record<string, string> = {
@@ -280,7 +278,6 @@ export function DashboardPage() {
             <h1 className="text-2xl font-bold text-text-primary">
               안녕하세요, {user?.name ?? "—"} 님
             </h1>
-            {h?.ckd_stage && <Tag label={CKD_STAGE_LABEL[h.ckd_stage] ?? h.ckd_stage} />}
             {h?.app_group && <Tag label={APP_GROUP_LABEL[h.app_group] ?? h.app_group} />}
           </div>
           <button
