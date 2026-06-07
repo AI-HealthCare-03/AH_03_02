@@ -207,14 +207,65 @@ def test_explain_m1_note_contains_stage(shap_result: list[dict]) -> None:
 def test_explain_m1_log_parent_merged(feat_row: pd.DataFrame, predictor1) -> None:
     """_log 자식 변수(triglycerides_log 등)는 결과에 직접 나타나지 않아야 한다.
     부모(triglycerides)로 합산되어야 한다.
+
+    수치 검증:
+      - explainer로 raw SHAP 배열을 직접 계산해
+        부모(triglycerides) raw shap + 자식(triglycerides_log) raw shap 합이
+        explain_model1 결과의 중성지방(triglycerides) shap과 근사하게 일치해야 한다.
+      - 자식 shap이 0이 아닌 경우, 합산 전 raw 부모 shap과는 달라야 한다
+        (자식 기여도가 실제로 더해졌음을 보장).
     """
+    import numpy as np  # noqa: PLC0415
+
     result = shap_explain.explain_model1(feat_row, predictor1)
     feature_labels = {item["feature"] for item in result}
-    # _log 자식의 한글 라벨이 있다면 잘못된 것 (존재하면 안 됨)
+
+    # ── 1) _log 자식이 결과에 직접 노출되지 않음 확인 ──────────────────
     log_child_vars = list(config.M1_LOG_PARENT.keys())
     for lc in log_child_vars:
         label = config.M1_LABEL.get(lc, lc)
         assert label not in feature_labels, f"_log 자식 변수가 결과에 직접 노출됨: {lc} → {label}"
+
+    # ── 2) triglycerides / triglycerides_log 합산 수치 검증 ─────────────
+    # 검증 대상: triglycerides(부모) + triglycerides_log(자식)
+    parent_var = "triglycerides"
+    child_var = "triglycerides_log"
+
+    # (a) raw SHAP 배열에서 부모·자식 개별 shap 추출
+    x_input = feat_row[config.MODEL1_FEATURES]
+    feat_names = config.MODEL1_FEATURES
+    explainer = shap_explain._get_explainer(predictor1)
+    sv = explainer.shap_values(x_input)
+    if isinstance(sv, list):
+        sv = sv[1]
+    arr = np.asarray(sv)
+    if arr.ndim == 3:
+        arr = arr[:, :, 1]
+    raw_shaps = dict(zip(feat_names, arr[0].tolist(), strict=False))
+
+    raw_parent_shap = raw_shaps[parent_var]
+    raw_child_shap = raw_shaps[child_var]
+    expected_merged = raw_parent_shap + raw_child_shap
+
+    # (b) explain_model1 결과에서 부모 라벨("중성지방") shap 추출
+    parent_label = config.M1_LABEL.get(parent_var, parent_var)
+    merged_item = next((item for item in result if item["feature"] == parent_label), None)
+    assert merged_item is not None, f"결과에 '{parent_label}' 항목이 없음"
+    merged_shap = merged_item["shap"]
+
+    # (c) 합산 수치 일치 검증
+    assert merged_shap == pytest.approx(expected_merged, abs=1e-9), (
+        f"'{parent_label}' shap 합산 불일치: "
+        f"결과={merged_shap:.6f}, 기대(raw_parent+raw_child)={expected_merged:.6f} "
+        f"(raw_parent={raw_parent_shap:.6f}, raw_child={raw_child_shap:.6f})"
+    )
+
+    # (d) 자식 shap이 0이 아니라면 부모 raw 단독과 달라야 함 (합산 효과 확인)
+    if abs(raw_child_shap) > 1e-12:
+        assert merged_shap != pytest.approx(raw_parent_shap, abs=1e-9), (
+            f"자식 shap(={raw_child_shap:.6f})이 0이 아닌데 "
+            f"결과 shap이 raw 부모 단독값과 동일 — 합산이 적용되지 않은 것으로 의심"
+        )
 
 
 def test_explain_m1_covers_m1_shap_vars(shap_result: list[dict]) -> None:

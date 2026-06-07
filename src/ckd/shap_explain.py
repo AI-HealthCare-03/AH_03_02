@@ -37,12 +37,15 @@ def _extract_lgbm(predictor) -> tuple:
     lb = predictor.leaderboard(silent=True)
     cands = [m for m in lb["model"].values if "LightGBM" in m and "Ensemble" not in m and "L2" not in m]
     for c in cands:
-        bag = predictor._trainer.load_model(c)
-        child = bag.load_child(bag.models[0])
-        if isinstance(child.model, lightgbm.Booster):
-            result = (child.model, c)
-            _BOOSTER_CACHE[pid] = result
-            return result
+        try:
+            bag = predictor._trainer.load_model(c)
+            child = bag.load_child(bag.models[0])
+            if isinstance(child.model, lightgbm.Booster):
+                result = (child.model, c)
+                _BOOSTER_CACHE[pid] = result
+                return result
+        except Exception:  # noqa: BLE001 — 다음 후보 시도
+            continue
 
     raise RuntimeError(f"LightGBM booster를 찾지 못했습니다. leaderboard 후보: {cands}")
 
