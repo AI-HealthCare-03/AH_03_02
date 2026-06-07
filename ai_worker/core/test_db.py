@@ -42,4 +42,33 @@ async def test_update_prediction(monkeypatch) -> None:  # noqa: ANN001
 
     query, args = conn.calls[0]
     assert "UPDATE health_checks" in query
-    assert args == (0.0848, "G1", 12)
+    # shap 미전달 시 shap1·shap2는 NULL(None)로 바인딩 (risk, group, shap1, shap2, id)
+    assert args == (0.0848, "G1", None, None, 12)
+
+
+@pytest.mark.asyncio
+async def test_update_prediction_with_shap(monkeypatch) -> None:  # noqa: ANN001
+    """shap_model1·shap_model2 전달 시 JSONB로 직렬화돼 바인딩된다."""
+    import json
+
+    conn = _FakeConn()
+
+    async def fake_pool():
+        return _FakePool(conn)
+
+    monkeypatch.setattr(db, "get_pool", fake_pool)
+    await db.update_prediction(
+        health_check_id=7,
+        ckd_risk_score=0.5,
+        app_group="G3",
+        shap_model1=[{"feature": "중성지방", "value": 135, "shap": 0.08, "note": "x"}],
+        shap_model2={"items": [], "lifestyle_score": 0.2, "peer_top_pct": 22, "peer_relative": "상"},
+    )
+
+    query, args = conn.calls[0]
+    assert "shap_model1 = $3::jsonb" in query
+    assert args[0] == 0.5
+    assert args[1] == "G3"
+    assert args[4] == 7
+    assert json.loads(args[2])[0]["feature"] == "중성지방"
+    assert json.loads(args[3])["peer_top_pct"] == 22
