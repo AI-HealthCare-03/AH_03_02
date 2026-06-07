@@ -256,6 +256,122 @@ class HealthCheckService:
             return None
         return HealthCheckResponse.model_validate(hc)
 
+    # ── 모델1 리포트 헬퍼 (순수 함수, app_group 기반) ─────────────────────────
+
+    @staticmethod
+    def _recommend_tests(app_group: AppGroup | None, egfr: float | None) -> list[str]:
+        """app_group(G1~G4) 기반 권장 검사 리스트.
+
+        노트북 m1_recommended_tests 로직 참고 (셀12·251~268줄).
+        서비스에 요단백 컬럼이 없어 app_group + eGFR 기반으로 단순화.
+        톤: 선별 서비스 — "진단"·"환자" 단정 표현 배제.
+        """
+        if app_group is None:
+            return []
+
+        if app_group == AppGroup.G1:
+            # eGFR < 60 → 신장 기능 저하 의심 → 정밀 추적 필요
+            tests = [
+                "eGFR·혈청 크레아티닌 재검(3개월 내)",
+                "요단백(소변 알부민/크레아티닌비) 검사",
+                "신장내과 상담 권고",
+            ]
+            # eGFR이 매우 낮을 경우 혈압·빈혈 동반 평가 추가
+            if egfr is not None and egfr < 45:
+                tests.append("혈압 정밀 모니터링 및 빈혈(헤모글로빈) 확인")
+            return tests
+
+        if app_group == AppGroup.G2:
+            # eGFR ≥ 60 + 임상 마커(혈압·혈당) 이상 → 위험인자 관리 중심
+            return [
+                "eGFR·혈청 크레아티닌 정기 재검(6개월 내)",
+                "혈압 정밀 측정 및 관리 상태 확인",
+                "공복혈당·당화혈색소(HbA1c) 검사",
+                "요단백(소변) 선별 검사",
+            ]
+
+        if app_group == AppGroup.G3:
+            # 위험점수 임계 이상 — 뚜렷한 임상 이상은 없으나 모델이 위험 신호 감지
+            return [
+                "생활습관 개선 후 신장 기능 재평가",
+                "연 1~2회 eGFR·공복혈당 정기 검사",
+                "혈압 자가 모니터링",
+            ]
+
+        # G4: 정상
+        return [
+            "현 상태 유지",
+            "연 1회 정기 건강검진 권장",
+        ]
+
+    @staticmethod
+    def _model1_summary(
+        app_group: AppGroup | None,
+        egfr: float | None,
+        shap_model1: list,
+    ) -> str:
+        """app_group·eGFR·상위 위험변수 1~2개 기반 종합 한 줄 요약.
+
+        의료 진단이 아닌 선별(스크리닝) 참고 정보임을 톤에 반영.
+        """
+        if app_group is None:
+            return ""
+
+        # 상위 위험변수 추출 (shap > 0, feature 기준 상위 2개)
+        top_features: list[str] = []
+        if shap_model1:
+            # shap_model1은 dict list (feature, shap, value, note)
+            positive_items = [item for item in shap_model1 if isinstance(item, dict) and item.get("shap", 0) > 0]
+            positive_items.sort(key=lambda x: x.get("shap", 0), reverse=True)
+            top_features = [item["feature"] for item in positive_items[:2] if "feature" in item]
+
+        # 라벨 한국어 매핑 (노트북 M1_LABEL 기반)
+        label_ko = {
+            "sbp": "수축기혈압",
+            "dbp": "이완기혈압",
+            "fasting_glucose": "공복혈당",
+            "total_cholesterol": "총콜레스테롤",
+            "ldl_cholesterol": "LDL 콜레스테롤",
+            "hdl_cholesterol": "HDL 콜레스테롤",
+            "triglycerides": "중성지방",
+            "ast": "간 효소(AST)",
+            "alt": "간 효소(ALT)",
+            "hemoglobin": "헤모글로빈",
+            "urine_protein_qual": "요단백",
+            "urine_glucose": "요당",
+            "waist_cm": "허리둘레",
+            "bmi": "체질량지수(BMI)",
+            "creatinine": "크레아티닌",
+            "smoking_current": "흡연",
+        }
+        top_ko = [label_ko.get(f, f) for f in top_features]
+        factor_str = "·".join(top_ko) if top_ko else ""
+
+        egfr_str = f" (eGFR {egfr:.1f} mL/min/1.73m²)" if egfr is not None else ""
+
+        group_title_map = {
+            AppGroup.G1: "신장 집중 관리 위험군",
+            AppGroup.G2: "신장 위험 관리 위험군",
+            AppGroup.G3: "신장 사전 관리 위험군",
+            AppGroup.G4: "건강 습관 형성군",
+        }
+        group_title = group_title_map.get(app_group, str(app_group))
+
+        if app_group == AppGroup.G1:
+            base = f"신장 기능 저하{egfr_str}가 감지된 {group_title}에 해당합니다."
+        elif app_group == AppGroup.G2:
+            base = f"신장 기능은 정상이나 임상 위험인자가 있는 {group_title}에 해당합니다."
+        elif app_group == AppGroup.G3:
+            base = f"뚜렷한 임상 이상은 없으나 AI 모델이 위험 신호를 감지한 {group_title}에 해당합니다."
+        else:
+            base = f"현재 신장 관련 위험 신호가 낮은 {group_title}입니다."
+
+        if factor_str:
+            base += f" 주요 위험 요인: {factor_str}."
+
+        base += " 본 결과는 의료 진단이 아닌 선별(스크리닝) 참고 정보입니다."
+        return base
+
     async def get_report(
         self,
         *,
@@ -284,9 +400,15 @@ class HealthCheckService:
             user_ctx,
         )
 
+        shap_list = hc.shap_model1 or []
+        recommended = self._recommend_tests(hc.app_group, hc.egfr_estimated)
+        summary = self._model1_summary(hc.app_group, hc.egfr_estimated, shap_list)
+
         return ReportResponse(
             health_check_id=hc.id,
-            shap_model1=hc.shap_model1 or [],
+            shap_model1=shap_list,
             shap_model2=hc.shap_model2,  # dict 또는 None → LifestyleShap 검증
             ai_guide=guide,
+            recommended_tests=recommended,
+            model1_summary=summary,
         )

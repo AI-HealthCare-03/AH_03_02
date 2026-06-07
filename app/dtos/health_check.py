@@ -91,3 +91,5 @@ class ReportResponse(BaseSerializerModel):
     shap_model1: list[ShapItem]
     shap_model2: LifestyleShap | None
     ai_guide: str
+    recommended_tests: list[str] = []  # 모델1(app_group) 기반 권장 검사
+    model1_summary: str = ""  # 모델1 종합 한 줄 요약
