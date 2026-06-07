@@ -1,3 +1,4 @@
+from app.core.logger import setup_logger
 from app.dtos.health_check import (
     HealthCheckCreateRequest,
     HealthCheckListResponse,
@@ -7,6 +8,9 @@ from app.models.health_check import AppGroup, CkdStage, HealthCheck
 from app.models.safety_event import SafetyEvent, SafetyEventType
 from app.models.users import Gender
 from app.repositories.health_check_repository import HealthCheckRepository
+from app.services import ckd_publisher
+
+logger = setup_logger("health_check_service")
 
 # 세이프티 가드 임계값
 _BP_CRISIS_SYSTOLIC = 180  # mmHg — 고혈압 위기 기준
@@ -166,6 +170,21 @@ class HealthCheckService:
 
         # 위험 감지 시 SafetyEvent 영구 기록 (관리자 모니터링용)
         await self._record_safety_events(user_id=user_id, health_check=hc, dto=dto, egfr=egfr)
+
+        # 비동기 CKD 예측 job 발행 — 실패해도 검진 저장은 유지(graceful)
+        try:
+            await ckd_publisher.publish_ckd_job(
+                health_check_id=hc.id,
+                user_id=user_id,
+                user_age=user_age,
+                user_gender=user_gender,
+                checked_date=dto.checked_date,
+                bmi=bmi,
+                egfr=egfr,
+                dto=dto,
+            )
+        except Exception:  # noqa: BLE001 — 예측 발행 실패가 검진 API를 깨지 않도록
+            logger.exception("CKD 예측 job 발행 실패 — 검진은 저장됨 hc=%s", hc.id)
 
         response = HealthCheckResponse.model_validate(hc)
         response.safety_warning = safety_warning
