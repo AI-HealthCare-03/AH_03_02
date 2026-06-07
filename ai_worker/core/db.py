@@ -6,6 +6,9 @@ app.models(Tortoise)를 import하지 않고 health_checks를 raw SQL로 갱신�
 
 from __future__ import annotations
 
+import json
+from typing import Any
+
 import asyncpg
 
 from ai_worker.core import config
@@ -28,13 +31,31 @@ async def get_pool() -> asyncpg.Pool:
     return _pool
 
 
-async def update_prediction(health_check_id: int, ckd_risk_score: float, app_group: str) -> None:
-    """예측 결과로 health_checks 갱신. eGFR·ckd_stage는 app 동기값을 유지(미갱신)."""
+async def update_prediction(
+    health_check_id: int,
+    ckd_risk_score: float,
+    app_group: str,
+    shap_model1: Any = None,
+    shap_model2: Any = None,
+) -> None:
+    """예측 결과로 health_checks 갱신. eGFR·ckd_stage는 app 동기값을 유지(미갱신).
+
+    shap_model1·shap_model2: None이면 DB에 NULL 저장. 값이 있으면 JSONB로 직렬화.
+    """
     pool = await get_pool()
+    shap1_json = json.dumps(shap_model1, ensure_ascii=False) if shap_model1 is not None else None
+    shap2_json = json.dumps(shap_model2, ensure_ascii=False) if shap_model2 is not None else None
     async with pool.acquire() as conn:
         await conn.execute(
-            "UPDATE health_checks SET ckd_risk_score = $1, app_group = $2 WHERE id = $3",
+            """UPDATE health_checks
+               SET ckd_risk_score = $1,
+                   app_group = $2,
+                   shap_model1 = $3::jsonb,
+                   shap_model2 = $4::jsonb
+             WHERE id = $5""",
             ckd_risk_score,
             app_group,
+            shap1_json,
+            shap2_json,
             health_check_id,
         )
