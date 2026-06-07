@@ -49,6 +49,10 @@ class HealthCheck(models.Model):
     ckd_stage = fields.CharEnumField(enum_type=CkdStage, null=True)
     app_group = fields.CharEnumField(enum_type=AppGroup, null=True, description="ML 모델 배정 그룹 (REQ-ML-003)")
 
+    # SHAP 리포트 (ai_worker 예측 job이 비동기로 채움)
+    shap_model1 = fields.JSONField(null=True, description="모델1 위험변수 SHAP Top-N")
+    shap_model2 = fields.JSONField(null=True, description="모델2 생활습관 SHAP + 또래비교")
+
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
 
