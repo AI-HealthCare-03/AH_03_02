@@ -131,6 +131,9 @@ export function ChallengeMainPage() {
     try {
       await challengeApi.join(challengeId, todayStr());
       setSuccessMsg("챌린지에 참여했습니다!");
+      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["challenges"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "참여 실패");

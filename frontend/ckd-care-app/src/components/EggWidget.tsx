@@ -39,7 +39,7 @@ export function EggWidget() {
 
   if (loading) {
     return (
-      <div className="flex w-[280px] flex-col items-center justify-center rounded-md border border-border bg-bg p-[16px]">
+      <div className="flex h-full flex-col items-center justify-center rounded-md border border-border bg-bg p-[16px]">
         <p className="text-xs text-text-muted">로딩 중...</p>
       </div>
     );
@@ -47,7 +47,7 @@ export function EggWidget() {
 
   if (!data) {
     return (
-      <div className="flex w-[280px] flex-col items-center justify-center gap-[8px] rounded-md border border-border bg-bg p-[16px]">
+      <div className="flex h-full flex-col items-center justify-center gap-[8px] rounded-md border border-border bg-bg p-[16px]">
         <div className="flex h-[80px] w-[80px] items-center justify-center rounded-full bg-success/20">
           <CharacterImage species={null} stage={0} size={56} emojiClass="text-3xl" />
         </div>
@@ -73,7 +73,7 @@ export function EggWidget() {
   const proficiencyLabel = PROFICIENCY_LABEL[proficiency] ?? "입문";
 
   return (
-    <div className="flex w-[420px] flex-col items-center gap-[10px] rounded-md border border-border bg-bg p-[16px]">
+    <div className="flex h-full flex-col items-center gap-[10px] rounded-md border border-border bg-bg p-[16px]">
       {/* 캐릭터 아이콘 + 숙련도 배경 (와이드 사각형, 시연 임팩트 강화) */}
       <div
         className="relative flex h-[200px] w-full items-center justify-center overflow-hidden rounded-xl ring-2 ring-border shadow-sm"
