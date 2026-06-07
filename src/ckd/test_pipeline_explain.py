@@ -173,3 +173,123 @@ def test_no_explain_result_no_shap_keys(no_explain_result: dict) -> None:
 def test_no_explain_result_exact_keys(no_explain_result: dict) -> None:
     """explain=False 결과 키가 정확히 {ckd_risk_score, app_group, ckd_stage, egfr_estimated}여야 한다."""
     assert set(no_explain_result.keys()) == {"ckd_risk_score", "app_group", "ckd_stage", "egfr_estimated"}
+
+
+# ── TDD Step 3: SHAP 실패 시 fallback — 기본 예측 결과 보존 ─────────────────────
+# I-1: explain_model1 또는 explain_model2 RuntimeError → fallback 빈값, 예측 정상 보존
+
+
+def _load_threshold() -> float:
+    """임계값 로드 헬퍼."""
+    import json
+
+    return float(json.loads(config.THRESHOLD_PATH.read_text(encoding="utf-8"))["recall_threshold"])
+
+
+def test_shap_model1_failure_fallback(predictors, stats, monkeypatch) -> None:
+    """explain_model1이 RuntimeError를 던질 때 shap_model1=[]로 fallback, 예측 결과는 보존.
+
+    monkeypatch 대상: pipeline.shap_explain.explain_model1
+    (pipeline.py L83 — lazy import 후 shap_explain 모듈 속성을 직접 교체)
+    """
+    p1, p2 = predictors
+    threshold = _load_threshold()
+
+    # explain=True를 한 번 호출해 pipeline.shap_explain lazy import를 확정
+    _ = pipeline.run_inference(
+        _make_payload(),
+        date(2025, 6, 1),
+        p1,
+        threshold,
+        stats,
+        egfr_override=None,
+        predictor2=p2,
+        explain=True,
+    )
+
+    # pipeline 모듈에서 참조하는 shap_explain.explain_model1을 실패하도록 교체
+    from src.ckd import shap_explain as _shap_mod
+
+    monkeypatch.setattr(
+        _shap_mod, "explain_model1", lambda *_a, **_kw: (_ for _ in ()).throw(RuntimeError("mock m1 실패"))
+    )
+
+    result = pipeline.run_inference(
+        _make_payload(),
+        date(2025, 6, 1),
+        p1,
+        threshold,
+        stats,
+        egfr_override=None,
+        predictor2=p2,
+        explain=True,
+    )
+
+    # 기본 예측 결과는 정상 보존
+    assert "ckd_risk_score" in result, "ckd_risk_score 누락"
+    assert 0.0 <= result["ckd_risk_score"] <= 1.0, f"ckd_risk_score 범위 이상: {result['ckd_risk_score']}"
+    assert result["app_group"] in {"G1", "G2", "G3", "G4"}, f"app_group 이상: {result['app_group']}"
+
+    # model1 fallback: 빈 리스트
+    assert result["shap_model1"] == [], f"shap_model1 fallback이 []가 아님: {result['shap_model1']}"
+
+    # model2는 정상 결과(dict with 'items')
+    m2 = result["shap_model2"]
+    assert isinstance(m2, dict), f"shap_model2가 dict가 아님: {type(m2)}"
+    assert "items" in m2, f"shap_model2에 'items' 키 없음: {list(m2.keys())}"
+
+
+def test_shap_model2_failure_fallback(predictors, stats, monkeypatch) -> None:
+    """explain_model2가 RuntimeError를 던질 때 shap_model2=fallback dict, model1은 정상.
+
+    monkeypatch 대상: pipeline.shap_explain.explain_model2
+    """
+    p1, p2 = predictors
+    threshold = _load_threshold()
+
+    # lazy import 확정 (이미 위 테스트에서 됐을 수 있으나 독립성 보장)
+    _ = pipeline.run_inference(
+        _make_payload(),
+        date(2025, 6, 1),
+        p1,
+        threshold,
+        stats,
+        egfr_override=None,
+        predictor2=p2,
+        explain=True,
+    )
+
+    from src.ckd import shap_explain as _shap_mod
+
+    monkeypatch.setattr(
+        _shap_mod, "explain_model2", lambda *_a, **_kw: (_ for _ in ()).throw(RuntimeError("mock m2 실패"))
+    )
+
+    result = pipeline.run_inference(
+        _make_payload(),
+        date(2025, 6, 1),
+        p1,
+        threshold,
+        stats,
+        egfr_override=None,
+        predictor2=p2,
+        explain=True,
+    )
+
+    # 기본 예측 결과 보존
+    assert "ckd_risk_score" in result
+    assert 0.0 <= result["ckd_risk_score"] <= 1.0
+    assert result["app_group"] in {"G1", "G2", "G3", "G4"}
+
+    # model1은 정상 결과(비어있지 않은 list)
+    m1 = result["shap_model1"]
+    assert isinstance(m1, list), f"shap_model1이 list가 아님: {type(m1)}"
+    assert len(m1) > 0, "shap_model1이 빈 리스트 (model2 실패인데 model1도 빈값)"
+
+    # model2 fallback: items=[] 구조체
+    m2 = result["shap_model2"]
+    assert isinstance(m2, dict), f"shap_model2 fallback이 dict가 아님: {type(m2)}"
+    assert m2["items"] == [], f"shap_model2 fallback items가 []가 아님: {m2['items']}"
+    assert "lifestyle_score" in m2, "shap_model2 fallback에 lifestyle_score 키 없음"
+    assert "peer_top_pct" in m2, "shap_model2 fallback에 peer_top_pct 키 없음"
+    assert "peer_relative" in m2, "shap_model2 fallback에 peer_relative 키 없음"
