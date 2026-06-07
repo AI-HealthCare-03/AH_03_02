@@ -95,6 +95,11 @@ export interface CategoryProgressResponse {
   items: CategoryProgress[];
 }
 
+export interface CancelCheckinResponse {
+  message: string;
+  points_revoked: number;
+}
+
 export const challengeApi = {
   list: () => api.get<ChallengeListResponse>("/challenges"),
   myList: (limit = 20, offset = 0) =>
@@ -103,6 +108,10 @@ export const challengeApi = {
     api.post<UserChallenge>("/user-challenges", { challenge_id, started_at }),
   checkin: (userChallengeId: number) =>
     api.post<CheckInResponse>(`/user-challenges/${userChallengeId}/checkin`, {}),
+  cancelCheckin: (userChallengeId: number) =>
+    api.delete<CancelCheckinResponse>(`/user-challenges/${userChallengeId}/checkin`),
+  abandon: (userChallengeId: number) =>
+    api.delete<{ message: string }>(`/user-challenges/${userChallengeId}`),
   heatmap: (weeks = 26) => api.get<HeatmapResponse>(`/challenges/heatmap?weeks=${weeks}`),
   categoryProgress: () => api.get<CategoryProgressResponse>("/challenges/category-progress"),
   weeklyEmotion: () => api.get<WeeklyEmotionResponse>("/challenges/weekly-emotion"),
