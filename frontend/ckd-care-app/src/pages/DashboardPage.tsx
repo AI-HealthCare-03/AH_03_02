@@ -52,8 +52,21 @@ function EgfrGauge({ value }: { value: number | null }) {
   );
 }
 
-function RiskGauge({ score }: { score: number | null }) {
-  if (score === null) return <div className="flex h-[360px] items-center justify-center text-sm text-text-muted">데이터 없음</div>;
+function RiskGauge({ score, calculating }: { score: number | null; calculating?: boolean }) {
+  if (score === null)
+    return (
+      <div className="flex h-[360px] flex-col items-center justify-center gap-2 text-sm text-text-muted">
+        {calculating ? (
+          <>
+            <span className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-border border-t-text-secondary" />
+            <span>위험도 계산 중…</span>
+            <span className="text-xs text-text-muted/70">잠시 후 자동으로 표시됩니다</span>
+          </>
+        ) : (
+          "데이터 없음"
+        )}
+      </div>
+    );
   const color = score < 30 ? "#059669" : score < 60 ? "#D97706" : "#DC2626";
   const level = score < 30 ? "낮음" : score < 60 ? "중간" : "높음";
   return (
@@ -146,6 +159,12 @@ const CKD_STAGE_LABEL: Record<string, string> = {
   G4: "G4 · 중증", G5: "G5 · 신부전",
 };
 
+// ML 케어군(app_group) — KDIGO eGFR 단계(G1~G5)와 구분되도록 A/B/C/D로 표기
+const APP_GROUP_LABEL: Record<string, string> = {
+  G1: "A · 신장 집중 관리군", G2: "B · 신장 위험 관리군",
+  G3: "C · 신장 사전 관리군", G4: "D · 건강 습관 형성군",
+};
+
 const LIFESTYLE_LABEL: Record<string, string> = {
   NEVER: "비흡연", PAST: "과거 흡연", CURRENT: "현재 흡연",
   NONE: "안 마심", MONTHLY: "월 1~4회", WEEKLY: "주 2회+",
@@ -183,6 +202,22 @@ export function DashboardPage() {
     // REQ-CHAL-006 슬럼프 상태 조회 — 실패해도 대시보드 본 흐름에 영향 없음
     slumpApi.status().then(setSlump).catch(() => setSlump(null));
   }, []);
+
+  // 비동기 CKD 위험도 폴링 — 검진은 있으나 risk가 아직 null(worker 예측 중)이면 자동 재조회
+  useEffect(() => {
+    const lh = summary?.latest_health;
+    if (!lh || lh.ckd_risk_score != null) return;
+    const timer = setInterval(() => {
+      dashboardApi
+        .getSummary()
+        .then((s) => {
+          setSummary(s);
+          if (s.latest_health?.ckd_risk_score != null) clearInterval(timer);
+        })
+        .catch(() => {});
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [summary?.latest_health?.ckd_risk_score]);
 
   if (loading) return (
     <div className="flex min-h-screen flex-col bg-bg-alt">
@@ -246,6 +281,7 @@ export function DashboardPage() {
               안녕하세요, {user?.name ?? "—"} 님
             </h1>
             {h?.ckd_stage && <Tag label={CKD_STAGE_LABEL[h.ckd_stage] ?? h.ckd_stage} />}
+            {h?.app_group && <Tag label={APP_GROUP_LABEL[h.app_group] ?? h.app_group} />}
           </div>
           <button
             onClick={handleAttendance}
@@ -270,7 +306,10 @@ export function DashboardPage() {
               <EgfrGauge value={h?.egfr_estimated ?? null} />
             </div>
             <div className="flex-1">
-              <RiskGauge score={h?.ckd_risk_score ? h.ckd_risk_score * 100 : null} />
+              <RiskGauge
+                score={h?.ckd_risk_score != null ? h.ckd_risk_score * 100 : null}
+                calculating={!!h && h.ckd_risk_score == null}
+              />
             </div>
           </div>
           <EggWidget />
