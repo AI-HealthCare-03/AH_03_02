@@ -40,11 +40,12 @@ function EgfrGauge({ value }: { value: number | null }) {
           <path d={`M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`}
             fill="none" stroke={color} strokeWidth="18" strokeLinecap="round" />
         )}
-        <text x={cx} y={cy + 4} textAnchor="middle" fontSize="42" fontWeight="bold" fill={color}>{Math.round(value)}</text>
-        <text x={cx} y={cy + 30} textAnchor="middle" fontSize="16" fill="#6B7280">mL/min</text>
         <line x1={cx} y1={cy} x2={cx + (r - 18) * Math.cos(toRad(angle))} y2={cy + (r - 18) * Math.sin(toRad(angle))}
           stroke="#1F2937" strokeWidth="4" strokeLinecap="round" />
         <circle cx={cx} cy={cy} r="6" fill="#1F2937"/>
+        {/* 수치는 바늘·축 다음에 그려 앞(위)에 표시 */}
+        <text x={cx} y={cy + 4} textAnchor="middle" fontSize="42" fontWeight="bold" fill={color}>{Math.round(value)}</text>
+        <text x={cx} y={cy + 30} textAnchor="middle" fontSize="16" fill="#6B7280">mL/min</text>
       </svg>
       <p className="text-base font-bold text-text-primary">eGFR 계기판</p>
       <p className="text-xs text-text-muted">※ 검진 기반 추정 (의료 진단 아님)</p>
