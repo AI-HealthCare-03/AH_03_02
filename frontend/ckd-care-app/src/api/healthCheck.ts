@@ -41,9 +41,51 @@ export interface HealthCheckListResponse {
   items: HealthCheckResponse[];
 }
 
+// ===== SHAP 리포트 타입 =====
+
+export interface ShapItem1 {
+  feature: string;
+  value: number;
+  shap: number;
+  note?: string;
+}
+
+export interface LifestyleShapItem {
+  feature: string;
+  value: number;
+  shap: number;
+}
+
+export interface PeerDistribution {
+  counts: number[];
+  edges: number[];
+  my_bin: number;
+}
+
+export interface LifestyleShap {
+  items: LifestyleShapItem[];
+  lifestyle_score: number;
+  peer_top_pct: number | null;
+  peer_relative: string | null;
+  peer_distribution?: PeerDistribution | null;
+}
+
+export interface ReportResponse {
+  health_check_id: number;
+  shap_model1: ShapItem1[];
+  shap_model2: LifestyleShap | null;
+  ai_guide: string;
+  recommended_tests?: string[];
+  model1_summary?: string;
+}
+
+// ===== API =====
+
 export const healthCheckApi = {
   create: (body: HealthCheckCreateRequest) =>
     api.post<HealthCheckResponse>("/health-checks", body),
   list: (limit = 20, offset = 0) =>
     api.get<HealthCheckListResponse>(`/health-checks?limit=${limit}&offset=${offset}`),
+  getReport: (id: number) =>
+    api.get<ReportResponse>(`/health-checks/${id}/report`),
 };

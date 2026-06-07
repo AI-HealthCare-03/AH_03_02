@@ -92,8 +92,8 @@ def m2_result(feat_row: pd.DataFrame, predictor2) -> dict:
 
 
 def test_explain_m2_top_level_keys(m2_result: dict) -> None:
-    """반환 dict의 최상위 키가 정확히 {items, lifestyle_score, peer_top_pct, peer_relative}여야 한다."""
-    required = {"items", "lifestyle_score", "peer_top_pct", "peer_relative"}
+    """반환 dict의 최상위 키가 정확히 {items, lifestyle_score, peer_top_pct, peer_relative, peer_distribution}이어야 한다."""
+    required = {"items", "lifestyle_score", "peer_top_pct", "peer_relative", "peer_distribution"}
     assert set(m2_result.keys()) == required, f"최상위 키 불일치: {set(m2_result.keys())} != {required}"
 
 
@@ -165,14 +165,15 @@ def test_explain_m2_lifestyle_score_finite(m2_result: dict) -> None:
 
 
 def test_explain_m2_peer_none_when_no_peer_scores(feat_row: pd.DataFrame, predictor2) -> None:
-    """peer_scores=None이면 peer_top_pct·peer_relative가 모두 None이어야 한다."""
+    """peer_scores=None이면 peer_top_pct·peer_relative·peer_distribution이 모두 None이어야 한다."""
     result = shap_explain.explain_model2(feat_row, predictor2, peer_scores=None)
     assert result["peer_top_pct"] is None, f"peer_top_pct가 None이 아님: {result['peer_top_pct']}"
     assert result["peer_relative"] is None, f"peer_relative가 None이 아님: {result['peer_relative']}"
+    assert result["peer_distribution"] is None, f"peer_distribution이 None이 아님: {result['peer_distribution']}"
 
 
 def test_explain_m2_peer_provided(feat_row: pd.DataFrame, predictor2) -> None:
-    """peer_scores 제공 시 peer_top_pct(int)·peer_relative(str)가 반환되어야 한다."""
+    """peer_scores 제공 시 peer_top_pct(int)·peer_relative(str)·peer_distribution(dict)이 반환되어야 한다."""
     # 가상 또래 점수 배열
     rng = np.random.default_rng(42)
     fake_peers = rng.uniform(0.0, 0.5, size=200)
@@ -181,6 +182,15 @@ def test_explain_m2_peer_provided(feat_row: pd.DataFrame, predictor2) -> None:
     assert isinstance(result["peer_top_pct"], int), f"peer_top_pct가 int가 아님: {type(result['peer_top_pct'])}"
     assert 1 <= result["peer_top_pct"] <= 100, f"peer_top_pct 범위 초과: {result['peer_top_pct']}"
     assert result["peer_relative"] in ("상", "중", "하"), f"peer_relative 값이 잘못됨: {result['peer_relative']}"
+    # peer_distribution 검증
+    pd_result = result["peer_distribution"]
+    assert pd_result is not None, "peer_distribution이 None"
+    assert isinstance(pd_result["counts"], list), f"counts가 list가 아님: {type(pd_result['counts'])}"
+    assert isinstance(pd_result["edges"], list), f"edges가 list가 아님: {type(pd_result['edges'])}"
+    assert isinstance(pd_result["my_bin"], int), f"my_bin이 int가 아님: {type(pd_result['my_bin'])}"
+    assert len(pd_result["counts"]) == 10, f"counts 길이가 10이 아님: {len(pd_result['counts'])}"
+    assert len(pd_result["edges"]) == 11, f"edges 길이가 11이 아님: {len(pd_result['edges'])}"
+    assert 0 <= pd_result["my_bin"] <= 9, f"my_bin 범위 초과: {pd_result['my_bin']}"
 
 
 def test_explain_m2_assert_single_row(feat_row: pd.DataFrame, predictor2) -> None:
@@ -396,3 +406,100 @@ def test_m2_include_var_display_excluded_not_in_filter() -> None:
     assert isinstance(config.M2_BASELINE_VARS, frozenset), (
         f"M2_BASELINE_VARS가 frozenset이 아님: {type(config.M2_BASELINE_VARS)}"
     )
+
+
+# ──────────────────────────────────────────────────────────────────────
+# TDD Step 6: _peer_distribution — 단위 테스트 (predictor 불필요)
+# ──────────────────────────────────────────────────────────────────────
+
+
+def test_peer_distribution_none_input() -> None:
+    """peer_scores=None → None 반환."""
+    assert shap_explain._peer_distribution(0.5, None) is None
+
+
+def test_peer_distribution_empty_array() -> None:
+    """peer_scores=빈 배열 → None 반환."""
+    assert shap_explain._peer_distribution(0.5, []) is None
+    assert shap_explain._peer_distribution(0.5, np.array([])) is None
+
+
+def test_peer_distribution_structure() -> None:
+    """정상 입력 → counts·edges·my_bin 키를 가진 dict 반환."""
+    peers = np.linspace(0.0, 1.0, 101)
+    result = shap_explain._peer_distribution(0.5, peers, bins=10)
+    assert result is not None
+    assert "counts" in result
+    assert "edges" in result
+    assert "my_bin" in result
+
+
+def test_peer_distribution_counts_length() -> None:
+    """counts 길이가 bins와 같아야 한다 (기본 bins=10)."""
+    peers = np.linspace(0.0, 1.0, 101)
+    result = shap_explain._peer_distribution(0.5, peers, bins=10)
+    assert result is not None
+    assert len(result["counts"]) == 10, f"counts 길이 불일치: {len(result['counts'])} != 10"
+
+
+def test_peer_distribution_edges_length() -> None:
+    """edges 길이가 bins+1이어야 한다."""
+    peers = np.linspace(0.0, 1.0, 101)
+    result = shap_explain._peer_distribution(0.5, peers, bins=10)
+    assert result is not None
+    assert len(result["edges"]) == 11, f"edges 길이 불일치: {len(result['edges'])} != 11"
+
+
+def test_peer_distribution_counts_are_int() -> None:
+    """counts 원소가 모두 int여야 한다."""
+    peers = np.linspace(0.0, 1.0, 101)
+    result = shap_explain._peer_distribution(0.5, peers)
+    assert result is not None
+    for c in result["counts"]:
+        assert isinstance(c, int), f"counts 원소가 int가 아님: {type(c)}"
+
+
+def test_peer_distribution_edges_are_float() -> None:
+    """edges 원소가 모두 float이어야 한다."""
+    peers = np.linspace(0.0, 1.0, 101)
+    result = shap_explain._peer_distribution(0.5, peers)
+    assert result is not None
+    for e in result["edges"]:
+        assert isinstance(e, float), f"edges 원소가 float이 아님: {type(e)}"
+
+
+def test_peer_distribution_my_bin_range() -> None:
+    """my_bin이 0 ~ bins-1 범위 안이어야 한다."""
+    peers = np.linspace(0.0, 1.0, 101)
+    bins = 10
+    for score in [0.0, 0.25, 0.5, 0.75, 1.0, 1.5, -0.5]:
+        result = shap_explain._peer_distribution(score, peers, bins=bins)
+        assert result is not None
+        assert 0 <= result["my_bin"] <= bins - 1, f"my_bin 범위 초과: score={score}, my_bin={result['my_bin']}"
+
+
+def test_peer_distribution_my_bin_correct_position() -> None:
+    """내 점수가 속한 bin 인덱스가 올바르게 계산되어야 한다."""
+    # 0~1 균등 분포 101개, bins=10 → 각 bin 폭 0.1
+    peers = np.linspace(0.0, 1.0, 101)
+    result = shap_explain._peer_distribution(0.05, peers, bins=10)
+    assert result is not None
+    # 0.05는 첫 번째 bin (0.0~0.1)에 속해야 함
+    assert result["my_bin"] == 0, f"my_bin={result['my_bin']} (0 기대)"
+
+
+def test_peer_distribution_custom_bins() -> None:
+    """bins=5로 지정하면 counts 5개·edges 6개여야 한다."""
+    peers = np.linspace(0.0, 1.0, 101)
+    result = shap_explain._peer_distribution(0.5, peers, bins=5)
+    assert result is not None
+    assert len(result["counts"]) == 5
+    assert len(result["edges"]) == 6
+
+
+def test_peer_distribution_counts_sum() -> None:
+    """counts 합이 peer_scores 수와 같아야 한다 (히스토그램 누락 없음)."""
+    peers = np.random.default_rng(0).uniform(0.0, 1.0, size=200)
+    result = shap_explain._peer_distribution(0.3, peers, bins=10)
+    assert result is not None
+    assert sum(result["counts"]) == len(peers), f"counts 합={sum(result['counts'])} != peer 수={len(peers)}"

@@ -93,4 +93,11 @@ def test_report_response_keys() -> None:
     """model_dump 최상위 키 확인."""
     r = ReportResponse(health_check_id=1, shap_model1=[], shap_model2=None, ai_guide="")
     keys = set(r.model_dump().keys())
-    assert keys == {"health_check_id", "shap_model1", "shap_model2", "ai_guide"}
+    assert keys == {
+        "health_check_id",
+        "shap_model1",
+        "shap_model2",
+        "ai_guide",
+        "recommended_tests",
+        "model1_summary",
+    }

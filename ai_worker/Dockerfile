@@ -16,9 +16,6 @@ RUN uv sync --group ai --group rag --no-dev --frozen
 #      (autogluon stable이 requires-python>=3.11 전체를 만족 못 해 uv.lock 통합 resolve 실패하기 때문)
 RUN uv pip install "autogluon.tabular" lightgbm xgboost
 
-# 3-1b. SHAP(리포트 위험변수 설명) — ckd 그룹이지만 autogluon과 같은 이유로 명시 설치.
-RUN uv pip install "shap>=0.51"
-
 # 3-2. asyncpg — ai_worker가 health_checks를 직접 UPDATE(core/db.py)하는 데 필요.
 #      pyproject에서 app 그룹에만 있어 base/ai/rag sync로는 설치되지 않으므로 명시 설치.
 RUN uv pip install asyncpg

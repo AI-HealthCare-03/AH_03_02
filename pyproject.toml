@@ -63,7 +63,6 @@ dev = [
 ckd = [
     "numpy>=1.26",
     "pandas>=2.0",
-    "shap>=0.51",
     "lightgbm>=4.6",
 ]
 

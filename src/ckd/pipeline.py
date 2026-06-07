@@ -96,6 +96,12 @@ def run_inference(
             )
         except Exception:  # noqa: BLE001 — SHAP 실패해도 기본 예측 결과는 유지
             logger.exception("shap_model2 계산 실패 — 기본 예측 결과만 반환")
-            result["shap_model2"] = {"items": [], "lifestyle_score": 0.0, "peer_top_pct": None, "peer_relative": None}
+            result["shap_model2"] = {
+                "items": [],
+                "lifestyle_score": 0.0,
+                "peer_top_pct": None,
+                "peer_relative": None,
+                "peer_distribution": None,
+            }
 
     return result

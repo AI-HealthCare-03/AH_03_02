@@ -6,9 +6,11 @@ matplotlib/print/draw_* 제외.
 PoC 검증 사실:
   - AutoGluon predictor에서 내부 LightGBM booster 추출 성공.
   - feature 순서가 config.MODEL1_FEATURES/MODEL2_FEATURES와 100% 일치.
-  - shap 0.51 반환 형태: 이진분류여도 ndarray (n,feat) 반환 (양성 클래스 기여),
-    list/ndarray/3D(n,feat,class) 모두 방어.
-  - _extract_lgbm/_get_explainer는 모델1·2 공용(predictor id 캐시).
+  - LightGBM 내장 TreeSHAP(booster.predict(pred_contrib=True)):
+    이진분류 시 shape (n_samples, n_features + 1), 마지막 열은 base value.
+    SHAP 값 = arr[:, :-1]. shap.TreeExplainer와 동일한 계산(내부 동일 알고리즘).
+  - transformers 의존 없음 — docker autogluon+transformers 5.0 환경에서도 안전.
+  - _extract_lgbm은 모델1·2 공용(predictor id 캐시).
 """
 
 from __future__ import annotations
@@ -25,7 +27,6 @@ logger = logging.getLogger(__name__)
 # ⚠️ 캐시 키는 id(predictor)(메모리 주소 기반) — predictor가 재생성되면 stale 가능.
 # 서비스는 startup에서 predictor를 1회 로드해 모듈 수명 동안 유지하는 것을 전제로 한다.
 _BOOSTER_CACHE: dict[int, tuple] = {}
-_EXPLAINER_CACHE: dict[int, object] = {}
 
 
 def _extract_lgbm(predictor) -> tuple:
@@ -57,20 +58,6 @@ def _extract_lgbm(predictor) -> tuple:
     raise RuntimeError(f"LightGBM booster를 찾지 못했습니다. leaderboard 후보: {cands}")
 
 
-def _get_explainer(predictor):
-    """shap.TreeExplainer(booster) 캐싱."""
-    pid = id(predictor)
-    if pid in _EXPLAINER_CACHE:
-        return _EXPLAINER_CACHE[pid]
-
-    import shap  # noqa: PLC0415
-
-    booster, _ = _extract_lgbm(predictor)
-    explainer = shap.TreeExplainer(booster)
-    _EXPLAINER_CACHE[pid] = explainer
-    return explainer
-
-
 def _aggregate_log_shap(agg: dict[str, float], log_parent_map: dict[str, str]) -> dict[str, float]:
     """_log 자식 SHAP 기여도를 부모 변수로 합산하는 공용 헬퍼 (I-5 DRY 추출).
 
@@ -87,27 +74,21 @@ def _aggregate_log_shap(agg: dict[str, float], log_parent_map: dict[str, str]) -
     return agg
 
 
-def _shap_row(explainer, x_input: pd.DataFrame) -> np.ndarray:
-    """1행 SHAP 값 추출 — (feat,) 양성 클래스 기여 배열.
+def _booster_shap(booster, x_input: pd.DataFrame) -> np.ndarray:
+    """LightGBM 내장 TreeSHAP으로 1행 SHAP 값 추출 — (feat,) 배열.
 
-    shap 버전에 따른 반환 형태 방어:
-      - list:  sv[1] (클래스1)
-      - ndarray 2D (n,feat): 그대로
-      - ndarray 3D (n,feat,class): [:,:,1] (클래스1)
+    booster.predict(pred_contrib=True) 이진분류 반환: (n_samples, n_features + 1)
+    마지막 열은 base(expected) value이므로 제외: arr[:, :-1].
+
+    shap.TreeExplainer와 동일한 TreeSHAP 계산 — transformers 의존 없음.
     """
-    sv = explainer.shap_values(x_input)
-
-    if isinstance(sv, list):
-        sv = sv[1]
-
-    arr = np.asarray(sv)
-
-    if arr.ndim == 3:
-        # (n, feat, n_classes) → 양성 클래스
-        arr = arr[:, :, 1]
-
-    # (n, feat) → (feat,) 1행 추출
-    return arr[0]
+    arr = np.asarray(booster.predict(x_input, pred_contrib=True))
+    # (n, feat+1) → base 열 제거 → (n, feat)
+    shap_vals = arr[:, :-1]
+    # 1행이면 (feat,), 다행이면 (n, feat) 그대로 반환
+    if shap_vals.shape[0] == 1:
+        return shap_vals[0]
+    return shap_vals
 
 
 def _m1_stage(var: str, val: float, gender: int) -> str:
@@ -161,9 +142,9 @@ def explain_model1(feat_row: pd.DataFrame, predictor1) -> list[dict]:
     x_input = feat_row[config.MODEL1_FEATURES]
     gender = int(feat_row["gender"].iloc[0])
 
-    # 2) explainer 획득 + SHAP 1행 추출
-    explainer = _get_explainer(predictor1)
-    sv = _shap_row(explainer, x_input)  # shape: (n_features,)
+    # 2) booster 추출 + 내장 TreeSHAP 1행 추출 (transformers 의존 없음)
+    booster, _ = _extract_lgbm(predictor1)
+    sv = _booster_shap(booster, x_input)  # shape: (n_features,)
 
     # 3) _log 자식 → 부모 합산 (노트북 m1_aggregate) — _aggregate_log_shap 공용 헬퍼 사용
     agg: dict[str, float] = dict(zip(config.MODEL1_FEATURES, sv.tolist(), strict=False))
@@ -238,6 +219,35 @@ def _m2_aggregate_shap(shap_vals: dict[str, float]) -> dict[str, float]:
     return _aggregate_log_shap(agg, config.M2_LOG_PARENT)
 
 
+def _peer_distribution(my_score: float, peer_scores, bins: int = 10) -> dict | None:
+    """연령대 또래 분포 히스토그램 — 리포트 그래프용.
+
+    Args:
+        my_score:    현재 사용자의 lifestyle_score.
+        peer_scores: 같은 연령대 lifestyle_score 분포 배열 (101분위 정렬 점수).
+                     None 또는 빈 배열이면 None 반환.
+        bins:        히스토그램 bin 수 (기본 10).
+
+    Returns:
+        {
+          "counts": list[int],   # 각 bin의 빈도 (길이 = bins)
+          "edges":  list[float], # bin 경계 (길이 = bins + 1)
+          "my_bin": int,         # 내 lifestyle_score가 속한 bin 인덱스 (0 ~ bins-1)
+        }
+        peer_scores 없으면 None.
+    """
+    if peer_scores is None or len(peer_scores) == 0:
+        return None
+    arr = np.asarray(peer_scores, dtype=float)
+    counts, edges = np.histogram(arr, bins=bins)
+    my_bin = int(np.clip(np.digitize(my_score, edges) - 1, 0, bins - 1))
+    return {
+        "counts": counts.astype(int).tolist(),
+        "edges": [round(float(e), 4) for e in edges.tolist()],
+        "my_bin": my_bin,
+    }
+
+
 def _peer_percentile(my_score: float, peer_scores) -> tuple[int | None, str | None]:
     """또래 percentile 계산 (노트북 draw_peer_distribution 산출 로직 이식).
 
@@ -289,15 +299,12 @@ def compute_lifestyle_scores(feat_rows: pd.DataFrame, predictor2) -> np.ndarray:
         np.ndarray shape (n,) — 각 행의 생활습관 위험점수.
     """
     features = config.MODEL2_FEATURES
-    explainer = _get_explainer(predictor2)
+    booster, _ = _extract_lgbm(predictor2)
     x_input = feat_rows[features]
 
-    sv = explainer.shap_values(x_input)
-    if isinstance(sv, list):
-        sv = sv[1]
-    arr = np.asarray(sv)
-    if arr.ndim == 3:
-        arr = arr[:, :, 1]
+    # LightGBM 내장 TreeSHAP — 다행 입력 지원, (n, feat+1) → base 열 제거
+    raw = np.asarray(booster.predict(x_input, pred_contrib=True))
+    arr = raw[:, :-1]  # (n, feat)
     # (n, feat) → DataFrame으로 변환 후 _log 합산
     s_df = pd.DataFrame(arr, columns=features)
     for child_var, parent_var in config.M2_LOG_PARENT.items():
@@ -394,12 +401,14 @@ def explain_model2(
 
     Returns:
         Model2Report dict:
-          - items:           list[dict] — 각 항목 키: {feature(한글), value, shap}
-                             |shap| 내림차순. M2_DISPLAY_EXCLUDED·*_log·BASELINE_VARS 제외.
-                             filter_actionable_shap 로직 적용 (정상범위·유산소 가드).
-          - lifestyle_score: float — DOMAIN 변수 양(+) SHAP 합.
-          - peer_top_pct:    int|None — 또래 상위 몇 % (peer_scores 없으면 None).
-          - peer_relative:   str|None — "상"/"중"/"하" (peer_scores 없으면 None).
+          - items:             list[dict] — 각 항목 키: {feature(한글), value, shap}
+                               |shap| 내림차순. M2_DISPLAY_EXCLUDED·*_log·BASELINE_VARS 제외.
+                               filter_actionable_shap 로직 적용 (정상범위·유산소 가드).
+          - lifestyle_score:   float — DOMAIN 변수 양(+) SHAP 합.
+          - peer_top_pct:      int|None — 또래 상위 몇 % (peer_scores 없으면 None).
+          - peer_relative:     str|None — "상"/"중"/"하" (peer_scores 없으면 None).
+          - peer_distribution: dict|None — 연령대 분포 히스토그램 (peer_scores 없으면 None).
+                               키: counts(list[int]), edges(list[float]), my_bin(int).
 
     구현 흐름 (노트북 local_shap_report 이식):
       1. X = feat_row[MODEL2_FEATURES]
@@ -417,9 +426,9 @@ def explain_model2(
     row = feat_row.iloc[0]
     gender = int(row["gender"]) if "gender" in row.index else 1  # gender 없으면 남성(1) fallback
 
-    # 2) explainer 획득 + SHAP 1행 추출
-    explainer = _get_explainer(predictor2)
-    sv = _shap_row(explainer, x_input)  # shape: (n_features,)
+    # 2) booster 추출 + 내장 TreeSHAP 1행 추출 (transformers 의존 없음)
+    booster, _ = _extract_lgbm(predictor2)
+    sv = _booster_shap(booster, x_input)  # shape: (n_features,)
 
     # 3) _log 자식 → 부모 합산
     raw_agg = dict(zip(config.MODEL2_FEATURES, sv.tolist(), strict=False))
@@ -438,7 +447,7 @@ def explain_model2(
         reverse=True,
     )
 
-    # 7) 또래 percentile
+    # 7) 또래 percentile + 연령대 분포 히스토그램
     top_pct, peer_relative = _peer_percentile(lifestyle_score, peer_scores)
 
     return {
@@ -446,4 +455,5 @@ def explain_model2(
         "lifestyle_score": lifestyle_score,
         "peer_top_pct": top_pct,
         "peer_relative": peer_relative,
+        "peer_distribution": _peer_distribution(lifestyle_score, peer_scores),
     }

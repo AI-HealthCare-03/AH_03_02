@@ -145,13 +145,6 @@ def test_extract_lgbm_caching(predictor1) -> None:
     assert name1 == name2
 
 
-def test_get_explainer_caching(predictor1) -> None:
-    """동일 predictor로 두 번 호출하면 동일 explainer 객체를 반환해야 한다."""
-    e1 = shap_explain._get_explainer(predictor1)
-    e2 = shap_explain._get_explainer(predictor1)
-    assert e1 is e2
-
-
 # ──────────────────────────────────────────────────────────────────────
 # TDD Step 2: explain_model1 — 반환 계약 검증
 # ──────────────────────────────────────────────────────────────────────
@@ -238,17 +231,12 @@ def test_explain_m1_log_parent_merged(feat_row: pd.DataFrame, predictor1) -> Non
     parent_var = "triglycerides"
     child_var = "triglycerides_log"
 
-    # (a) raw SHAP 배열에서 부모·자식 개별 shap 추출
+    # (a) raw SHAP 배열에서 부모·자식 개별 shap 추출 (booster.predict 내장 TreeSHAP)
     x_input = feat_row[config.MODEL1_FEATURES]
     feat_names = config.MODEL1_FEATURES
-    explainer = shap_explain._get_explainer(predictor1)
-    sv = explainer.shap_values(x_input)
-    if isinstance(sv, list):
-        sv = sv[1]
-    arr = np.asarray(sv)
-    if arr.ndim == 3:
-        arr = arr[:, :, 1]
-    raw_shaps = dict(zip(feat_names, arr[0].tolist(), strict=False))
+    booster, _ = shap_explain._extract_lgbm(predictor1)
+    raw = np.asarray(booster.predict(x_input, pred_contrib=True))
+    raw_shaps = dict(zip(feat_names, raw[0, :-1].tolist(), strict=False))
 
     raw_parent_shap = raw_shaps[parent_var]
     raw_child_shap = raw_shaps[child_var]
