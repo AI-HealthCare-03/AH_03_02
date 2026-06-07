@@ -33,7 +33,7 @@ function EgfrGauge({ value }: { value: number | null }) {
   return (
     <div className="relative flex flex-col items-center justify-center gap-3 p-4 rounded-md border border-border bg-bg" style={{ height: 360 }}>
       <span className="absolute right-3 top-3 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">예상값 · 진단 아님</span>
-      <svg width="280" height="220" viewBox="0 0 280 220">
+      <svg viewBox="0 0 280 220" className="w-full max-w-[260px]" style={{ height: 220 }}>
         <path d={`M ${cx + r * Math.cos(toRad(-135))} ${cy + r * Math.sin(toRad(-135))} A ${r} ${r} 0 1 1 ${cx + r * Math.cos(toRad(135))} ${cy + r * Math.sin(toRad(135))}`}
           fill="none" stroke="#E5E7EB" strokeWidth="18" strokeLinecap="round" />
         {pct > 0 && (
@@ -74,10 +74,10 @@ function RiskGauge({ score, calculating }: { score: number | null; calculating?:
     <div className="relative flex flex-col items-center justify-center gap-3 p-4 rounded-md border border-border bg-bg" style={{ height: 360 }}>
       <span className="absolute right-3 top-3 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">예상값 · 진단 아님</span>
       <div
-        className="relative flex h-[180px] w-[180px] items-center justify-center rounded-full"
+        className="relative flex h-[200px] w-[200px] items-center justify-center rounded-full"
         style={{ background: `conic-gradient(${color} ${score * 3.6}deg, #E5E7EB ${score * 3.6}deg)` }}
       >
-        <div className="flex h-[150px] w-[150px] flex-col items-center justify-center rounded-full bg-bg">
+        <div className="flex h-[168px] w-[168px] flex-col items-center justify-center rounded-full bg-bg">
           <span className="text-5xl font-bold leading-none" style={{ color }}>{Math.round(score)}%</span>
           <span className="mt-1 text-base font-semibold text-text-secondary">{level}</span>
           <span className="pointer-events-none mt-1 text-[12px] font-bold text-text-muted/40">예상값</span>
@@ -308,17 +308,13 @@ export function DashboardPage() {
         )}
 
         {/* Row1: 계기판 + 헬스 알 */}
-        <div className="mt-[24px] flex gap-[24px]">
-          <div className="flex flex-1 gap-[16px]">
-            <div className="flex-1">
-              <EgfrGauge value={h?.egfr_estimated ?? null} />
-            </div>
-            <div className="flex-1">
-              <RiskGauge
-                score={h?.ckd_risk_score != null ? h.ckd_risk_score * 100 : null}
-                calculating={!!h && h.ckd_risk_score == null}
-              />
-            </div>
+        <div className="mt-[24px] grid grid-cols-3 gap-[16px]">
+          <div className="col-span-2 grid grid-cols-2 gap-[16px]">
+            <EgfrGauge value={h?.egfr_estimated ?? null} />
+            <RiskGauge
+              score={h?.ckd_risk_score != null ? h.ckd_risk_score * 100 : null}
+              calculating={!!h && h.ckd_risk_score == null}
+            />
           </div>
           <EggWidget />
         </div>
