@@ -120,7 +120,7 @@ function EgfrTrendChart({ trend }: { trend: EgfrTrend | null }) {
     <div className="h-full rounded-md border border-border bg-bg p-4">
       <div className="mb-2 flex items-center justify-between">
         <p className="text-sm font-bold text-text-primary">eGFR 추세 차트 (KDIGO 단계)</p>
-        <p className="text-[10px] text-text-muted">※ 예상값 (의료 진단 아님)</p>
+        <p className="text-[10px] text-text-muted">※ 검진 기반 (의료 진단 아님)</p>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 220 }}>
         {/* G1~G5 색상 배경 띠 */}
