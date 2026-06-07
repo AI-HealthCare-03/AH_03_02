@@ -9,7 +9,7 @@ from app.models.health_check import AppGroup, CkdStage, HealthCheck
 from app.models.safety_event import SafetyEvent, SafetyEventType
 from app.models.users import Gender
 from app.repositories.health_check_repository import HealthCheckRepository
-from app.services import ckd_publisher
+from app.services import ckd_publisher, report_guide
 
 logger = setup_logger("health_check_service")
 
@@ -262,13 +262,31 @@ class HealthCheckService:
         health_check_id: int,
         user_id: int,
     ) -> ReportResponse | None:
-        """SHAP 리포트 조회 — user_id 소유권 필터로 타인 검진 접근 차단."""
+        """SHAP 리포트 조회 + RAG 기반 AI 행동 가이드 생성.
+
+        user_id 소유권 필터로 타인 검진 접근 차단.
+        RAG 가이드 생성 실패·타임아웃 시 ai_guide="" 로 리포트는 정상 반환.
+        """
         hc = await HealthCheck.filter(id=health_check_id, user_id=user_id).first()
         if hc is None:
             return None
+
+        # eGFR·체중을 user_context로 전달 → RAG가 영양 권장량 개인화 환산에 활용
+        user_ctx: dict = {}
+        if hc.egfr_estimated is not None:
+            user_ctx["eGFR"] = hc.egfr_estimated
+        if hc.weight is not None:
+            user_ctx["weight"] = hc.weight
+
+        guide = await report_guide.generate_guide(
+            hc.shap_model1 or [],
+            hc.shap_model2,
+            user_ctx,
+        )
+
         return ReportResponse(
             health_check_id=hc.id,
             shap_model1=hc.shap_model1 or [],
             shap_model2=hc.shap_model2,  # dict 또는 None → LifestyleShap 검증
-            ai_guide="",  # Task 8에서 RAG 연결
+            ai_guide=guide,
         )
