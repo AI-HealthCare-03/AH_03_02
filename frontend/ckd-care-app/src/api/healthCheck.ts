@@ -75,6 +75,8 @@ export interface ReportResponse {
   shap_model1: ShapItem1[];
   shap_model2: LifestyleShap | null;
   ai_guide: string;
+  recommended_tests?: string[];
+  model1_summary?: string;
 }
 
 // ===== API =====

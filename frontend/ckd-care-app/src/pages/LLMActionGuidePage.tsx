@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { ClipboardCheck, FileText } from "lucide-react";
 import { TopNav } from "../components/TopNav";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { BtnSecondary } from "../components/BtnSecondary";
@@ -55,6 +56,41 @@ function shapColor(shap: number): string {
 // |shap| * 3000 으로 barWidth 산정, 최소 20 최대 280
 function shapBarWidth(shap: number): number {
   return Math.min(280, Math.max(20, Math.abs(shap) * 3000));
+}
+
+// ===== 모델1 종합 요약 카드 =====
+function Model1SummaryCard({ summary }: { summary: string }) {
+  if (!summary.trim()) return null;
+  return (
+    <div className="flex items-start gap-[10px] rounded-md border border-accent bg-[#eff6ff] p-[14px]">
+      <FileText className="mt-[1px] h-[18px] w-[18px] shrink-0 text-accent" />
+      <p className="text-sm leading-[1.7] text-text-secondary">{summary}</p>
+    </div>
+  );
+}
+
+// ===== 권장 검사 리스트 =====
+function RecommendedTests({ tests }: { tests: string[] }) {
+  if (tests.length === 0) return null;
+  return (
+    <div className="flex flex-col gap-[8px] rounded-md border border-border bg-bg p-[14px]">
+      <div className="flex items-center gap-[6px]">
+        <ClipboardCheck className="h-[16px] w-[16px] text-accent" />
+        <p className="text-sm font-bold text-text-primary">권장 검사</p>
+      </div>
+      <ul className="flex flex-col gap-[6px]">
+        {tests.map((test, idx) => (
+          <li key={idx} className="flex items-start gap-[8px]">
+            <span className="mt-[3px] h-[8px] w-[8px] shrink-0 rounded-full bg-accent" />
+            <span className="text-sm leading-[1.6] text-text-secondary">{test}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-[4px] text-[11px] leading-[1.4] text-text-muted">
+        ※ 이 목록은 AI 분석 기반 참고 사항이며, 의료 진단이 아닙니다.
+      </p>
+    </div>
+  );
 }
 
 // ===== 스켈레톤 로딩 카드 =====
@@ -283,6 +319,8 @@ export function LLMActionGuidePage() {
 
   // ===== 모델1 위험 변수 =====
   const model1Items: ShapItem1[] = report?.shap_model1 ?? [];
+  const model1Summary: string = report?.model1_summary ?? "";
+  const recommendedTests: string[] = report?.recommended_tests ?? [];
 
   // ===== 모델2 생활습관 =====
   const model2 = report?.shap_model2 ?? null;
@@ -318,6 +356,9 @@ export function LLMActionGuidePage() {
             모델1 위험 변수 (SHAP Top-N)
           </h2>
 
+          {/* 종합 요약 카드 (상단) */}
+          {!isLoading && <Model1SummaryCard summary={model1Summary} />}
+
           {isLoading && (
             <>
               <SkeletonCard />
@@ -345,6 +386,9 @@ export function LLMActionGuidePage() {
                 color={shapColor(item.shap)}
               />
             ))}
+
+          {/* 권장 검사 리스트 (하단) */}
+          {!isLoading && <RecommendedTests tests={recommendedTests} />}
         </div>
 
         {/* ===== 중: 모델2 생활습관 + 또래 비교 ===== */}
