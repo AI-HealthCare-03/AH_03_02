@@ -433,3 +433,197 @@ M1_STAGES: dict[str, tuple] = {
         [(0, 1, "비흡연"), (1, 2, "과거 흡연"), (2, 99, "현재 흡연")],
     ),
 }
+
+# ──────────────────────────────────────────────────────────────────────
+# 모델2 SHAP 리포트 — 사전 상수 (노트북 CELL [29] 원본 이식, SSOT)
+# ──────────────────────────────────────────────────────────────────────
+
+# _log 파생변수 → 부모 변수로 SHAP 기여도 합산 매핑 (모델2용)
+M2_LOG_PARENT: dict[str, str] = {
+    "triglycerides_log": "triglycerides",
+    "ast_log": "ast",
+    "alt_log": "alt",
+}
+
+# SHAP 표시 제외 변수 (노트북 DISPLAY_EXCLUDED)
+# — activity_collected(수집 여부 flag), hemoglobin(임상 전용), *_log(부모로 합산됨)
+M2_DISPLAY_EXCLUDED: list[str] = [
+    "activity_collected",
+    "hemoglobin",
+    "triglycerides_log",
+    "ast_log",
+    "alt_log",
+]
+
+# 배경 변수 — SHAP 표시 대상에서 제외 (나이·성별·가족력)
+M2_BASELINE_VARS: list[str] = [
+    "age",
+    "gender",
+    "family_dm",
+    "family_htn",
+    "family_dyslipidemia",
+    "family_ihd",
+    "family_stroke",
+]
+
+# 유산소 운동 관련 변수
+M2_AEROBIC_VARS: list[str] = ["moderate_days", "walking_days", "vigorous_days"]
+
+# 생활습관 도메인 분류 (노트북 DOMAIN) — lifestyle_score 계산·도메인 분류에 사용
+M2_DOMAIN: dict[str, str] = {
+    "ldl_cholesterol": "diet",
+    "triglycerides": "diet",
+    "bmi": "diet",
+    "waist_cm": "diet",
+    "hdl_cholesterol": "exercise",
+    "sitting_hours": "exercise",
+    "walking_days": "exercise",
+    "moderate_days": "exercise",
+    "vigorous_days": "exercise",
+    "ast": "etc",
+    "alt": "etc",
+    "smoking_current": "etc",
+}
+
+# 변수 한글 라벨 (노트북 PLAIN_LABEL)
+M2_PLAIN_LABEL: dict[str, str] = {
+    "bmi": "체질량지수(BMI)",
+    "waist_cm": "허리둘레",
+    "hdl_cholesterol": "고밀도 지단백(HDL)",
+    "ldl_cholesterol": "저밀도 지단백(LDL)",
+    "triglycerides": "중성지방",
+    "ast": "간 효소(AST)",
+    "alt": "간 효소(ALT)",
+    "sitting_hours": "하루 앉아있는 시간",
+    "walking_days": "걷기(주)",
+    "moderate_days": "중강도 운동(주)",
+    "vigorous_days": "고강도 운동(주)",
+    "smoking_current": "흡연 여부",
+}
+
+# 정상범위 매핑 (노트북 NORMAL_RANGES_MAP) — gender dict는 {'M':[lo,hi],'F':[lo,hi]}
+M2_NORMAL_RANGES: dict[str, object] = {
+    "bmi": [18.5, 22.9],
+    "waist_cm": {"M": [0, 90], "F": [0, 85]},
+    "hdl_cholesterol": [60, 90],
+    "ldl_cholesterol": [0, 100],
+    "triglycerides": [0, 150],
+    "ast": [0, 40],
+    "alt": [0, 40],
+    "sitting_hours": [0, 5.999],
+    "walking_days": [5, 99],
+    "moderate_days": [5, 99],
+    "vigorous_days": [3, 99],
+    "smoking_current": [0, 0.5],
+}
+
+# 임상 단계 기준 (노트북 CLINICAL_STAGES) — 모델2 SHAP 리포트에서 stage 라벨 조회용
+# 구조: {unit, target, stages: [(lo,hi,label,color)] 또는 성별별 dict}
+M2_CLINICAL_STAGES: dict[str, dict] = {
+    "bmi": {
+        "unit": "",
+        "target": "18.5–22.9",
+        "stages": [
+            (0, 18.5, "저체중", "#3498db"),
+            (18.5, 23.0, "정상", "#27ae60"),
+            (23.0, 25.0, "과체중", "#f39c12"),
+            (25.0, 30.0, "경도 비만", "#e67e22"),
+            (30.0, 35.0, "중등도 비만", "#e74c3c"),
+            (35.0, 999, "고도 비만", "#c0392b"),
+        ],
+    },
+    "waist_cm": {
+        "unit": "cm",
+        "target": {"M": "90 미만", "F": "85 미만"},
+        "stages": {
+            "M": [(0, 90, "정상", "#27ae60"), (90, 999, "복부비만", "#e74c3c")],
+            "F": [(0, 85, "정상", "#27ae60"), (85, 999, "복부비만", "#e74c3c")],
+        },
+    },
+    "hdl_cholesterol": {
+        "unit": "mg/dL",
+        "target": "60~90",
+        "stages": [
+            (0, 40, "낮음", "#e74c3c"),
+            (40, 60, "주의", "#f39c12"),
+            (60, 90, "적절", "#27ae60"),
+            (90, 999, "높음", "#2980b9"),
+        ],
+    },
+    "ldl_cholesterol": {
+        "unit": "mg/dL",
+        "target": "100 미만",
+        "stages": [
+            (0, 100, "적절", "#27ae60"),
+            (100, 130, "거의 적절", "#2ecc71"),
+            (130, 160, "약간 높음", "#f39c12"),
+            (160, 190, "높음", "#e67e22"),
+            (190, 999, "아주 높음", "#e74c3c"),
+        ],
+    },
+    "triglycerides": {
+        "unit": "mg/dL",
+        "target": "150 미만",
+        "stages": [
+            (0, 150, "적정", "#27ae60"),
+            (150, 199, "경계", "#f39c12"),
+            (200, 499, "높음", "#e67e22"),
+            (500, 9999, "매우 높음", "#e74c3c"),
+        ],
+    },
+    "ast": {
+        "unit": "U/L",
+        "target": "40 이하",
+        "stages": [(0, 41, "정상", "#27ae60"), (41, 999, "위험", "#e74c3c")],
+    },
+    "alt": {
+        "unit": "U/L",
+        "target": "40 이하",
+        "stages": [(0, 41, "정상", "#27ae60"), (41, 999, "위험", "#e74c3c")],
+    },
+    "sitting_hours": {
+        "unit": "시간",
+        "target": "6시간 미만",
+        "stages": [
+            (0, 6, "적정", "#27ae60"),
+            (6, 8, "주의", "#f39c12"),
+            (8, 999, "위험", "#e74c3c"),
+        ],
+    },
+    "walking_days": {
+        "unit": "일/주",
+        "target": "주 5일 이상",
+        "stages": [
+            (5, 99, "양호", "#27ae60"),
+            (3, 5, "부족", "#f39c12"),
+            (0, 3, "매우 부족", "#e74c3c"),
+        ],
+    },
+    "moderate_days": {
+        "unit": "일/주",
+        "target": "주 5일 이상",
+        "stages": [
+            (5, 99, "양호", "#27ae60"),
+            (3, 5, "부족", "#f39c12"),
+            (0, 3, "매우 부족", "#e74c3c"),
+        ],
+    },
+    "vigorous_days": {
+        "unit": "일/주",
+        "target": "주 3일 이상",
+        "stages": [
+            (3, 99, "양호", "#27ae60"),
+            (1, 3, "부족", "#f39c12"),
+            (0, 1, "매우 부족", "#e74c3c"),
+        ],
+    },
+    "smoking_current": {
+        "unit": "",
+        "target": "비흡연",
+        "stages": [(0, 0.5, "비흡연", "#27ae60"), (0.5, 2, "흡연", "#e74c3c")],
+    },
+}
+
+# 또래 연령대 분류 — lifestyle_score 분포 조회 시 연령대 단위
+# Task 4(train_stats 동결)에서 이 단위로 peer_scores 배열을 저장
+PEER_AGE_DECADES: list[int] = [40, 50, 60, 70, 80]
