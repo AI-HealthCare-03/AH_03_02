@@ -118,3 +118,19 @@ class CheckInResponse(BaseSerializerModel):
     message: str
     award: CheckinAwardResponse | None = None
     egg: EggUpdateResponse | None = None
+
+
+class CancelCheckinResponse(BaseSerializerModel):
+    id: int
+    streak_count: int
+    total_checkins: int
+    last_checkin_date: date | None
+    status: UserChallengeStatus
+    points_revoked: int
+    message: str
+
+
+class AbandonChallengeResponse(BaseSerializerModel):
+    id: int
+    status: UserChallengeStatus
+    message: str

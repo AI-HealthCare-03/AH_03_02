@@ -1,9 +1,12 @@
-from datetime import date
+from datetime import date, timedelta
 
 from fastapi import HTTPException
 from starlette import status
+from tortoise.transactions import in_transaction
 
 from app.dtos.challenge import (
+    AbandonChallengeResponse,
+    CancelCheckinResponse,
     CategoryProgress,
     CategoryProgressResponse,
     ChallengeListResponse,
@@ -113,8 +116,6 @@ class ChallengeService:
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="오늘은 이미 체크인했습니다.")
 
         # 스트릭 계산: 어제 체크인 → 연속, 아니면 1로 리셋
-        from datetime import timedelta
-
         if uc.last_checkin_date == today - timedelta(days=1):
             uc.streak_count += 1
         else:
@@ -288,3 +289,86 @@ class ChallengeService:
             days.append(EmotionDay(date=cur, emotion=by_date.get(cur)))
             cur += timedelta(days=1)
         return WeeklyEmotionResponse(days=days)
+
+    async def cancel_checkin(
+        self, user_id: int, user_challenge_id: int, today: date
+    ) -> CancelCheckinResponse:
+        """오늘 체크인을 완전 롤백.
+
+        - last_checkin_date != today 이면 400 (오늘 체크인 내역 없음)
+        - total_checkins -= 1, streak_count = max(0, streak_count-1)
+        - last_checkin_date: 별도 날짜 로그 없음 → streak>0이면 today-1, 아니면 None
+        - 체크인 포인트 역적립 (CHECKIN/LUCKY/STREAK_BONUS/FULL_PARTICIPATION)
+        - COMPLETED → ACTIVE 복귀
+        - in_transaction으로 원자성 보장
+        """
+        uc = await self._user_repo.get_by_id(user_challenge_id, user_id)
+        if uc is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="참여 중인 챌린지를 찾을 수 없습니다.")
+
+        if uc.last_checkin_date != today:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="오늘 체크인하지 않았습니다.",
+            )
+
+        challenge = await uc.challenge
+
+        async with in_transaction():
+            # 포인트 회수 (트랜잭션 안에서)
+            points_revoked = await self._points.revoke_checkin(
+                user_id=user_id, challenge_id=challenge.id, today=today
+            )
+
+            # 카운트 롤백
+            uc.total_checkins = max(0, uc.total_checkins - 1)
+            uc.streak_count = max(0, uc.streak_count - 1)
+
+            # last_checkin_date 롤백: 날짜별 체크인 로그 없음 → 근사값
+            # streak이 남아있으면 어제, 없으면 None
+            if uc.streak_count > 0:
+                uc.last_checkin_date = today - timedelta(days=1)
+            else:
+                uc.last_checkin_date = None
+
+            # COMPLETED였으면 ACTIVE로 복귀
+            if uc.status == UserChallengeStatus.COMPLETED:
+                uc.status = UserChallengeStatus.ACTIVE
+
+            await self._user_repo.save(uc)
+
+        return CancelCheckinResponse(
+            id=uc.id,
+            streak_count=uc.streak_count,
+            total_checkins=uc.total_checkins,
+            last_checkin_date=uc.last_checkin_date,
+            status=uc.status,
+            points_revoked=points_revoked,
+            message="오늘 체크인이 취소되었습니다.",
+        )
+
+    async def abandon(self, user_id: int, user_challenge_id: int) -> AbandonChallengeResponse:
+        """챌린지 참여 해제 (ABANDONED).
+
+        - 레코드 삭제 아님 — 이력 유지
+        - 체크인 기록·포인트는 그대로 둠
+        - 이미 ABANDONED이면 409
+        """
+        uc = await self._user_repo.get_by_id(user_challenge_id, user_id)
+        if uc is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="참여 중인 챌린지를 찾을 수 없습니다.")
+
+        if uc.status == UserChallengeStatus.ABANDONED:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="이미 포기한 챌린지입니다.",
+            )
+
+        uc.status = UserChallengeStatus.ABANDONED
+        await self._user_repo.save(uc)
+
+        return AbandonChallengeResponse(
+            id=uc.id,
+            status=uc.status,
+            message="챌린지 참여를 해제했습니다.",
+        )
