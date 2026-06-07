@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { TopNav } from "../components/TopNav";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { BtnSecondary } from "../components/BtnSecondary";
-import { healthCheckApi, ShapItem1, LifestyleShapItem } from "../api/healthCheck";
+import { healthCheckApi, ShapItem1, LifestyleShapItem, PeerDistribution } from "../api/healthCheck";
 
 // ===== ShapBar 컴포넌트 =====
 // value를 number | string 모두 수용하도록 확장
@@ -80,7 +80,112 @@ function ComputingBanner() {
   );
 }
 
-// ===== 또래 비교 게이지 =====
+// ===== 연령대 분포 히스토그램 =====
+function PeerDistributionChart({
+  distribution,
+  peerTopPct,
+  peerRelative,
+}: {
+  distribution: PeerDistribution;
+  peerTopPct: number | null;
+  peerRelative: string | null;
+}) {
+  const { counts, edges, my_bin } = distribution;
+  const maxCount = Math.max(...counts, 1);
+
+  // 등급별 색상
+  const levelColor =
+    peerRelative === "상"
+      ? "#16A34A"
+      : peerRelative === "중"
+      ? "#D97706"
+      : "#DC2626";
+
+  // x축 라벨: 첫 · 중간 · 마지막 edge만 표기
+  const midIdx = Math.floor(edges.length / 2);
+  const labelIndices = new Set([0, midIdx, edges.length - 1]);
+
+  return (
+    <div className="flex flex-col gap-[8px] rounded-md border border-border bg-bg p-[12px]">
+      {/* 제목 + 등급 뱃지 */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-bold text-text-primary">같은 연령대 분포</p>
+        <div className="flex items-center gap-[6px]">
+          {peerTopPct !== null && (
+            <span className="text-xs text-text-muted">상위 {peerTopPct}%</span>
+          )}
+          {peerRelative && (
+            <span
+              className="rounded-full px-[8px] py-[2px] text-xs font-bold text-white"
+              style={{ backgroundColor: levelColor }}
+            >
+              {peerRelative}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* 히스토그램 막대 */}
+      <div className="flex h-[72px] items-end gap-[2px]">
+        {counts.map((count, i) => {
+          const heightPct = (count / maxCount) * 100;
+          const isMyBin = i === my_bin;
+          return (
+            <div
+              key={i}
+              className="flex-1 rounded-t-sm transition-all duration-300"
+              style={{
+                height: `${Math.max(heightPct, 4)}%`,
+                backgroundColor: isMyBin ? "#D97706" : "#D1D5DB",
+              }}
+              title={`${count}명${isMyBin ? " ← 내 위치" : ""}`}
+            />
+          );
+        })}
+      </div>
+
+      {/* x축 라벨 */}
+      <div className="relative flex">
+        {edges.map((edge, i) =>
+          labelIndices.has(i) ? (
+            <span
+              key={i}
+              className="absolute text-[10px] text-text-muted"
+              style={{
+                left: `${(i / (edges.length - 1)) * 100}%`,
+                transform:
+                  i === 0
+                    ? "translateX(0)"
+                    : i === edges.length - 1
+                    ? "translateX(-100%)"
+                    : "translateX(-50%)",
+              }}
+            >
+              {edge.toFixed(1)}
+            </span>
+          ) : null
+        )}
+      </div>
+
+      {/* 범례 + 캡션 */}
+      <div className="mt-[14px] flex items-center gap-[8px]">
+        <div className="flex items-center gap-[4px]">
+          <div className="h-[10px] w-[10px] rounded-sm bg-[#D97706]" />
+          <span className="text-[10px] text-text-muted">내 위치</span>
+        </div>
+        <div className="flex items-center gap-[4px]">
+          <div className="h-[10px] w-[10px] rounded-sm bg-[#D1D5DB]" />
+          <span className="text-[10px] text-text-muted">또래</span>
+        </div>
+        <span className="ml-auto text-[10px] text-text-muted">
+          낮음 ← 생활습관 위험도 → 높음
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ===== 또래 비교 게이지 (peer_distribution 없을 때 폴백) =====
 function PeerGauge({
   peerTopPct,
   peerRelative,
@@ -272,11 +377,19 @@ export function LLMActionGuidePage() {
                 </p>
               </div>
 
-              {/* 또래 비교 */}
-              <PeerGauge
-                peerTopPct={model2.peer_top_pct}
-                peerRelative={model2.peer_relative}
-              />
+              {/* 또래 비교: 분포 그래프 우선, 없으면 게이지 폴백 */}
+              {model2.peer_distribution ? (
+                <PeerDistributionChart
+                  distribution={model2.peer_distribution}
+                  peerTopPct={model2.peer_top_pct}
+                  peerRelative={model2.peer_relative}
+                />
+              ) : (
+                <PeerGauge
+                  peerTopPct={model2.peer_top_pct}
+                  peerRelative={model2.peer_relative}
+                />
+              )}
 
               {/* 생활습관 SHAP 항목 */}
               {lifestyleItems.map((item, idx) => (

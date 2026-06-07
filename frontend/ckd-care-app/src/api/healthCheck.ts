@@ -56,11 +56,18 @@ export interface LifestyleShapItem {
   shap: number;
 }
 
+export interface PeerDistribution {
+  counts: number[];
+  edges: number[];
+  my_bin: number;
+}
+
 export interface LifestyleShap {
   items: LifestyleShapItem[];
   lifestyle_score: number;
   peer_top_pct: number | null;
   peer_relative: string | null;
+  peer_distribution?: PeerDistribution | null;
 }
 
 export interface ReportResponse {
