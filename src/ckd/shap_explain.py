@@ -11,12 +11,17 @@ PoC 검증 사실:
 
 from __future__ import annotations
 
+import logging
+
 import numpy as np
 import pandas as pd
 
 from . import config
 
-# booster/explainer 캐시 (predictor id 키)
+logger = logging.getLogger(__name__)
+
+# ⚠️ 캐시 키는 id(predictor)(메모리 주소 기반) — predictor가 재생성되면 stale 가능.
+# 서비스는 startup에서 predictor를 1회 로드해 모듈 수명 동안 유지하는 것을 전제로 한다.
 _BOOSTER_CACHE: dict[int, tuple] = {}
 _EXPLAINER_CACHE: dict[int, object] = {}
 
@@ -153,6 +158,7 @@ def explain_model1(feat_row: pd.DataFrame, predictor1) -> list[dict]:
     row = feat_row.iloc[0]
     for var in config.M1_SHAP_VARS:
         if var not in agg:
+            logger.warning("explain_model1: '%s'가 SHAP 결과에 없어 제외합니다.", var)
             continue
         val = float(row[var]) if var in row.index and not pd.isna(row[var]) else float("nan")
         result.append(

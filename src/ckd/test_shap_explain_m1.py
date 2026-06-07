@@ -145,6 +145,13 @@ def test_extract_lgbm_caching(predictor1) -> None:
     assert name1 == name2
 
 
+def test_get_explainer_caching(predictor1) -> None:
+    """동일 predictor로 두 번 호출하면 동일 explainer 객체를 반환해야 한다."""
+    e1 = shap_explain._get_explainer(predictor1)
+    e2 = shap_explain._get_explainer(predictor1)
+    assert e1 is e2
+
+
 # ──────────────────────────────────────────────────────────────────────
 # TDD Step 2: explain_model1 — 반환 계약 검증
 # ──────────────────────────────────────────────────────────────────────
