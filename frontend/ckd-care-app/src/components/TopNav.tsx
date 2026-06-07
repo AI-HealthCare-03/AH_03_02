@@ -1,4 +1,4 @@
-import { User, Bell, LayoutDashboard, Trophy, Coins, Sparkles, Bot, Shield } from "lucide-react";
+import { User, Bell, LayoutDashboard, Trophy, Coins, Sparkles, Bot, Shield, FileBarChart } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
@@ -23,6 +23,7 @@ export function TopNav({ brand = "CKD CARE" }: TopNavProps) {
 
   const navItems = [
     { to: "/dashboard", icon: LayoutDashboard, label: "대시보드" },
+    { to: "/llm-guide", icon: FileBarChart, label: "리포트" },
     { to: "/challenge", icon: Trophy, label: "챌린지" },
     { to: "/collection", icon: Sparkles, label: "컬렉션" },
     { to: "/rag-chatbot", icon: Bot, label: "AI 챗봇" },
