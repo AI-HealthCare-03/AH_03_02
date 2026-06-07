@@ -15,6 +15,8 @@ from ai_worker.core import config
 from ai_worker.core.logger import setup_logger
 from ai_worker.core.redis_client import get_redis
 from ai_worker.schemas.chat import ChatJob
+from ai_worker.schemas.ckd import CkdJob
+from ai_worker.tasks.ckd_task import handle_ckd_job
 from ai_worker.tasks.rag_task import handle_chat_job
 
 logger = setup_logger("ai_worker")
@@ -28,6 +30,43 @@ async def ensure_group(redis) -> None:
     except ResponseError as e:
         if "BUSYGROUP" not in str(e):
             raise
+
+
+async def ensure_ckd_group(redis) -> None:
+    try:
+        await redis.xgroup_create(config.CKD_JOBS_STREAM, config.CKD_JOBS_GROUP, id="0", mkstream=True)
+    except ResponseError as e:
+        if "BUSYGROUP" not in str(e):
+            raise
+
+
+async def consume_ckd_once(redis) -> int:
+    """ckd_jobs 한 번 읽어 예측·갱신. 실패는 로그 후 ack(무한 재처리 방지)."""
+    resp = await redis.xreadgroup(
+        config.CKD_JOBS_GROUP,
+        _CONSUMER,
+        {config.CKD_JOBS_STREAM: ">"},
+        count=10,
+        block=2000,
+    )
+    if not resp:
+        return 0
+    handled = 0
+    for _stream, messages in resp:
+        for msg_id, fields in messages:
+            try:
+                job = CkdJob(
+                    health_check_id=int(fields["health_check_id"]),
+                    egfr=float(fields["egfr"]) if fields.get("egfr") else None,
+                    checked_date=fields["checked_date"],
+                    payload=json.loads(fields["payload"]),
+                )
+                await handle_ckd_job(job)
+            except Exception:  # noqa: BLE001 — 한 건 실패가 루프를 막지 않도록
+                logger.exception("ckd job 처리 실패 — ack 후 계속")
+            await redis.xack(config.CKD_JOBS_STREAM, config.CKD_JOBS_GROUP, msg_id)
+            handled += 1
+    return handled
 
 
 async def consume_once(redis) -> int:
@@ -62,6 +101,7 @@ async def consume_once(redis) -> int:
 async def main() -> None:
     redis = get_redis()
     await ensure_group(redis)
+    await ensure_ckd_group(redis)
     logger.info(
         "RAG consumer 시작 (stream=%s group=%s)",
         config.RAG_JOBS_STREAM,
@@ -69,7 +109,7 @@ async def main() -> None:
     )
     while True:
         try:
-            await consume_once(redis)
+            await asyncio.gather(consume_once(redis), consume_ckd_once(redis))
         except Exception:  # noqa: BLE001 — 루프는 죽지 않아야 함
             logger.exception("consume 루프 오류 — 계속 진행")
             await asyncio.sleep(1)

@@ -64,6 +64,40 @@ CASES = {
         "dm_diagnosed": True,
     },
     "신기능 저하 (creatinine 2.5 → eGFR<60)": {**BASE, "creatinine": 2.5},
+    # A그룹 테스트 페르소나 — 코랩 검증 dict(모델 raw 피처)를 서비스 입력 형식으로 변환.
+    # 파생변수(bp_status·anemia·pulse_pressure·*_log·*_ratio 등)는 features.py가 자동 계산하므로 원자료만 채운다.
+    "A그룹 — 김철수(58·남·고혈압·당뇨·가족력)": {
+        **BASE,
+        "birthday": date(1966, 6, 1),  # 58세 (REF_DATE 2024-06-01 기준)
+        # 검진(HealthCheck) — 복부비만·고혈압·고혈당·신기능 저하
+        "systolic_bp": 150,
+        "diastolic_bp": 92,
+        "fasting_glucose": 145,
+        "creatinine": 1.6,  # → eGFR<60 → app_group A(G1)
+        "total_cholesterol": 210,
+        "hdl_cholesterol": 42,
+        "ldl_cholesterol": 135,  # 검진값 존재 → Friedewald 미추정(ldl_is_estimated=0)
+        "triglycerides": 210,
+        "ast": 30,
+        "alt": 35,
+        "hemoglobin": 13.5,
+        "urine_protein_qual": 1,  # 요단백 양성
+        "urine_glucose": 1,  # 요당 양성
+        "weight": 81,
+        "bmi": 27.4,
+        "waist_circumference": 98,  # 복부비만(남 ≥90)
+        # 문진(LifestyleSurvey) — 진단력·가족력·생활습관
+        "htn_diagnosed": True,  # 본인 고혈압 진단
+        "dm_diagnosed": True,  # 본인 당뇨 진단
+        "family_history_diabetes": True,  # 가족력 당뇨
+        "family_history_hypertension": True,  # 가족력 고혈압
+        "smoking_status": "CURRENT",  # 현재 흡연
+        "drinking_frequency": "W2_3",  # 주 2~3회 (음주 6단계, 명세 §3.1)
+        "vigorous_exercise_days": 0,
+        "moderate_exercise_days": 1,
+        "walking_days_per_week": 2,
+        "sitting_hours_per_day": 9.0,  # 좌식 9시간
+    },
 }
 
 

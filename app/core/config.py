@@ -38,6 +38,7 @@ class Config(BaseSettings):
     RAG_JOBS_GROUP: str = "rag_workers"  # consumer group 이름
     RAG_RESP_PREFIX: str = "rag_resp"  # 응답 채널 prefix → rag_resp:{job_id}
     RAG_TIMEOUT_SEC: int = 60  # 백엔드 응답 대기 상한
+    CKD_JOBS_STREAM: str = "ckd_jobs"  # 백엔드→worker CKD 예측 작업 스트림
 
     COOKIE_DOMAIN: str = "localhost"
 

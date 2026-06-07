@@ -84,6 +84,8 @@ services:
       REDIS_HOST: redis
       QDRANT_URL: http://qdrant:6333
       DB_HOST: postgres
+    volumes:
+      - ./models/ckd:/app/models/ckd:ro  # CKD predictor·threshold·train_stats (읽기 전용)
     restart: always
     mem_limit: 4G
     networks:

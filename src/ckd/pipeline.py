@@ -19,6 +19,7 @@ def run_inference(
     predictor1,
     threshold: float,
     stats: dict,
+    egfr_override: float | None = None,
 ) -> dict[str, Any]:
     """서비스 입력 dict → HealthCheck를 채울 예측 dict.
 
@@ -35,9 +36,12 @@ def run_inference(
     df = preprocess.impute_missing(df, stats["impute"])
 
     # 3) eGFR (그룹 배정·스테이지용, 모델 입력 아님)
-    is_female = [bool(df["gender"].iloc[0] == 0)]  # gender 0=여 / 1=남
-    egfr_val = float(preprocess.calc_egfr(df["creatinine"].to_numpy(), df["age"].to_numpy(), is_female)[0])
-    egfr = None if math.isnan(egfr_val) else egfr_val
+    if egfr_override is not None:
+        egfr = None if (isinstance(egfr_override, float) and math.isnan(egfr_override)) else float(egfr_override)
+    else:
+        is_female = [bool(df["gender"].iloc[0] == 0)]  # gender 0=여 / 1=남
+        egfr_val = float(preprocess.calc_egfr(df["creatinine"].to_numpy(), df["age"].to_numpy(), is_female)[0])
+        egfr = None if math.isnan(egfr_val) else egfr_val
 
     # 4) 피처 변환 (학습과 동일 순서: winsor → log → 파생)
     df = features.apply_winsor(df, stats["win_bounds"])
