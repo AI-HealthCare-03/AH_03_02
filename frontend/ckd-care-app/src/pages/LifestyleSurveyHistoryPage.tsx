@@ -74,6 +74,15 @@ export function LifestyleSurveyHistoryPage() {
                 ]
                   .filter(Boolean)
                   .join("·") || "없음";
+              const diagnosed =
+                [
+                  r.htn_diagnosed && "고혈압",
+                  r.dm_diagnosed && "당뇨",
+                  r.dyslipidemia_diagnosed && "이상지질",
+                  r.ckd_diagnosed && "CKD",
+                ]
+                  .filter(Boolean)
+                  .join("·");
               return (
                 <div
                   key={r.id}
@@ -90,6 +99,17 @@ export function LifestyleSurveyHistoryPage() {
                   <span className="text-sm text-text-primary">{r.exercise_days_per_week}일</span>
                   <span className="text-sm text-text-secondary">
                     가족력: {fam}
+                    {diagnosed && (
+                      <>
+                        {" · "}
+                        <span>진단: </span>
+                        {r.ckd_diagnosed ? (
+                          <span className="font-bold text-danger">{diagnosed}</span>
+                        ) : (
+                          <span>{diagnosed}</span>
+                        )}
+                      </>
+                    )}
                     {r.stress_level ? ` · 스트레스 ${STRESS_LABEL[r.stress_level] ?? r.stress_level}` : ""}
                     {r.is_pregnant ? " · 임신" : ""}
                   </span>

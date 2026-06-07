@@ -83,6 +83,11 @@ export function LifestyleSurveyPage() {
   const [famDiabetes, setFamDiabetes] = useState(false);
   const [famHypertension, setFamHypertension] = useState(false);
   const [famHeart, setFamHeart] = useState(false);
+  // 본인 진단력 (작업3)
+  const [htnDiagnosed, setHtnDiagnosed] = useState(false);
+  const [dmDiagnosed, setDmDiagnosed] = useState(false);
+  const [dyslipidemiadiagnosed, setDyslipidemiadiagnosed] = useState(false);
+  const [ckdDiagnosed, setCkdDiagnosed] = useState(false);
   const [isPregnant, setIsPregnant] = useState(false);
 
   async function handleSubmit() {
@@ -110,6 +115,10 @@ export function LifestyleSurveyPage() {
         family_history_diabetes: famDiabetes,
         family_history_hypertension: famHypertension,
         family_history_heart_disease: famHeart,
+        htn_diagnosed: htnDiagnosed,
+        dm_diagnosed: dmDiagnosed,
+        dyslipidemia_diagnosed: dyslipidemiadiagnosed,
+        ckd_diagnosed: ckdDiagnosed,
         is_pregnant: isPregnant,
       });
       navigate("/dashboard");
@@ -282,6 +291,52 @@ export function LifestyleSurveyPage() {
                   />
                   <span className="text-sm text-text-primary">심장질환</span>
                 </label>
+              </div>
+            </div>
+
+            <div className="rounded-md border border-border bg-bg p-[16px]">
+              <p className="mb-[12px] text-md font-bold text-text-primary">본인 진단력</p>
+              <p className="mb-[8px] text-xs text-text-muted">본인이 직접 진단받은 적 있는 질환을 선택하세요.</p>
+              <div className="flex flex-col gap-[8px]">
+                <label className="flex items-center gap-[8px] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={htnDiagnosed}
+                    onChange={(e) => setHtnDiagnosed(e.target.checked)}
+                    className="h-4 w-4 accent-accent"
+                  />
+                  <span className="text-sm text-text-primary">고혈압 진단</span>
+                </label>
+                <label className="flex items-center gap-[8px] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={dmDiagnosed}
+                    onChange={(e) => setDmDiagnosed(e.target.checked)}
+                    className="h-4 w-4 accent-accent"
+                  />
+                  <span className="text-sm text-text-primary">당뇨 진단</span>
+                </label>
+                <label className="flex items-center gap-[8px] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={dyslipidemiadiagnosed}
+                    onChange={(e) => setDyslipidemiadiagnosed(e.target.checked)}
+                    className="h-4 w-4 accent-accent"
+                  />
+                  <span className="text-sm text-text-primary">이상지질혈증 진단</span>
+                </label>
+                <label className="flex items-center gap-[8px] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={ckdDiagnosed}
+                    onChange={(e) => setCkdDiagnosed(e.target.checked)}
+                    className="h-4 w-4 accent-accent"
+                  />
+                  <span className="text-sm text-text-primary">만성콩팥병(CKD) 진단</span>
+                </label>
+                {ckdDiagnosed && (
+                  <p className="text-xs text-danger">진단받으셨다면 주치의 지시를 우선하세요.</p>
+                )}
               </div>
             </div>
 
