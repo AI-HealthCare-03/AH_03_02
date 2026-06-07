@@ -40,9 +40,8 @@ function EgfrGauge({ value }: { value: number | null }) {
           <path d={`M ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`}
             fill="none" stroke={color} strokeWidth="18" strokeLinecap="round" />
         )}
-        <text x={cx} y={cy - 6} textAnchor="middle" fontSize="42" fontWeight="bold" fill={color}>{Math.round(value)}</text>
-        <text x={cx} y={cy + 22} textAnchor="middle" fontSize="16" fill="#6B7280">mL/min</text>
-        <text x={cx} y={cy + 70} textAnchor="middle" fontSize="28" fill="#9CA3AF" opacity="0.18" fontWeight="bold" pointerEvents="none">검진 기반</text>
+        <text x={cx} y={cy + 4} textAnchor="middle" fontSize="42" fontWeight="bold" fill={color}>{Math.round(value)}</text>
+        <text x={cx} y={cy + 30} textAnchor="middle" fontSize="16" fill="#6B7280">mL/min</text>
         <line x1={cx} y1={cy} x2={cx + (r - 18) * Math.cos(toRad(angle))} y2={cy + (r - 18) * Math.sin(toRad(angle))}
           stroke="#1F2937" strokeWidth="4" strokeLinecap="round" />
         <circle cx={cx} cy={cy} r="6" fill="#1F2937"/>
@@ -80,7 +79,6 @@ function RiskGauge({ score, calculating }: { score: number | null; calculating?:
         <div className="flex h-[184px] w-[184px] flex-col items-center justify-center rounded-full bg-bg">
           <span className="text-5xl font-bold leading-none" style={{ color }}>{Math.round(score)}%</span>
           <span className="mt-1 text-base font-semibold text-text-secondary">{level}</span>
-          <span className="pointer-events-none mt-1 text-[12px] font-bold text-text-muted/40">예상값</span>
         </div>
       </div>
       <p className="text-base font-bold text-text-primary">CKD 위험도</p>
