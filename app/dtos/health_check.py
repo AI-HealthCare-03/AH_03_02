@@ -67,3 +67,27 @@ class HealthCheckResponse(BaseSerializerModel):
 class HealthCheckListResponse(BaseSerializerModel):
     total: int
     items: list[HealthCheckResponse]
+
+
+# ── SHAP 리포트 DTO ──────────────────────────────────────────────────────────
+
+
+class ShapItem(BaseModel):
+    feature: str
+    value: float
+    shap: float
+    note: str | None = None  # 모델1만 note 사용, 모델2 items는 None
+
+
+class LifestyleShap(BaseModel):
+    items: list[ShapItem]
+    lifestyle_score: float
+    peer_top_pct: int | None = None
+    peer_relative: str | None = None
+
+
+class ReportResponse(BaseSerializerModel):
+    health_check_id: int
+    shap_model1: list[ShapItem]
+    shap_model2: LifestyleShap | None
+    ai_guide: str

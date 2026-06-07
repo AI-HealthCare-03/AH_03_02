@@ -9,6 +9,7 @@ from app.dtos.health_check import (
     HealthCheckCreateRequest,
     HealthCheckListResponse,
     HealthCheckResponse,
+    ReportResponse,
 )
 from app.models.users import User
 from app.services.health_check import HealthCheckService
@@ -78,6 +79,31 @@ async def get_health_check(
     service: Annotated[HealthCheckService, Depends(HealthCheckService)],
 ) -> Response:
     result = await service.get_health_check(health_check_id=health_check_id, user_id=user.id)
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="검진 기록을 찾을 수 없습니다.",
+        )
+    return Response(result.model_dump(), status_code=status.HTTP_200_OK)
+
+
+@health_check_router.get(
+    "/{health_check_id}/report",
+    response_model=ReportResponse,
+    status_code=status.HTTP_200_OK,
+    summary="SHAP 리포트 + AI 행동 가이드",
+    description=(
+        "검진 기록의 SHAP 기반 위험 변수 분석 결과를 반환합니다. "
+        "shap_model1은 CKD 위험 변수(모델1), shap_model2는 생활습관 변수(모델2) + 또래 비교입니다. "
+        "ai_guide는 Task 8(RAG 연결) 이후 채워집니다."
+    ),
+)
+async def get_report(
+    health_check_id: int,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[HealthCheckService, Depends(HealthCheckService)],
+) -> Response:
+    result = await service.get_report(health_check_id=health_check_id, user_id=user.id)
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

@@ -3,6 +3,7 @@ from app.dtos.health_check import (
     HealthCheckCreateRequest,
     HealthCheckListResponse,
     HealthCheckResponse,
+    ReportResponse,
 )
 from app.models.health_check import AppGroup, CkdStage, HealthCheck
 from app.models.safety_event import SafetyEvent, SafetyEventType
@@ -254,3 +255,20 @@ class HealthCheckService:
         if hc is None:
             return None
         return HealthCheckResponse.model_validate(hc)
+
+    async def get_report(
+        self,
+        *,
+        health_check_id: int,
+        user_id: int,
+    ) -> ReportResponse | None:
+        """SHAP 리포트 조회 — user_id 소유권 필터로 타인 검진 접근 차단."""
+        hc = await HealthCheck.filter(id=health_check_id, user_id=user_id).first()
+        if hc is None:
+            return None
+        return ReportResponse(
+            health_check_id=hc.id,
+            shap_model1=hc.shap_model1 or [],
+            shap_model2=hc.shap_model2,  # dict 또는 None → LifestyleShap 검증
+            ai_guide="",  # Task 8에서 RAG 연결
+        )
