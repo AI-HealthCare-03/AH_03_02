@@ -159,15 +159,24 @@ class TestExtractStatsPeerLifestyle:
         for key in ("win_bounds", "tg_hdl_v2", "impute"):
             assert key in stats, f"기존 키 '{key}'가 없습니다"
 
-    def test_decade_under_30_samples_skipped(self):
-        """30행 미만 연령대는 peer_lifestyle에서 제외."""
-        # 40대만 5행 (< 30), 나머지는 35행
-        rows_40 = _make_fake_df(n_per_decade=5)
-        rows_40 = rows_40[rows_40["age"] < 50]  # 40대 행만
+    def test_decade_under_30_samples_skipped(self, real_predictor2):
+        """30행 미만 연령대는 peer_lifestyle에서 제외됨을 실 predictor2로 검증.
 
-        # predictor2=None이면 peer_lifestyle={} 이므로, None 케이스로 skip_logic만 검증
-        # (실 predictor 없이 단위 검증 — 30행 미만 조건은 _peer_lifestyle 내부 로직)
-        from .train_stats import _peer_lifestyle  # noqa: PLC0415
+        - 40대: 29행 (< 30) → 결과에 없어야 함
+        - 50대: 30행 (>= 30) → 결과에 있어야 함
+        """
+        # 40대 29행 + 50대 30행으로 구성된 가짜 df
+        frames = []
+        for dec, n in [(40, 29), (50, 30)]:
+            sub = _make_fake_df(n_per_decade=35)
+            mask = (sub["age"] >= dec) & (sub["age"] < dec + 10)
+            sub = sub[mask].iloc[:n].copy()
+            frames.append(sub)
 
-        result = _peer_lifestyle(rows_40, predictor2=None)
-        assert result == {}, "_peer_lifestyle(predictor2=None)은 빈 dict 반환"
+        mixed_df = pd.concat(frames, ignore_index=True)
+
+        stats = extract_stats(mixed_df, predictor2=real_predictor2)
+        peer = stats.get("peer_lifestyle", {})
+
+        assert "40" not in peer, f"29행 40대는 peer_lifestyle에서 제외되어야 합니다. 현재 키: {list(peer.keys())}"
+        assert "50" in peer, f"30행 50대는 peer_lifestyle에 포함되어야 합니다. 현재 키: {list(peer.keys())}"
