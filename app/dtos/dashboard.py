@@ -41,6 +41,7 @@ class LatestLifestyleSummary(BaseSerializerModel):
     exercise_days_per_week: int
     stress_level: StressLevel | None
     is_pregnant: bool = False
+    ckd_diagnosed: bool = False
 
 
 class DashboardSummaryResponse(BaseSerializerModel):

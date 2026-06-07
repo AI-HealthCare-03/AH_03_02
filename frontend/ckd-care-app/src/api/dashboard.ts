@@ -26,6 +26,7 @@ export interface LatestLifestyleSummary {
   exercise_days_per_week: number;
   stress_level: string | null;
   is_pregnant: boolean;
+  ckd_diagnosed: boolean;
 }
 
 export interface DashboardSummary {

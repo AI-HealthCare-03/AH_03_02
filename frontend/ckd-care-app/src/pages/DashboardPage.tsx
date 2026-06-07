@@ -257,6 +257,17 @@ export function DashboardPage() {
           </Link>
         )}
 
+        {/* CKD 진단자 안내 — 이미 진단받은 경우 챌린지·자가관리보다 주치의 지시 우선 (서비스 정책) */}
+        {ls?.ckd_diagnosed && (
+          <div role="alert" className="mb-4 rounded-md border border-red-400 bg-red-50 p-4 text-red-900">
+            <p className="text-sm font-bold">만성콩팥병(CKD) 진단을 받으셨군요</p>
+            <p className="mt-1 text-xs leading-[1.7]">
+              이미 진단을 받으신 경우, 본 앱의 챌린지·자가관리보다 <span className="font-bold">주치의·신장내과 전문의의 지시를 우선</span>하세요.
+              앱이 제공하는 정보는 참고용이며, 식이·수분·운동 조절은 반드시 담당 의료진과 상의해 진행하시기 바랍니다.
+            </p>
+          </div>
+        )}
+
         {/* 임신 안전 안내 — LifestyleSurvey is_pregnant=true 일 때만 노출. ML 선별 결과 해석 주의·산부인과 상담 권고. */}
         {ls?.is_pregnant && (
           <div
