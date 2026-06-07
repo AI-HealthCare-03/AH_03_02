@@ -290,9 +290,7 @@ class ChallengeService:
             cur += timedelta(days=1)
         return WeeklyEmotionResponse(days=days)
 
-    async def cancel_checkin(
-        self, user_id: int, user_challenge_id: int, today: date
-    ) -> CancelCheckinResponse:
+    async def cancel_checkin(self, user_id: int, user_challenge_id: int, today: date) -> CancelCheckinResponse:
         """오늘 체크인을 완전 롤백.
 
         - last_checkin_date != today 이면 400 (오늘 체크인 내역 없음)
@@ -316,9 +314,7 @@ class ChallengeService:
 
         async with in_transaction():
             # 포인트 회수 (트랜잭션 안에서)
-            points_revoked = await self._points.revoke_checkin(
-                user_id=user_id, challenge_id=challenge.id, today=today
-            )
+            points_revoked = await self._points.revoke_checkin(user_id=user_id, challenge_id=challenge.id, today=today)
 
             # 카운트 롤백
             uc.total_checkins = max(0, uc.total_checkins - 1)

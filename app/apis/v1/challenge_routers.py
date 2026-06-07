@@ -158,10 +158,7 @@ async def checkin(
     response_model=CancelCheckinResponse,
     status_code=status.HTTP_200_OK,
     summary="체크인 취소 (완전 롤백)",
-    description=(
-        "오늘 체크인을 취소합니다. "
-        "total_checkins·streak_count 롤백, 포인트 역적립, COMPLETED→ACTIVE 복귀."
-    ),
+    description=("오늘 체크인을 취소합니다. total_checkins·streak_count 롤백, 포인트 역적립, COMPLETED→ACTIVE 복귀."),
 )
 async def cancel_checkin(
     user_challenge_id: int,
