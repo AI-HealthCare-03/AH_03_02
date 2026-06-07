@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Droplets, UtensilsCrossed, Footprints, Moon, Brain, Plus } from "lucide-react";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
@@ -41,6 +42,7 @@ function checkedToday(uc: UserChallenge) {
 }
 
 export function ChallengeMainPage() {
+  const queryClient = useQueryClient();
   const [available, setAvailable] = useState<Challenge[]>([]);
   const [myList, setMyList] = useState<UserChallenge[]>([]);
   const [challengeMap, setChallengeMap] = useState<Record<number, Challenge>>({});
@@ -74,6 +76,10 @@ export function ChallengeMainPage() {
     try {
       const res = await challengeApi.checkin(ucId);
       setCheckinResult(res);  // 보상 모달 표시
+      // 체크인 완료 후 대시보드 위젯 즉시 갱신 — refetchType:"all"로 비활성(다른 페이지) 위젯도 재요청
+      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["challenges"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "체크인 실패");

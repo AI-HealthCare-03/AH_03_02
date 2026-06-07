@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
@@ -9,7 +10,7 @@ import { HeatmapWidget } from "../components/HeatmapWidget";
 import { RadialMiniWidget } from "../components/RadialMiniWidget";
 import { WeeklyProgressWidget } from "../components/WeeklyProgressWidget";
 import { EgfrSimulationWidget } from "../components/EgfrSimulationWidget";
-import { dashboardApi, type DashboardSummary, type EgfrTrend } from "../api/dashboard";
+import { dashboardApi, type EgfrTrend } from "../api/dashboard";
 import { pointsApi } from "../api/gamification";
 import { slumpApi, type SlumpStatusResponse } from "../api/slump";
 import { useAuth } from "../contexts/AuthContext";
@@ -52,19 +53,35 @@ function EgfrGauge({ value }: { value: number | null }) {
   );
 }
 
-function RiskGauge({ score }: { score: number | null }) {
-  if (score === null) return <div className="flex h-[360px] items-center justify-center text-sm text-text-muted">데이터 없음</div>;
+function RiskGauge({ score, calculating }: { score: number | null; calculating?: boolean }) {
+  if (score === null)
+    return (
+      <div className="flex h-[360px] flex-col items-center justify-center gap-2 text-sm text-text-muted">
+        {calculating ? (
+          <>
+            <span className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-border border-t-text-secondary" />
+            <span>위험도 계산 중…</span>
+            <span className="text-xs text-text-muted/70">잠시 후 자동으로 표시됩니다</span>
+          </>
+        ) : (
+          "데이터 없음"
+        )}
+      </div>
+    );
   const color = score < 30 ? "#059669" : score < 60 ? "#D97706" : "#DC2626";
   const level = score < 30 ? "낮음" : score < 60 ? "중간" : "높음";
   return (
     <div className="relative flex flex-col items-center justify-center gap-3 p-4 rounded-md border border-border bg-bg" style={{ height: 360 }}>
       <span className="absolute right-3 top-3 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">예상값 · 진단 아님</span>
-      <div className="relative flex h-[180px] w-[180px] items-center justify-center rounded-full border-[14px]" style={{ borderColor: color }}>
-        <div className="flex flex-col items-center">
+      <div
+        className="relative flex h-[180px] w-[180px] items-center justify-center rounded-full"
+        style={{ background: `conic-gradient(${color} ${score * 3.6}deg, #E5E7EB ${score * 3.6}deg)` }}
+      >
+        <div className="flex h-[150px] w-[150px] flex-col items-center justify-center rounded-full bg-bg">
           <span className="text-5xl font-bold leading-none" style={{ color }}>{Math.round(score)}%</span>
-          <span className="mt-2 text-base font-semibold text-text-secondary">{level}</span>
+          <span className="mt-1 text-base font-semibold text-text-secondary">{level}</span>
+          <span className="pointer-events-none mt-1 text-[12px] font-bold text-text-muted/40">예상값</span>
         </div>
-        <span className="pointer-events-none absolute inset-x-0 bottom-2 text-center text-[14px] font-bold text-text-muted/30">예상값</span>
       </div>
       <p className="text-base font-bold text-text-primary">CKD 위험도</p>
       <p className="text-xs text-text-muted">※ 예상값 (의료 진단 아님)</p>
@@ -141,9 +158,10 @@ function EgfrTrendChart({ trend }: { trend: EgfrTrend | null }) {
   );
 }
 
-const CKD_STAGE_LABEL: Record<string, string> = {
-  G1: "G1 · 정상", G2: "G2 · 경계군", G3a: "G3a · 경증", G3b: "G3b · 중등도",
-  G4: "G4 · 중증", G5: "G5 · 신부전",
+// ML 케어군(app_group) — KDIGO eGFR 단계(G1~G5)와 구분되도록 A/B/C/D로 표기
+const APP_GROUP_LABEL: Record<string, string> = {
+  G1: "A · 신장 집중 관리군", G2: "B · 신장 위험 관리군",
+  G3: "C · 신장 사전 관리군", G4: "D · 건강 습관 형성군",
 };
 
 const LIFESTYLE_LABEL: Record<string, string> = {
@@ -154,13 +172,30 @@ const LIFESTYLE_LABEL: Record<string, string> = {
 
 export function DashboardPage() {
   const { user } = useAuth();
-  const [summary, setSummary] = useState<DashboardSummary | null>(null);
-  const [trend, setTrend] = useState<EgfrTrend | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const queryClient = useQueryClient();
   const [attendanceLoading, setAttendanceLoading] = useState(false);
   const [attendanceMsg, setAttendanceMsg] = useState("");
   const [slump, setSlump] = useState<SlumpStatusResponse | null>(null);
+
+  // React Query로 대시보드 요약 데이터 관리
+  // refetchInterval: CKD 위험도가 아직 계산 중(null)이면 4초마다 자동 재조회 (비동기 worker 완료 대기)
+  const { data: summary, isLoading: loading, error: queryError } = useQuery({
+    queryKey: ["dashboard-summary"],
+    queryFn: dashboardApi.getSummary,
+    refetchInterval: (q) =>
+      q.state.data?.latest_health && q.state.data.latest_health.ckd_risk_score == null
+        ? 4000
+        : false,
+  });
+
+  // eGFR 추세 데이터 별도 쿼리
+  const { data: trend } = useQuery<EgfrTrend | null>({
+    queryKey: ["egfr-trend"],
+    queryFn: () => dashboardApi.getEgfrTrend(),
+  });
+
+  // 에러 메시지 추출
+  const error = queryError instanceof Error ? queryError.message : "";
 
   async function handleAttendance() {
     setAttendanceLoading(true);
@@ -168,6 +203,8 @@ export function DashboardPage() {
     try {
       const res = await pointsApi.attendance();
       setAttendanceMsg(res.message);
+      // 출석체크 완료 후 대시보드 포인트·출석 반영을 위해 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
     } catch (e) {
       setAttendanceMsg(e instanceof Error ? e.message : "출석체크 실패");
     } finally {
@@ -175,12 +212,8 @@ export function DashboardPage() {
     }
   }
 
+  // REQ-CHAL-006 슬럼프 상태 조회 — 실패해도 대시보드 본 흐름에 영향 없음
   useEffect(() => {
-    Promise.all([dashboardApi.getSummary(), dashboardApi.getEgfrTrend()])
-      .then(([s, t]) => { setSummary(s); setTrend(t); })
-      .catch((e) => setError(e instanceof Error ? e.message : "데이터를 불러오지 못했습니다."))
-      .finally(() => setLoading(false));
-    // REQ-CHAL-006 슬럼프 상태 조회 — 실패해도 대시보드 본 흐름에 영향 없음
     slumpApi.status().then(setSlump).catch(() => setSlump(null));
   }, []);
 
@@ -224,6 +257,17 @@ export function DashboardPage() {
           </Link>
         )}
 
+        {/* CKD 진단자 안내 — 이미 진단받은 경우 챌린지·자가관리보다 주치의 지시 우선 (서비스 정책) */}
+        {ls?.ckd_diagnosed && (
+          <div role="alert" className="mb-4 rounded-md border border-red-400 bg-red-50 p-4 text-red-900">
+            <p className="text-sm font-bold">만성콩팥병(CKD) 진단을 받으셨군요</p>
+            <p className="mt-1 text-xs leading-[1.7]">
+              이미 진단을 받으신 경우, 본 앱의 챌린지·자가관리보다 <span className="font-bold">주치의·신장내과 전문의의 지시를 우선</span>하세요.
+              앱이 제공하는 정보는 참고용이며, 식이·수분·운동 조절은 반드시 담당 의료진과 상의해 진행하시기 바랍니다.
+            </p>
+          </div>
+        )}
+
         {/* 임신 안전 안내 — LifestyleSurvey is_pregnant=true 일 때만 노출. ML 선별 결과 해석 주의·산부인과 상담 권고. */}
         {ls?.is_pregnant && (
           <div
@@ -245,7 +289,7 @@ export function DashboardPage() {
             <h1 className="text-2xl font-bold text-text-primary">
               안녕하세요, {user?.name ?? "—"} 님
             </h1>
-            {h?.ckd_stage && <Tag label={CKD_STAGE_LABEL[h.ckd_stage] ?? h.ckd_stage} />}
+            {h?.app_group && <Tag label={APP_GROUP_LABEL[h.app_group] ?? h.app_group} />}
           </div>
           <button
             onClick={handleAttendance}
@@ -270,7 +314,10 @@ export function DashboardPage() {
               <EgfrGauge value={h?.egfr_estimated ?? null} />
             </div>
             <div className="flex-1">
-              <RiskGauge score={h?.ckd_risk_score ? h.ckd_risk_score * 100 : null} />
+              <RiskGauge
+                score={h?.ckd_risk_score != null ? h.ckd_risk_score * 100 : null}
+                calculating={!!h && h.ckd_risk_score == null}
+              />
             </div>
           </div>
           <EggWidget />
@@ -279,7 +326,7 @@ export function DashboardPage() {
         {/* Row2: eGFR 추세 + 시뮬레이션 */}
         <div className="mt-[24px] grid grid-cols-3 gap-[16px]">
           <div className="col-span-2">
-            <EgfrTrendChart trend={trend} />
+            <EgfrTrendChart trend={trend ?? null} />
           </div>
           <EgfrSimulationWidget />
         </div>

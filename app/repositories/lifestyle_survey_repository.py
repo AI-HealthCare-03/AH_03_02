@@ -30,6 +30,10 @@ class LifestyleSurveyRepository:
         family_history_diabetes: bool = False,
         family_history_hypertension: bool = False,
         family_history_heart_disease: bool = False,
+        htn_diagnosed: bool = False,
+        dm_diagnosed: bool = False,
+        dyslipidemia_diagnosed: bool = False,
+        ckd_diagnosed: bool = False,
         is_pregnant: bool = False,
     ) -> LifestyleSurvey:
         return await LifestyleSurvey.create(
@@ -50,6 +54,10 @@ class LifestyleSurveyRepository:
             family_history_diabetes=family_history_diabetes,
             family_history_hypertension=family_history_hypertension,
             family_history_heart_disease=family_history_heart_disease,
+            htn_diagnosed=htn_diagnosed,
+            dm_diagnosed=dm_diagnosed,
+            dyslipidemia_diagnosed=dyslipidemia_diagnosed,
+            ckd_diagnosed=ckd_diagnosed,
             is_pregnant=is_pregnant,
         )
 

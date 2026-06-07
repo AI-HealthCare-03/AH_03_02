@@ -23,6 +23,11 @@ export interface LifestyleSurveyCreateRequest {
   family_history_diabetes?: boolean;
   family_history_hypertension?: boolean;
   family_history_heart_disease?: boolean;
+  // 본인 진단력 (작업3)
+  htn_diagnosed?: boolean;
+  dm_diagnosed?: boolean;
+  dyslipidemia_diagnosed?: boolean;
+  ckd_diagnosed?: boolean;
   is_pregnant?: boolean;
 }
 
@@ -45,6 +50,11 @@ export interface LifestyleSurveyResponse {
   family_history_diabetes: boolean;
   family_history_hypertension: boolean;
   family_history_heart_disease: boolean;
+  // 본인 진단력 (작업3)
+  htn_diagnosed: boolean;
+  dm_diagnosed: boolean;
+  dyslipidemia_diagnosed: boolean;
+  ckd_diagnosed: boolean;
   is_pregnant: boolean;
   created_at: string;
 }

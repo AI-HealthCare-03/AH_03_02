@@ -30,6 +30,8 @@ class ChatService:
             ctx["eGFR"] = hc.egfr_estimated
         if hc.ckd_stage is not None:
             ctx["risk_group"] = str(hc.ckd_stage)
+        if hc.weight is not None:
+            ctx["weight"] = hc.weight  # 단백질 등 영양 권장량을 사용자 체중으로 개인화 환산
         return ctx
 
     async def ask(self, user_id: int, question: str) -> ChatMessageResponse:

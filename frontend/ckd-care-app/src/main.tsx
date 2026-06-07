@@ -41,6 +41,7 @@ import { DiningModePage } from "./pages/DiningModePage";
 import { RAGChatbotPage } from "./pages/RAGChatbotPage";
 import { SimulationPage } from "./pages/SimulationPage";
 import { CheckupHistoryPage } from "./pages/CheckupHistoryPage";
+import { LifestyleSurveyHistoryPage } from "./pages/LifestyleSurveyHistoryPage";
 import { EmergencyGuardPage } from "./pages/EmergencyGuardPage";
 import { OAuthCallbackPage } from "./pages/OAuthCallbackPage";
 import { ShopPage } from "./pages/ShopPage";
@@ -94,6 +95,7 @@ function AppRoutes() {
       <Route path="/simulation" element={<PrivateRoute><SimulationPage /></PrivateRoute>} />
       <Route path="/checkup-history" element={<PrivateRoute><CheckupHistoryPage /></PrivateRoute>} />
       <Route path="/health-check-history" element={<PrivateRoute><CheckupHistoryPage /></PrivateRoute>} />
+      <Route path="/lifestyle-survey-history" element={<PrivateRoute><LifestyleSurveyHistoryPage /></PrivateRoute>} />
       <Route path="/emergency" element={<PrivateRoute><EmergencyGuardPage /></PrivateRoute>} />
       <Route path="/shop" element={<PrivateRoute><ShopPage /></PrivateRoute>} />
       <Route path="/points/transactions" element={<PrivateRoute><PointHistoryPage /></PrivateRoute>} />

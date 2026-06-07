@@ -62,6 +62,14 @@ class LifestyleSurvey(models.Model):
     family_history_hypertension = fields.BooleanField(default=False, description="가족력: 고혈압")
     family_history_heart_disease = fields.BooleanField(default=False, description="가족력: 심장질환")
 
+    # 본인 진단력 — htn/dm_diagnosed는 모델 입력(ckd_label 상관 높음), ckd_diagnosed는 케어 분기용(정책)
+    htn_diagnosed = fields.BooleanField(default=False, description="본인 고혈압 진단")
+    dm_diagnosed = fields.BooleanField(default=False, description="본인 당뇨 진단")
+    dyslipidemia_diagnosed = fields.BooleanField(default=False, description="본인 이상지질혈증 진단")
+    ckd_diagnosed = fields.BooleanField(
+        default=False, description="본인 만성콩팥병(CKD) 진단 — True 시 챌린지 대신 주치의 지시 안내"
+    )
+
     # 임신 여부 — 임신 중에는 신장 수치·정상 범위 해석이 일반과 달라 본 선별 결과를 그대로 적용하기 어려움.
     # 대시보드 상단 안전 안내 배너 노출용 (산부인과·주치의 상담 권고).
     is_pregnant = fields.BooleanField(default=False, description="임신 여부 (체크 시 대시보드 안전 안내 노출)")

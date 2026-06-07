@@ -2,7 +2,7 @@ from datetime import date, datetime
 
 from app.dtos.base import BaseSerializerModel
 from app.models.challenge import ChallengeCategory
-from app.models.health_check import CkdStage
+from app.models.health_check import AppGroup, CkdStage
 from app.models.lifestyle_survey import DrinkingFrequency, SmokingStatus, StressLevel
 
 
@@ -15,6 +15,7 @@ class LatestHealthMetrics(BaseSerializerModel):
     egfr_estimated: float | None
     ckd_stage: CkdStage | None
     ckd_risk_score: float | None
+    app_group: AppGroup | None
 
 
 class EgfrDataPoint(BaseSerializerModel):
@@ -40,6 +41,7 @@ class LatestLifestyleSummary(BaseSerializerModel):
     exercise_days_per_week: int
     stress_level: StressLevel | None
     is_pregnant: bool = False
+    ckd_diagnosed: bool = False
 
 
 class DashboardSummaryResponse(BaseSerializerModel):

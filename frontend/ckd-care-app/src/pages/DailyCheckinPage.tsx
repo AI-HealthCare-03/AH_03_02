@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Droplets, UtensilsCrossed, Footprints, Moon, Brain, Check } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -38,6 +39,7 @@ function isCheckedToday(uc: UserChallenge): boolean {
 }
 
 export function DailyCheckinPage() {
+  const queryClient = useQueryClient();
   const [myList, setMyList] = useState<UserChallenge[]>([]);
   const [challengeMap, setChallengeMap] = useState<Record<number, Challenge>>({});
   const [loading, setLoading] = useState(true);
@@ -69,6 +71,10 @@ export function DailyCheckinPage() {
     try {
       const res = await challengeApi.checkin(uc.id);
       setResultModal(res);
+      // 개별 체크인 완료 후 대시보드 챌린지 통계 즉시 갱신
+      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["challenges"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "체크인 실패");
@@ -88,6 +94,10 @@ export function DailyCheckinPage() {
         lastResult = await challengeApi.checkin(uc.id);
       }
       if (lastResult) setResultModal(lastResult);
+      // 전체 체크인 완료 후 대시보드 챌린지 통계 즉시 갱신
+      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["challenges"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "체크인 실패");

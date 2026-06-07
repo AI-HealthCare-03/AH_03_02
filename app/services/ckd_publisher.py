@@ -55,12 +55,12 @@ def _build_payload(
         "family_history_diabetes": ls.family_history_diabetes if ls else False,
         "family_history_hypertension": ls.family_history_hypertension if ls else False,
         "family_history_heart_disease": ls.family_history_heart_disease if ls else False,
-        # 작업3 미반영 → 기본값(impute 또는 임상규칙 미적용)
+        # 작업3 반영 → LifestyleSurvey 실값 사용(없으면 False)
         "family_history_dyslipidemia": False,
         "family_history_stroke": False,
-        "htn_diagnosed": False,
-        "dm_diagnosed": False,
-        "dyslipidemia_diagnosed": False,
+        "htn_diagnosed": ls.htn_diagnosed if ls else False,
+        "dm_diagnosed": ls.dm_diagnosed if ls else False,
+        "dyslipidemia_diagnosed": ls.dyslipidemia_diagnosed if ls else False,
     }
 
 
