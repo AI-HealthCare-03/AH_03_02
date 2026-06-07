@@ -219,6 +219,35 @@ def _m2_aggregate_shap(shap_vals: dict[str, float]) -> dict[str, float]:
     return _aggregate_log_shap(agg, config.M2_LOG_PARENT)
 
 
+def _peer_distribution(my_score: float, peer_scores, bins: int = 10) -> dict | None:
+    """연령대 또래 분포 히스토그램 — 리포트 그래프용.
+
+    Args:
+        my_score:    현재 사용자의 lifestyle_score.
+        peer_scores: 같은 연령대 lifestyle_score 분포 배열 (101분위 정렬 점수).
+                     None 또는 빈 배열이면 None 반환.
+        bins:        히스토그램 bin 수 (기본 10).
+
+    Returns:
+        {
+          "counts": list[int],   # 각 bin의 빈도 (길이 = bins)
+          "edges":  list[float], # bin 경계 (길이 = bins + 1)
+          "my_bin": int,         # 내 lifestyle_score가 속한 bin 인덱스 (0 ~ bins-1)
+        }
+        peer_scores 없으면 None.
+    """
+    if peer_scores is None or len(peer_scores) == 0:
+        return None
+    arr = np.asarray(peer_scores, dtype=float)
+    counts, edges = np.histogram(arr, bins=bins)
+    my_bin = int(np.clip(np.digitize(my_score, edges) - 1, 0, bins - 1))
+    return {
+        "counts": counts.astype(int).tolist(),
+        "edges": [round(float(e), 4) for e in edges.tolist()],
+        "my_bin": my_bin,
+    }
+
+
 def _peer_percentile(my_score: float, peer_scores) -> tuple[int | None, str | None]:
     """또래 percentile 계산 (노트북 draw_peer_distribution 산출 로직 이식).
 
@@ -372,12 +401,14 @@ def explain_model2(
 
     Returns:
         Model2Report dict:
-          - items:           list[dict] — 각 항목 키: {feature(한글), value, shap}
-                             |shap| 내림차순. M2_DISPLAY_EXCLUDED·*_log·BASELINE_VARS 제외.
-                             filter_actionable_shap 로직 적용 (정상범위·유산소 가드).
-          - lifestyle_score: float — DOMAIN 변수 양(+) SHAP 합.
-          - peer_top_pct:    int|None — 또래 상위 몇 % (peer_scores 없으면 None).
-          - peer_relative:   str|None — "상"/"중"/"하" (peer_scores 없으면 None).
+          - items:             list[dict] — 각 항목 키: {feature(한글), value, shap}
+                               |shap| 내림차순. M2_DISPLAY_EXCLUDED·*_log·BASELINE_VARS 제외.
+                               filter_actionable_shap 로직 적용 (정상범위·유산소 가드).
+          - lifestyle_score:   float — DOMAIN 변수 양(+) SHAP 합.
+          - peer_top_pct:      int|None — 또래 상위 몇 % (peer_scores 없으면 None).
+          - peer_relative:     str|None — "상"/"중"/"하" (peer_scores 없으면 None).
+          - peer_distribution: dict|None — 연령대 분포 히스토그램 (peer_scores 없으면 None).
+                               키: counts(list[int]), edges(list[float]), my_bin(int).
 
     구현 흐름 (노트북 local_shap_report 이식):
       1. X = feat_row[MODEL2_FEATURES]
@@ -416,7 +447,7 @@ def explain_model2(
         reverse=True,
     )
 
-    # 7) 또래 percentile
+    # 7) 또래 percentile + 연령대 분포 히스토그램
     top_pct, peer_relative = _peer_percentile(lifestyle_score, peer_scores)
 
     return {
@@ -424,4 +455,5 @@ def explain_model2(
         "lifestyle_score": lifestyle_score,
         "peer_top_pct": top_pct,
         "peer_relative": peer_relative,
+        "peer_distribution": _peer_distribution(lifestyle_score, peer_scores),
     }
