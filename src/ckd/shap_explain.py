@@ -71,6 +71,22 @@ def _get_explainer(predictor):
     return explainer
 
 
+def _aggregate_log_shap(agg: dict[str, float], log_parent_map: dict[str, str]) -> dict[str, float]:
+    """_log 자식 SHAP 기여도를 부모 변수로 합산하는 공용 헬퍼 (I-5 DRY 추출).
+
+    Args:
+        agg:            {변수명: shap값} 딕셔너리 (in-place 수정 후 반환).
+        log_parent_map: {자식_log변수: 부모변수} 매핑 (M1_LOG_PARENT 또는 M2_LOG_PARENT).
+
+    Returns:
+        합산이 반영된 agg (동일 객체).
+    """
+    for child_var, parent_var in log_parent_map.items():
+        if child_var in agg:
+            agg[parent_var] = agg.get(parent_var, 0.0) + agg.pop(child_var)
+    return agg
+
+
 def _shap_row(explainer, x_input: pd.DataFrame) -> np.ndarray:
     """1행 SHAP 값 추출 — (feat,) 양성 클래스 기여 배열.
 
@@ -149,11 +165,9 @@ def explain_model1(feat_row: pd.DataFrame, predictor1) -> list[dict]:
     explainer = _get_explainer(predictor1)
     sv = _shap_row(explainer, x_input)  # shape: (n_features,)
 
-    # 3) _log 자식 → 부모 합산 (노트북 m1_aggregate)
+    # 3) _log 자식 → 부모 합산 (노트북 m1_aggregate) — _aggregate_log_shap 공용 헬퍼 사용
     agg: dict[str, float] = dict(zip(config.MODEL1_FEATURES, sv.tolist(), strict=False))
-    for child_var, parent_var in config.M1_LOG_PARENT.items():
-        if child_var in agg:
-            agg[parent_var] = agg.get(parent_var, 0.0) + agg.pop(child_var)
+    _aggregate_log_shap(agg, config.M1_LOG_PARENT)
 
     # 4) M1_SHAP_VARS 필터링 + note 합성
     result: list[dict] = []
@@ -216,12 +230,12 @@ def _m2_get_stage(var: str, val: float, gender: int) -> tuple[str, str]:
 
 
 def _m2_aggregate_shap(shap_vals: dict[str, float]) -> dict[str, float]:
-    """_log 자식 → 부모 합산 (노트북 aggregate_shap 이식, M2_LOG_PARENT 사용)."""
+    """_log 자식 → 부모 합산 (노트북 aggregate_shap 이식, M2_LOG_PARENT 사용).
+
+    내부적으로 _aggregate_log_shap 공용 헬퍼를 위임 호출한다 (I-5 DRY).
+    """
     agg = dict(shap_vals)
-    for child_var, parent_var in config.M2_LOG_PARENT.items():
-        if child_var in agg:
-            agg[parent_var] = agg.get(parent_var, 0.0) + agg.pop(child_var)
-    return agg
+    return _aggregate_log_shap(agg, config.M2_LOG_PARENT)
 
 
 def _peer_percentile(my_score: float, peer_scores) -> tuple[int | None, str | None]:
@@ -309,6 +323,8 @@ def _m2_include_var(
     if var in aerobic_var_set:
         # 유산소 운동 변수 특별 처리 (노트북 filter_actionable_shap 그대로)
         if aerobic_ok:
+            # 주의: 유산소 150분 충족(aerobic_ok) 시 정상 범위 변수만 표시 —
+            # 노트북 원본 동작 보존(임상 직관과 역전될 수 있어 추후 재확인).
             return in_normal
         return (not in_normal) or (shap_val <= 0)
     # 일반 변수
@@ -362,7 +378,7 @@ def explain_model2(
     predictor2,
     *,
     peer_scores=None,
-    age: int | None = None,
+    age: int | None = None,  # 예약 파라미터 — Task 4에서 연령대별 또래 조회 시 활용 예정  # noqa: ARG001
 ) -> dict:
     """모델2 생활습관 SHAP 설명 (노트북 local_shap_report 데이터 산출부 이식).
 
@@ -399,7 +415,7 @@ def explain_model2(
     # 1) 피처 선택
     x_input = feat_row[config.MODEL2_FEATURES]
     row = feat_row.iloc[0]
-    gender = int(row["gender"]) if "gender" in row.index else 1
+    gender = int(row["gender"]) if "gender" in row.index else 1  # gender 없으면 남성(1) fallback
 
     # 2) explainer 획득 + SHAP 1행 추출
     explainer = _get_explainer(predictor2)

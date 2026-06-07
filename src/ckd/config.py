@@ -447,24 +447,30 @@ M2_LOG_PARENT: dict[str, str] = {
 
 # SHAP 표시 제외 변수 (노트북 DISPLAY_EXCLUDED)
 # — activity_collected(수집 여부 flag), hemoglobin(임상 전용), *_log(부모로 합산됨)
-M2_DISPLAY_EXCLUDED: list[str] = [
-    "activity_collected",
-    "hemoglobin",
-    "triglycerides_log",
-    "ast_log",
-    "alt_log",
-]
+# frozenset 선언으로 _m2_filter_actionable 내 반복 in-check O(1) 보장
+M2_DISPLAY_EXCLUDED: frozenset[str] = frozenset(
+    [
+        "activity_collected",
+        "hemoglobin",
+        "triglycerides_log",
+        "ast_log",
+        "alt_log",
+    ]
+)
 
 # 배경 변수 — SHAP 표시 대상에서 제외 (나이·성별·가족력)
-M2_BASELINE_VARS: list[str] = [
-    "age",
-    "gender",
-    "family_dm",
-    "family_htn",
-    "family_dyslipidemia",
-    "family_ihd",
-    "family_stroke",
-]
+# frozenset 선언으로 _m2_filter_actionable 내 반복 in-check O(1) 보장
+M2_BASELINE_VARS: frozenset[str] = frozenset(
+    [
+        "age",
+        "gender",
+        "family_dm",
+        "family_htn",
+        "family_dyslipidemia",
+        "family_ihd",
+        "family_stroke",
+    ]
+)
 
 # 유산소 운동 관련 변수
 M2_AEROBIC_VARS: list[str] = ["moderate_days", "walking_days", "vigorous_days"]
@@ -510,7 +516,7 @@ M2_NORMAL_RANGES: dict[str, object] = {
     "triglycerides": [0, 150],
     "ast": [0, 40],
     "alt": [0, 40],
-    "sitting_hours": [0, 5.999],
+    "sitting_hours": [0, 5.999],  # stage [0,6) 와 in_normal(<=상한) 통일용
     "walking_days": [5, 99],
     "moderate_days": [5, 99],
     "vigorous_days": [3, 99],
@@ -566,8 +572,8 @@ M2_CLINICAL_STAGES: dict[str, dict] = {
         "target": "150 미만",
         "stages": [
             (0, 150, "적정", "#27ae60"),
-            (150, 199, "경계", "#f39c12"),
-            (200, 499, "높음", "#e67e22"),
+            (150, 200, "경계", "#f39c12"),  # 노트북 원본의 경계 갭 수정(상한=다음 구간 하한)
+            (200, 500, "높음", "#e67e22"),  # 노트북 원본의 경계 갭 수정(상한=다음 구간 하한)
             (500, 9999, "매우 높음", "#e74c3c"),
         ],
     },
@@ -625,5 +631,5 @@ M2_CLINICAL_STAGES: dict[str, dict] = {
 }
 
 # 또래 연령대 분류 — lifestyle_score 분포 조회 시 연령대 단위
-# Task 4(train_stats 동결)에서 이 단위로 peer_scores 배열을 저장
+# Task 4: train_stats 연령대별 또래 lifestyle 분포 동결 시 사용
 PEER_AGE_DECADES: list[int] = [40, 50, 60, 70, 80]

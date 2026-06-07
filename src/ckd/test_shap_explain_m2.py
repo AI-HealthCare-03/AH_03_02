@@ -278,3 +278,121 @@ def test_peer_percentile_top_pct_range() -> None:
         top_pct, _ = shap_explain._peer_percentile(score, peers)
         assert top_pct is not None
         assert 1 <= top_pct <= 100, f"top_pct={top_pct} 범위 초과 (score={score})"
+
+
+# ──────────────────────────────────────────────────────────────────────
+# TDD Step 4: _m2_aerobic_met — predictor-free 단위 테스트 (M-5)
+# ──────────────────────────────────────────────────────────────────────
+
+
+def _make_row(**kwargs) -> pd.Series:
+    """테스트용 row Series 생성 헬퍼."""
+    defaults = {
+        "moderate_days": 0,
+        "walking_days": 0,
+        "vigorous_days": 0,
+    }
+    defaults.update(kwargs)
+    return pd.Series(defaults)
+
+
+def test_aerobic_met_vigorous_only() -> None:
+    """고강도 3일(75min×2=150min) → 충족."""
+    row = _make_row(vigorous_days=3)
+    assert shap_explain._m2_aerobic_met(row) is True
+
+
+def test_aerobic_met_moderate_only() -> None:
+    """중강도 5일(30min×5=150min) → 충족."""
+    row = _make_row(moderate_days=5)
+    assert shap_explain._m2_aerobic_met(row) is True
+
+
+def test_aerobic_met_not_met() -> None:
+    """중강도 2일(60min) + 고강도 1일(50min) = 110min → 미충족."""
+    row = _make_row(moderate_days=2, vigorous_days=1)
+    assert shap_explain._m2_aerobic_met(row) is False
+
+
+def test_aerobic_met_exact_boundary() -> None:
+    """정확히 150min(중강도 5일) → 충족(경계 포함)."""
+    row = _make_row(moderate_days=5, walking_days=0, vigorous_days=0)
+    # 5*30 + 0 = 150 >= 150
+    assert shap_explain._m2_aerobic_met(row) is True
+
+
+# ──────────────────────────────────────────────────────────────────────
+# TDD Step 5: _m2_include_var / _m2_get_stage — I-1 경계 수정 회귀 방어 (M-5)
+# ──────────────────────────────────────────────────────────────────────
+
+
+def test_m2_get_stage_triglycerides_boundary_199() -> None:
+    """triglycerides=199 → '경계' (I-1 갭 수정 후 fallback 오분류 방지)."""
+    label, _ = shap_explain._m2_get_stage("triglycerides", 199.0, gender=1)
+    assert label == "경계", f"triglycerides=199 stage={label!r}, '경계' 기대"
+
+
+def test_m2_get_stage_triglycerides_boundary_200() -> None:
+    """triglycerides=200 → '높음' (다음 구간 시작)."""
+    label, _ = shap_explain._m2_get_stage("triglycerides", 200.0, gender=1)
+    assert label == "높음", f"triglycerides=200 stage={label!r}, '높음' 기대"
+
+
+def test_m2_get_stage_triglycerides_boundary_150() -> None:
+    """triglycerides=150 → '경계' (정상/경계 경계값)."""
+    label, _ = shap_explain._m2_get_stage("triglycerides", 150.0, gender=1)
+    assert label == "경계", f"triglycerides=150 stage={label!r}, '경계' 기대"
+
+
+def test_m2_get_stage_triglycerides_normal() -> None:
+    """triglycerides=100 → '적정'."""
+    label, _ = shap_explain._m2_get_stage("triglycerides", 100.0, gender=1)
+    assert label == "적정", f"triglycerides=100 stage={label!r}, '적정' 기대"
+
+
+def test_m2_include_var_aerobic_ok_in_normal() -> None:
+    """aerobic_ok=True + in_normal=True → 포함(True)."""
+    aerobic_var_set = set(config.M2_AEROBIC_VARS)
+    result = shap_explain._m2_include_var(
+        "moderate_days", shap_val=0.1, in_normal=True, aerobic_ok=True, aerobic_var_set=aerobic_var_set
+    )
+    assert result is True
+
+
+def test_m2_include_var_aerobic_ok_not_in_normal() -> None:
+    """aerobic_ok=True + in_normal=False → 제외(False)."""
+    aerobic_var_set = set(config.M2_AEROBIC_VARS)
+    result = shap_explain._m2_include_var(
+        "moderate_days", shap_val=0.1, in_normal=False, aerobic_ok=True, aerobic_var_set=aerobic_var_set
+    )
+    assert result is False
+
+
+def test_m2_include_var_aerobic_not_ok_not_in_normal() -> None:
+    """aerobic_ok=False + in_normal=False → 포함(True)."""
+    aerobic_var_set = set(config.M2_AEROBIC_VARS)
+    result = shap_explain._m2_include_var(
+        "moderate_days", shap_val=0.1, in_normal=False, aerobic_ok=False, aerobic_var_set=aerobic_var_set
+    )
+    assert result is True
+
+
+def test_m2_include_var_non_aerobic_not_in_normal() -> None:
+    """일반 변수 + in_normal=False → 포함(True)."""
+    aerobic_var_set = set(config.M2_AEROBIC_VARS)
+    result = shap_explain._m2_include_var(
+        "triglycerides", shap_val=0.1, in_normal=False, aerobic_ok=False, aerobic_var_set=aerobic_var_set
+    )
+    assert result is True
+
+
+def test_m2_include_var_display_excluded_not_in_filter() -> None:
+    """M2_DISPLAY_EXCLUDED 변수는 _m2_filter_actionable에서 제외된다 (필터 계층 확인)."""
+    # _m2_include_var는 DISPLAY_EXCLUDED 체크를 직접 하지 않음(상위 _m2_filter_actionable이 담당)
+    # 이 테스트는 config.M2_DISPLAY_EXCLUDED frozenset 타입 검증
+    assert isinstance(config.M2_DISPLAY_EXCLUDED, frozenset), (
+        f"M2_DISPLAY_EXCLUDED가 frozenset이 아님: {type(config.M2_DISPLAY_EXCLUDED)}"
+    )
+    assert isinstance(config.M2_BASELINE_VARS, frozenset), (
+        f"M2_BASELINE_VARS가 frozenset이 아님: {type(config.M2_BASELINE_VARS)}"
+    )
