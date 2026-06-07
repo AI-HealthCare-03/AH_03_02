@@ -21,7 +21,7 @@ COLLECTION_PARENT = "medical_kb_parents"  # = src/rag_indexing/config.COLLECTION
 # ─────────────────────────────────────────────
 EMBEDDING_MODEL = "text-embedding-3-small"  # 1536d — 인덱싱과 동일해야 검색 가능
 LLM_MODEL = "gpt-4o-mini"
-GEN_TEMPERATURE = 0.3  # 생성: 약간의 유연성
+GEN_TEMPERATURE = 0.0  # 생성: 결정적 — 같은 질문에 일관된 답변(의료 정보는 변동성 최소화)
 GRADE_TEMPERATURE = 0.0  # 채점·재작성: 결정적
 
 # ─────────────────────────────────────────────

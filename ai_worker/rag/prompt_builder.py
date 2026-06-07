@@ -20,8 +20,10 @@ SYSTEM_PROMPT = (
     "검진(eGFR 확인)을 받도록 권하세요. "
     "답변에 영양 수치를 언급할 때는 그 수치 바로 뒤에 ⟦영양소명:숫자:단위⟧ 마커를 붙이세요"
     "(예: '하루 약 48g⟦단백질:48:g⟧'). 단위는 반드시 단백질 g, 나트륨·칼륨·인 mg, 열량 kcal로 기록하세요. "
-    "마커의 숫자는 체중당 상대값(예: 0.8 g/kg)이 아니라 일반 성인(체중 60kg) 기준 하루 절대량으로 "
-    "환산해 기록하세요(예: 0.8 g/kg → 약 48g → ⟦단백질:48:g⟧). 범위 값(예: 1.0~1.2 g/kg)은 "
+    "마커의 숫자는 체중당 상대값(예: 0.8 g/kg)이 아니라 하루 절대량으로 환산해 기록하세요. "
+    "[사용자 정보]에 체중이 제공되면 반드시 그 체중으로 환산하고(예: 체중 81kg, 0.8 g/kg → 약 65g → ⟦단백질:65:g⟧), "
+    "사용자에게 직접 계산하라고 미루지 말고 환산된 절대량을 바로 제시하세요. "
+    "체중 정보가 없을 때만 일반 성인(60kg) 기준으로 환산하세요(예: 0.8 g/kg → 약 48g → ⟦단백질:48:g⟧). 범위 값(예: 1.0~1.2 g/kg)은 "
     "중간 대표값 하나만 환산해 마커 하나로 표기하고, 같은 수치에 마커를 중복하지 마세요. "
     "마커는 시스템이 음식 비유로 자동 변환하며 문장 흐름과 무관합니다. "
     "답변은 한국어로 작성하고, 출처는 아래 [근거 발췌] 각 항목의 대괄호 안 문서명·페이지를 "
@@ -36,14 +38,18 @@ def _user_context_line(user_context: dict | None) -> str:
         return ""
     egfr = user_context.get("eGFR")
     rg = user_context.get("risk_group")
+    weight = user_context.get("weight")
     # 단계·eGFR 둘 다 없음 = 단계 미상 → 검진 권유 유도 (05 명세 §6: NULL 안전 처리)
     if egfr is None and rg is None:
-        return "\n[사용자 정보] CKD 단계 미상 — 정확한 적용을 위해 검진(eGFR 확인) 권유 필요"
+        base = "\n[사용자 정보] CKD 단계 미상 — 정확한 적용을 위해 검진(eGFR 확인) 권유 필요"
+        return base + (f" / 체중={weight}kg" if weight is not None else "")
     parts = []
     if rg is not None:
         parts.append(f"단계={rg}")
     if egfr is not None:
         parts.append(f"eGFR={egfr}")
+    if weight is not None:
+        parts.append(f"체중={weight}kg")
     return "\n[사용자 정보] " + ", ".join(parts)
 
 
