@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, Bell, Settings, Headphones, LogOut, KeyRound, UserX } from "lucide-react";
+import { Heart, ClipboardList, Bell, Settings, Headphones, LogOut, KeyRound, UserX } from "lucide-react";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 import { Tag } from "../components/Tag";
@@ -94,6 +94,12 @@ export function MyPage() {
               title="내 건강 데이터"
               subtitle="건강검진 결과 및 추이 확인"
               onClick={() => navigate("/health-check-history")}
+            />
+            <ListItem
+              icon={ClipboardList}
+              title="생활습관 문진"
+              subtitle="흡연·음주·운동·가족력 등 문진 이력 확인"
+              onClick={() => navigate("/lifestyle-survey-history")}
             />
             <ListItem
               icon={Bell}
