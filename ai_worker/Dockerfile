@@ -16,6 +16,10 @@ RUN uv sync --group ai --group rag --no-dev --frozen
 #      (autogluon stable이 requires-python>=3.11 전체를 만족 못 해 uv.lock 통합 resolve 실패하기 때문)
 RUN uv pip install "autogluon.tabular" lightgbm xgboost
 
+# 3-2. asyncpg — ai_worker가 health_checks를 직접 UPDATE(core/db.py)하는 데 필요.
+#      pyproject에서 app 그룹에만 있어 base/ai/rag sync로는 설치되지 않으므로 명시 설치.
+RUN uv pip install asyncpg
+
 # 4. ai_worker·src(CKD predict 모듈) 패키지 복사.
 COPY ./ai_worker ./ai_worker
 COPY ./src ./src
