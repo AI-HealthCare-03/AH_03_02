@@ -48,6 +48,8 @@ export function ChallengeMainPage() {
   const [challengeMap, setChallengeMap] = useState<Record<number, Challenge>>({});
   const [loading, setLoading] = useState(true);
   const [checkingIn, setCheckingIn] = useState<number | null>(null);
+  const [cancelingIn, setCancelingIn] = useState<number | null>(null);
+  const [abandoning, setAbandoning] = useState<number | null>(null);
   const [joining, setJoining] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -88,12 +90,50 @@ export function ChallengeMainPage() {
     }
   }
 
+  async function handleCancelCheckin(ucId: number) {
+    if (!window.confirm("오늘 체크인을 취소할까요?")) return;
+    setCancelingIn(ucId);
+    setError(""); setSuccessMsg("");
+    try {
+      await challengeApi.cancelCheckin(ucId);
+      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["challenges"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "체크인 취소 실패");
+    } finally {
+      setCancelingIn(null);
+    }
+  }
+
+  async function handleAbandon(ucId: number) {
+    if (!window.confirm("이 챌린지 참여를 해제할까요? 기록은 보관됩니다.")) return;
+    setAbandoning(ucId);
+    setError(""); setSuccessMsg("");
+    try {
+      await challengeApi.abandon(ucId);
+      setSuccessMsg("챌린지 참여가 해제됐습니다.");
+      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["challenges"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "참여 해제 실패");
+    } finally {
+      setAbandoning(null);
+    }
+  }
+
   async function handleJoin(challengeId: number) {
     setJoining(challengeId);
     setError(""); setSuccessMsg("");
     try {
       await challengeApi.join(challengeId, todayStr());
       setSuccessMsg("챌린지에 참여했습니다!");
+      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["challenges"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : "참여 실패");
@@ -161,6 +201,7 @@ export function ChallengeMainPage() {
               if (!c) return null;
               const Icon = CATEGORY_ICON[c.category];
               const done = checkedToday(uc);
+              const isAnyBusy = checkingIn !== null || cancelingIn !== null || abandoning !== null;
               return (
                 <div
                   key={uc.id}
@@ -175,13 +216,34 @@ export function ChallengeMainPage() {
                       <p className="text-sm font-bold text-text-primary">{c.name}</p>
                       <p className="text-xs text-text-muted">{CATEGORY_LABEL[c.category]} · {uc.total_checkins}/{c.duration_days}일 · 연속 {uc.streak_count}일</p>
                     </div>
-                    <BtnPrimary
-                      label={done ? "완료" : "체크인"}
-                      disabled={done}
-                      loading={checkingIn === uc.id}
-                      onClick={() => { if (!done) handleCheckin(uc.id); }}
-                      className="min-w-[72px]"
-                    />
+                    {/* 체크인/완료 취소 버튼 */}
+                    {done ? (
+                      <button
+                        onClick={() => handleCancelCheckin(uc.id)}
+                        disabled={isAnyBusy}
+                        className="min-w-[72px] rounded-md border border-success/50 px-3 py-1.5 text-sm text-success hover:border-danger hover:text-danger hover:bg-danger/10 disabled:opacity-50 transition-colors"
+                        title="클릭하여 체크인 취소"
+                      >
+                        {cancelingIn === uc.id ? "취소 중..." : "완료"}
+                      </button>
+                    ) : (
+                      <BtnPrimary
+                        label="체크인"
+                        disabled={false}
+                        loading={checkingIn === uc.id}
+                        onClick={() => handleCheckin(uc.id)}
+                        className="min-w-[72px]"
+                      />
+                    )}
+                    {/* 참여 해제 버튼 */}
+                    <button
+                      onClick={() => handleAbandon(uc.id)}
+                      disabled={isAnyBusy}
+                      className="rounded-md border border-border px-2 py-1.5 text-xs text-text-muted hover:border-danger hover:text-danger hover:bg-danger/10 disabled:opacity-50 transition-colors"
+                      title="챌린지 참여 해제"
+                    >
+                      {abandoning === uc.id ? "해제 중..." : "해제"}
+                    </button>
                   </div>
                   {expandedId === c.id && (
                     <div className="border-t border-border px-[16px] py-[12px]">

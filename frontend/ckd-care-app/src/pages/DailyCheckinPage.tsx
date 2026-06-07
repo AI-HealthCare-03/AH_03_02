@@ -45,6 +45,7 @@ export function DailyCheckinPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [checkingIn, setCheckingIn] = useState<number | "all" | null>(null);
+  const [cancelingIn, setCancelingIn] = useState<number | null>(null);
   const [resultModal, setResultModal] = useState<CheckInResponse | null>(null);
 
   async function load() {
@@ -80,6 +81,23 @@ export function DailyCheckinPage() {
       setError(e instanceof Error ? e.message : "체크인 실패");
     } finally {
       setCheckingIn(null);
+    }
+  }
+
+  async function handleCancelCheckin(uc: UserChallenge) {
+    if (!window.confirm("오늘 체크인을 취소할까요?")) return;
+    setCancelingIn(uc.id);
+    setError("");
+    try {
+      await challengeApi.cancelCheckin(uc.id);
+      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["challenges"], refetchType: "all" });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "체크인 취소 실패");
+    } finally {
+      setCancelingIn(null);
     }
   }
 
@@ -206,7 +224,7 @@ export function DailyCheckinPage() {
             </div>
           )}
 
-          {/* 완료 챌린지 (작게) */}
+          {/* 완료 챌린지 — 클릭 시 체크인 취소 가능 */}
           {done.length > 0 && (
             <div className="mt-[24px]">
               <p className="mb-[8px] text-xs font-bold text-text-secondary">오늘 완료 {done.length}개</p>
@@ -214,10 +232,23 @@ export function DailyCheckinPage() {
                 {done.map((uc) => {
                   const c = challengeMap[uc.challenge_id];
                   if (!c) return null;
+                  const isCanceling = cancelingIn === uc.id;
                   return (
-                    <div key={uc.id} className="flex items-center gap-[12px] rounded-sm bg-bg px-[12px] py-[8px] opacity-70">
-                      <Check size={16} className="text-success" />
-                      <span className="text-sm text-text-secondary line-through">{c.name}</span>
+                    <div
+                      key={uc.id}
+                      className="group flex items-center gap-[12px] rounded-sm bg-bg px-[12px] py-[8px] opacity-70 hover:opacity-100 transition-opacity"
+                    >
+                      <Check size={16} className="shrink-0 text-success group-hover:hidden" />
+                      <span className="text-sm text-text-secondary line-through flex-1 group-hover:no-underline group-hover:text-text-primary">
+                        {c.name}
+                      </span>
+                      <button
+                        onClick={() => handleCancelCheckin(uc)}
+                        disabled={cancelingIn !== null || checkingIn !== null}
+                        className="hidden group-hover:inline-flex items-center rounded px-2 py-0.5 text-xs text-danger border border-danger/40 hover:bg-danger/10 disabled:opacity-50 shrink-0"
+                      >
+                        {isCanceling ? "취소 중..." : "완료 취소"}
+                      </button>
                     </div>
                   );
                 })}

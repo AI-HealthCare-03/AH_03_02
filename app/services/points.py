@@ -148,3 +148,55 @@ class PointService:
         if amount <= 0:
             raise ValueError("deduct amount must be positive")
         await self._points.create_transaction(user_id=user_id, amount=-amount, reason=reason, extra=extra or {})
+
+    async def revoke_checkin(self, user_id: int, challenge_id: int, today: date) -> int:
+        """오늘 특정 챌린지 체크인으로 지급된 포인트를 모두 합산해 역적립(음수).
+
+        회수 대상 reason: CHECKIN, LUCKY, STREAK_BONUS, FULL_PARTICIPATION (오늘 생성분).
+        반환값: 실제 회수된 포인트 합계 (양수). 0이면 오늘 지급 내역 없음.
+        """
+        day_start = datetime.combine(today, time.min)
+        day_end = day_start + timedelta(days=1)
+
+        # 오늘 이 챌린지로 지급된 포인트 트랜잭션 조회
+        # CHECKIN/LUCKY/STREAK_BONUS 는 extra.challenge_id 포함
+        # FULL_PARTICIPATION 은 extra.date 포함 (유저 단위)
+        rows = await PointTransaction.filter(
+            user_id=user_id,
+            amount__gt=0,
+            reason__in=[
+                PointReason.CHECKIN,
+                PointReason.LUCKY,
+                PointReason.STREAK_BONUS,
+            ],
+            created_at__gte=day_start,
+            created_at__lt=day_end,
+            extra__contains={"challenge_id": challenge_id},
+        ).values("id", "amount", "reason")
+
+        checkin_total = sum(r["amount"] for r in rows)
+
+        # FULL_PARTICIPATION: 오늘 받은 것 — 특정 챌린지 회수 시 같이 취소
+        fp_row = await PointTransaction.filter(
+            user_id=user_id,
+            amount__gt=0,
+            reason=PointReason.FULL_PARTICIPATION,
+            created_at__gte=day_start,
+            created_at__lt=day_end,
+        ).first()
+        fp_total = fp_row.amount if fp_row else 0
+
+        total_revoke = checkin_total + fp_total
+        if total_revoke > 0:
+            await self._points.create_transaction(
+                user_id=user_id,
+                amount=-total_revoke,
+                reason=PointReason.CHECKIN_CANCEL,
+                extra={
+                    "challenge_id": challenge_id,
+                    "date": today.isoformat(),
+                    "revoked_checkin": checkin_total,
+                    "revoked_full_participation": fp_total,
+                },
+            )
+        return total_revoke

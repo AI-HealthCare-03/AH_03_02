@@ -32,8 +32,8 @@ function EgfrGauge({ value }: { value: number | null }) {
   const largeArc = pct * 270 > 180 ? 1 : 0;
   return (
     <div className="relative flex flex-col items-center justify-center gap-3 p-4 rounded-md border border-border bg-bg" style={{ height: 360 }}>
-      <span className="absolute right-3 top-3 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">예상값 · 진단 아님</span>
-      <svg width="280" height="220" viewBox="0 0 280 220">
+      <span className="absolute right-3 top-3 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">검진 기반 · 진단 아님</span>
+      <svg viewBox="0 0 280 220" className="w-full max-w-[260px]" style={{ height: 220 }}>
         <path d={`M ${cx + r * Math.cos(toRad(-135))} ${cy + r * Math.sin(toRad(-135))} A ${r} ${r} 0 1 1 ${cx + r * Math.cos(toRad(135))} ${cy + r * Math.sin(toRad(135))}`}
           fill="none" stroke="#E5E7EB" strokeWidth="18" strokeLinecap="round" />
         {pct > 0 && (
@@ -42,13 +42,13 @@ function EgfrGauge({ value }: { value: number | null }) {
         )}
         <text x={cx} y={cy - 6} textAnchor="middle" fontSize="42" fontWeight="bold" fill={color}>{Math.round(value)}</text>
         <text x={cx} y={cy + 22} textAnchor="middle" fontSize="16" fill="#6B7280">mL/min</text>
-        <text x={cx} y={cy + 70} textAnchor="middle" fontSize="28" fill="#9CA3AF" opacity="0.18" fontWeight="bold" pointerEvents="none">예상값</text>
+        <text x={cx} y={cy + 70} textAnchor="middle" fontSize="28" fill="#9CA3AF" opacity="0.18" fontWeight="bold" pointerEvents="none">검진 기반</text>
         <line x1={cx} y1={cy} x2={cx + (r - 18) * Math.cos(toRad(angle))} y2={cy + (r - 18) * Math.sin(toRad(angle))}
           stroke="#1F2937" strokeWidth="4" strokeLinecap="round" />
         <circle cx={cx} cy={cy} r="6" fill="#1F2937"/>
       </svg>
       <p className="text-base font-bold text-text-primary">eGFR 계기판</p>
-      <p className="text-xs text-text-muted">※ 예상값 (의료 진단 아님)</p>
+      <p className="text-xs text-text-muted">※ 검진 기반 추정 (의료 진단 아님)</p>
     </div>
   );
 }
@@ -74,10 +74,10 @@ function RiskGauge({ score, calculating }: { score: number | null; calculating?:
     <div className="relative flex flex-col items-center justify-center gap-3 p-4 rounded-md border border-border bg-bg" style={{ height: 360 }}>
       <span className="absolute right-3 top-3 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">예상값 · 진단 아님</span>
       <div
-        className="relative flex h-[180px] w-[180px] items-center justify-center rounded-full"
+        className="relative flex h-[220px] w-[220px] items-center justify-center rounded-full"
         style={{ background: `conic-gradient(${color} ${score * 3.6}deg, #E5E7EB ${score * 3.6}deg)` }}
       >
-        <div className="flex h-[150px] w-[150px] flex-col items-center justify-center rounded-full bg-bg">
+        <div className="flex h-[184px] w-[184px] flex-col items-center justify-center rounded-full bg-bg">
           <span className="text-5xl font-bold leading-none" style={{ color }}>{Math.round(score)}%</span>
           <span className="mt-1 text-base font-semibold text-text-secondary">{level}</span>
           <span className="pointer-events-none mt-1 text-[12px] font-bold text-text-muted/40">예상값</span>
@@ -117,10 +117,10 @@ function EgfrTrendChart({ trend }: { trend: EgfrTrend | null }) {
   ];
 
   return (
-    <div className="rounded-md border border-border bg-bg p-4">
+    <div className="h-full rounded-md border border-border bg-bg p-4">
       <div className="mb-2 flex items-center justify-between">
         <p className="text-sm font-bold text-text-primary">eGFR 추세 차트 (KDIGO 단계)</p>
-        <p className="text-[10px] text-text-muted">※ 예상값 (의료 진단 아님)</p>
+        <p className="text-[10px] text-text-muted">※ 검진 기반 (의료 진단 아님)</p>
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 220 }}>
         {/* G1~G5 색상 배경 띠 */}
@@ -308,24 +308,20 @@ export function DashboardPage() {
         )}
 
         {/* Row1: 계기판 + 헬스 알 */}
-        <div className="mt-[24px] flex gap-[24px]">
-          <div className="flex flex-1 gap-[16px]">
-            <div className="flex-1">
-              <EgfrGauge value={h?.egfr_estimated ?? null} />
-            </div>
-            <div className="flex-1">
-              <RiskGauge
-                score={h?.ckd_risk_score != null ? h.ckd_risk_score * 100 : null}
-                calculating={!!h && h.ckd_risk_score == null}
-              />
-            </div>
+        <div className="mt-[24px] grid grid-cols-3 items-stretch gap-[16px]">
+          <div className="col-span-2 grid grid-cols-2 gap-[16px]">
+            <EgfrGauge value={h?.egfr_estimated ?? null} />
+            <RiskGauge
+              score={h?.ckd_risk_score != null ? h.ckd_risk_score * 100 : null}
+              calculating={!!h && h.ckd_risk_score == null}
+            />
           </div>
           <EggWidget />
         </div>
 
         {/* Row2: eGFR 추세 + 시뮬레이션 */}
-        <div className="mt-[24px] grid grid-cols-3 gap-[16px]">
-          <div className="col-span-2">
+        <div className="mt-[24px] grid grid-cols-3 items-stretch gap-[16px]">
+          <div className="col-span-2 h-full">
             <EgfrTrendChart trend={trend ?? null} />
           </div>
           <EgfrSimulationWidget />

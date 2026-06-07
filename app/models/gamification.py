@@ -13,6 +13,7 @@ class PointReason(StrEnum):
     PURCHASE = "PURCHASE"
     PROTECT_CONSUME = "PROTECT_CONSUME"
     REFUND = "REFUND"
+    CHECKIN_CANCEL = "CHECKIN_CANCEL"
 
 
 class ItemCode(StrEnum):

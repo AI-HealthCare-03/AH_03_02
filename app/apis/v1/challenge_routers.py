@@ -6,6 +6,8 @@ from fastapi.responses import ORJSONResponse as Response
 
 from app.dependencies.security import get_request_user
 from app.dtos.challenge import (
+    AbandonChallengeResponse,
+    CancelCheckinResponse,
     CategoryProgressResponse,
     ChallengeListResponse,
     CheckinRequest,
@@ -149,6 +151,45 @@ async def checkin(
         emotion=emotion,
     )
     return Response(result.model_dump(), status_code=status.HTTP_200_OK)
+
+
+@user_challenge_router.delete(
+    "/{user_challenge_id}/checkin",
+    response_model=CancelCheckinResponse,
+    status_code=status.HTTP_200_OK,
+    summary="체크인 취소 (완전 롤백)",
+    description=("오늘 체크인을 취소합니다. total_checkins·streak_count 롤백, 포인트 역적립, COMPLETED→ACTIVE 복귀."),
+)
+async def cancel_checkin(
+    user_challenge_id: int,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[ChallengeService, Depends(ChallengeService)],
+) -> Response:
+    result = await service.cancel_checkin(
+        user_id=user.id,
+        user_challenge_id=user_challenge_id,
+        today=date.today(),
+    )
+    return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+@user_challenge_router.delete(
+    "/{user_challenge_id}",
+    response_model=AbandonChallengeResponse,
+    status_code=status.HTTP_200_OK,
+    summary="챌린지 참여 해제 (ABANDONED)",
+    description=(
+        "챌린지 참여를 해제합니다. 레코드 삭제 없이 상태만 ABANDONED로 변경합니다. "
+        "체크인 기록과 포인트는 그대로 유지됩니다."
+    ),
+)
+async def abandon_challenge(
+    user_challenge_id: int,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[ChallengeService, Depends(ChallengeService)],
+) -> Response:
+    result = await service.abandon(user_id=user.id, user_challenge_id=user_challenge_id)
+    return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
 
 
 @challenge_router.get(
