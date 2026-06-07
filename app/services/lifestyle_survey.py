@@ -37,6 +37,10 @@ class LifestyleSurveyService:
             family_history_diabetes=dto.family_history_diabetes,
             family_history_hypertension=dto.family_history_hypertension,
             family_history_heart_disease=dto.family_history_heart_disease,
+            htn_diagnosed=dto.htn_diagnosed,
+            dm_diagnosed=dto.dm_diagnosed,
+            dyslipidemia_diagnosed=dto.dyslipidemia_diagnosed,
+            ckd_diagnosed=dto.ckd_diagnosed,
             is_pregnant=dto.is_pregnant,
         )
         return LifestyleSurveyResponse.model_validate(survey)
