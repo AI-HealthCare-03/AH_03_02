@@ -21,8 +21,8 @@ function EgfrGauge({ value }: { value: number | null }) {
   const pct = Math.min(value / max, 1);
   const color = value >= 60 ? "#059669" : value >= 30 ? "#D97706" : "#DC2626";
   const angle = -135 + pct * 270;
-  // 계기판 사이즈 확대 (반지름·중심점 키움)
-  const cx = 140, cy = 150, r = 110;
+  // 게이지를 220x220 정사각 viewBox 중앙에 배치 (CKD 위험도 원과 높이 통일)
+  const cx = 110, cy = 110, r = 100;
   const toRad = (deg: number) => (deg * Math.PI) / 180;
   const startAngle = -135, endAngle = -135 + pct * 270;
   const x1 = cx + r * Math.cos(toRad(startAngle));
@@ -33,7 +33,7 @@ function EgfrGauge({ value }: { value: number | null }) {
   return (
     <div className="relative flex flex-col items-center justify-center gap-3 p-4 rounded-md border border-border bg-bg" style={{ height: 360 }}>
       <span className="absolute right-3 top-3 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">검진 기반 · 진단 아님</span>
-      <svg viewBox="0 0 280 220" className="w-full max-w-[260px]" style={{ height: 220 }}>
+      <svg viewBox="0 0 220 220" className="w-full max-w-[220px]" style={{ height: 220 }}>
         <path d={`M ${cx + r * Math.cos(toRad(-135))} ${cy + r * Math.sin(toRad(-135))} A ${r} ${r} 0 1 1 ${cx + r * Math.cos(toRad(135))} ${cy + r * Math.sin(toRad(135))}`}
           fill="none" stroke="#E5E7EB" strokeWidth="18" strokeLinecap="round" />
         {pct > 0 && (
