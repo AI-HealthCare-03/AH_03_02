@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
@@ -9,7 +10,7 @@ import { HeatmapWidget } from "../components/HeatmapWidget";
 import { RadialMiniWidget } from "../components/RadialMiniWidget";
 import { WeeklyProgressWidget } from "../components/WeeklyProgressWidget";
 import { EgfrSimulationWidget } from "../components/EgfrSimulationWidget";
-import { dashboardApi, type DashboardSummary, type EgfrTrend } from "../api/dashboard";
+import { dashboardApi, type EgfrTrend } from "../api/dashboard";
 import { pointsApi } from "../api/gamification";
 import { slumpApi, type SlumpStatusResponse } from "../api/slump";
 import { useAuth } from "../contexts/AuthContext";
@@ -173,13 +174,30 @@ const LIFESTYLE_LABEL: Record<string, string> = {
 
 export function DashboardPage() {
   const { user } = useAuth();
-  const [summary, setSummary] = useState<DashboardSummary | null>(null);
-  const [trend, setTrend] = useState<EgfrTrend | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const queryClient = useQueryClient();
   const [attendanceLoading, setAttendanceLoading] = useState(false);
   const [attendanceMsg, setAttendanceMsg] = useState("");
   const [slump, setSlump] = useState<SlumpStatusResponse | null>(null);
+
+  // React Query로 대시보드 요약 데이터 관리
+  // refetchInterval: CKD 위험도가 아직 계산 중(null)이면 4초마다 자동 재조회 (비동기 worker 완료 대기)
+  const { data: summary, isLoading: loading, error: queryError } = useQuery({
+    queryKey: ["dashboard-summary"],
+    queryFn: dashboardApi.getSummary,
+    refetchInterval: (q) =>
+      q.state.data?.latest_health && q.state.data.latest_health.ckd_risk_score == null
+        ? 4000
+        : false,
+  });
+
+  // eGFR 추세 데이터 별도 쿼리
+  const { data: trend } = useQuery<EgfrTrend | null>({
+    queryKey: ["egfr-trend"],
+    queryFn: () => dashboardApi.getEgfrTrend(),
+  });
+
+  // 에러 메시지 추출
+  const error = queryError instanceof Error ? queryError.message : "";
 
   async function handleAttendance() {
     setAttendanceLoading(true);
@@ -187,6 +205,8 @@ export function DashboardPage() {
     try {
       const res = await pointsApi.attendance();
       setAttendanceMsg(res.message);
+      // 출석체크 완료 후 대시보드 포인트·출석 반영을 위해 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
     } catch (e) {
       setAttendanceMsg(e instanceof Error ? e.message : "출석체크 실패");
     } finally {
@@ -194,30 +214,10 @@ export function DashboardPage() {
     }
   }
 
+  // REQ-CHAL-006 슬럼프 상태 조회 — 실패해도 대시보드 본 흐름에 영향 없음
   useEffect(() => {
-    Promise.all([dashboardApi.getSummary(), dashboardApi.getEgfrTrend()])
-      .then(([s, t]) => { setSummary(s); setTrend(t); })
-      .catch((e) => setError(e instanceof Error ? e.message : "데이터를 불러오지 못했습니다."))
-      .finally(() => setLoading(false));
-    // REQ-CHAL-006 슬럼프 상태 조회 — 실패해도 대시보드 본 흐름에 영향 없음
     slumpApi.status().then(setSlump).catch(() => setSlump(null));
   }, []);
-
-  // 비동기 CKD 위험도 폴링 — 검진은 있으나 risk가 아직 null(worker 예측 중)이면 자동 재조회
-  useEffect(() => {
-    const lh = summary?.latest_health;
-    if (!lh || lh.ckd_risk_score != null) return;
-    const timer = setInterval(() => {
-      dashboardApi
-        .getSummary()
-        .then((s) => {
-          setSummary(s);
-          if (s.latest_health?.ckd_risk_score != null) clearInterval(timer);
-        })
-        .catch(() => {});
-    }, 4000);
-    return () => clearInterval(timer);
-  }, [summary?.latest_health?.ckd_risk_score]);
 
   if (loading) return (
     <div className="flex min-h-screen flex-col bg-bg-alt">
@@ -318,7 +318,7 @@ export function DashboardPage() {
         {/* Row2: eGFR 추세 + 시뮬레이션 */}
         <div className="mt-[24px] grid grid-cols-3 gap-[16px]">
           <div className="col-span-2">
-            <EgfrTrendChart trend={trend} />
+            <EgfrTrendChart trend={trend ?? null} />
           </div>
           <EgfrSimulationWidget />
         </div>
