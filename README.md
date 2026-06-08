@@ -71,6 +71,8 @@
 
 ## ⚙️ 로컬 실행
 
+> 📦 **처음 셋업이라면 [SETUP.md](./SETUP.md)를 먼저 읽으세요.** `git pull`만으로는 작동하지 않습니다 — ML 모델(~5.3GB)·벡터DB(~789MB)·실제 환경변수는 GitHub에 올라가지 않아 Google Drive 등에서 별도로 받아야 합니다.
+
 ### 사전 준비
 
 - Python 3.13+
@@ -116,7 +118,17 @@ docker-compose up -d --build
 - **API Swagger**: http://localhost/api/docs
 - **Langfuse UI**: http://localhost:3000
 
-### 5. 개별 실행 (개발용)
+### 5. 대용량 자산 + DB 마이그레이션 (ML 예측·RAG 챗봇 필수)
+
+GitHub에 없는 모델·벡터DB를 받고 DB 스키마를 적용합니다. 자세한 절차·file ID는 [SETUP.md](./SETUP.md) 참고.
+
+```bash
+MODELS_GDRIVE_ID=<id> ./scripts/setup/fetch_models.sh    # CKD predictor (~5.3GB)
+QDRANT_GDRIVE_ID=<id> ./scripts/setup/restore_qdrant.sh  # 벡터DB (~789MB)
+docker compose exec fastapi uv run aerich upgrade        # DB 마이그레이션
+```
+
+### 6. 개별 실행 (개발용)
 
 ```bash
 # FastAPI 서버 (포트 8001 — 부트캠프 환경 충돌 방지)
