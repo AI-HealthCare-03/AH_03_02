@@ -23,6 +23,24 @@ logger = setup_logger("ai_worker")
 _CONSUMER = "worker-1"
 
 
+def _warmup() -> None:
+    """RAG 클라이언트 콜드스타트 제거 — startup에서 embedding/LLM을 1회 더미 호출.
+
+    embedder·llm_client는 lazy 싱글턴이라 첫 사용자 요청에서 httpx 연결·클라이언트
+    생성 지연(측정상 embedding ~4s + LLM ~1.8s)이 발생한다. 이 초기화를 startup으로
+    옮겨 첫 요청 체감을 ~12s → ~5s로 줄인다. 실패해도 무시 — 첫 요청에서 자연 초기화된다.
+    """
+    try:
+        from ai_worker.rag import embedder, llm_client
+
+        embedder.embed_query("warmup")
+        llm_client.get_gen_llm().invoke("ping")
+        llm_client.get_grade_llm().invoke("ping")
+        logger.info("RAG warmup 완료 — embedding·LLM 클라이언트 초기화됨")
+    except Exception:  # noqa: BLE001 — 워밍업 실패가 worker 기동을 막지 않도록
+        logger.warning("RAG warmup 실패 — 첫 요청에서 초기화됨", exc_info=True)
+
+
 async def ensure_group(redis) -> None:
     """consumer group 생성 (이미 있으면 무시). 스트림이 없어도 mkstream 으로 생성."""
     try:
@@ -102,6 +120,7 @@ async def main() -> None:
     redis = get_redis()
     await ensure_group(redis)
     await ensure_ckd_group(redis)
+    await asyncio.to_thread(_warmup)  # 콜드스타트 제거 (이벤트루프 안 막고 워밍)
     logger.info(
         "RAG consumer 시작 (stream=%s group=%s)",
         config.RAG_JOBS_STREAM,
