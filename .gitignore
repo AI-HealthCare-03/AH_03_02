@@ -46,3 +46,7 @@ docs/load-test/result_*.csv
 # 잡아 새 모델·마이그레이션 파일이 무시되는 함정이 있어 '/models/'로 한정
 /models/
 data/ckd/
+
+# 협업 자산 패키징 산출물 (scripts/setup/dump_*.sh 생성 → Google Drive 공유, git 추적 X)
+/models_ckd.tar.gz
+/qdrant_snapshot.tar.gz
