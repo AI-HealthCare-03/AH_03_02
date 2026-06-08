@@ -133,4 +133,5 @@ class CancelCheckinResponse(BaseSerializerModel):
 class AbandonChallengeResponse(BaseSerializerModel):
     id: int
     status: UserChallengeStatus
+    points_revoked: int
     message: str

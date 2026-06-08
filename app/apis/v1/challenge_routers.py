@@ -180,7 +180,7 @@ async def cancel_checkin(
     summary="챌린지 참여 해제 (ABANDONED)",
     description=(
         "챌린지 참여를 해제합니다. 레코드 삭제 없이 상태만 ABANDONED로 변경합니다. "
-        "체크인 기록과 포인트는 그대로 유지됩니다."
+        "오늘 체크인한 경우 당일 지급 포인트는 회수되고 카운트가 롤백됩니다(과거 보상은 보존)."
     ),
 )
 async def abandon_challenge(
@@ -188,7 +188,7 @@ async def abandon_challenge(
     user: Annotated[User, Depends(get_request_user)],
     service: Annotated[ChallengeService, Depends(ChallengeService)],
 ) -> Response:
-    result = await service.abandon(user_id=user.id, user_challenge_id=user_challenge_id)
+    result = await service.abandon(user_id=user.id, user_challenge_id=user_challenge_id, today=date.today())
     return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
 
 
