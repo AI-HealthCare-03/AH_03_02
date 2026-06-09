@@ -178,6 +178,22 @@ def _is_skipped(path: Path) -> bool:
     return any(sub in path.name for sub in cfg.SKIP_FILE_SUBSTRINGS)
 
 
+def _track_for(doc_type: str, source: str) -> str:
+    """파일명(source stem) 기반 파일 단위 트랙 판정.
+
+    nutrition 문서 중 트랙 키워드가 파일명에 있으면 해당 트랙.
+    파일 전체에 동일 트랙을 적용하므로 h2 소제목 변경에 흔들리지 않고
+    비교 섹션 h2로 인한 교차 오염도 방지된다.
+    clinical·lifestyle·기타 knsn 은 항상 common.
+    """
+    if doc_type != "nutrition":
+        return cfg.TRACK_COMMON
+    for keyword, track in cfg.TRACK_BY_SOURCE_KO.items():
+        if keyword in source:
+            return track
+    return cfg.TRACK_COMMON
+
+
 def _parent_id(source: str, h1: str, h2: str, idx: int) -> str:
     """source+헤더+parent 순번으로 결정적 parent_id 생성."""
     key = f"{source}|{h1}|{h2}|{idx}"
@@ -200,6 +216,7 @@ def _emit_parent_children(
     h2: str,
     parent_counter: list,
     page: int | None = None,
+    track: str = cfg.TRACK_COMMON,
 ) -> None:
     """한 섹션 텍스트를 parent(2000)→child(400)로 분할해 두 리스트에 누적.
 
@@ -226,6 +243,7 @@ def _emit_parent_children(
                     "language": language,
                     "h1": h1,
                     "h2": h2,
+                    "track": track,
                 },
             }
         )
@@ -246,6 +264,7 @@ def _emit_parent_children(
                         "page": page,  # PDF 페이지 (page_chunks 경로) / MD 는 None
                         "parent_id": pid,
                         "chunk_idx": cidx,
+                        "track": track,
                     },
                 }
             )
@@ -257,6 +276,7 @@ def _emit_parent_children(
 def chunk_pdf(path: Path) -> tuple[list, list]:
     source = path.stem
     doc_type = _doc_type_for(path)
+    file_track = _track_for(doc_type, source)  # 파일 단위 트랙 — 루프 내에서 불변
 
     # page_chunks=True → 페이지별 {text, metadata.page_number}. 페이지 경계를 넘는 헤더는
     # carry-over(직전 h1/h2 상속)로 self-contained 맥락을 유지하면서 page 를 부착한다.
@@ -283,6 +303,7 @@ def chunk_pdf(path: Path) -> tuple[list, list]:
                 last_h1, last_h2 = g_h1, ""  # 새 h1 등장 → 하위 h2 리셋
             if g_h2:
                 last_h2 = g_h2
+            effective_h2 = g_h2 or last_h2
             _emit_parent_children(
                 parents=parents,
                 children=children,
@@ -291,9 +312,10 @@ def chunk_pdf(path: Path) -> tuple[list, list]:
                 doc_type=doc_type,
                 language=language,
                 h1=g_h1 or last_h1,
-                h2=g_h2 or last_h2,
+                h2=effective_h2,
                 parent_counter=parent_counter,
                 page=page_no,
+                track=file_track,  # 파일 단위 고정값 — h2 소제목에 흔들리지 않음
             )
     return parents, children
 
@@ -363,6 +385,7 @@ def chunk_md(path: Path) -> tuple[list, list]:
         h1=h1,
         h2=h2,
         parent_counter=parent_counter,
+        track=_track_for(doc_type, source),  # lifestyle MD → 항상 common
     )
     return parents, children
 
@@ -429,7 +452,8 @@ def main() -> None:
         all_parents.extend(parents)
         all_children.extend(children)
         lang = parents[0]["payload"]["language"] if parents else "?"
-        print(f"  {p.stem:52s} [{lang}] parent={len(parents):4d} child={len(children):5d}")
+        tracks = sorted({c["payload"].get("track", "?") for c in children})
+        print(f"  {p.stem:52s} [{lang}] parent={len(parents):4d} child={len(children):5d} tracks={tracks}")
 
     print("\n[MD 경로] frontmatter + #제목 주입 → Parent-Child")
     md_parent_n = md_child_n = 0
@@ -452,6 +476,20 @@ def main() -> None:
     for c in all_children:
         by_type[c["payload"]["doc_type"]] = by_type.get(c["payload"]["doc_type"], 0) + 1
     print(f"child doc_type 분포: {by_type}")
+
+    by_track: dict = {}
+    for c in all_children:
+        t = c["payload"].get("track", "?")
+        by_track[t] = by_track.get(t, 0) + 1
+    print(f"child track  분포: {by_track}")
+
+    soah_h2 = [
+        c["payload"].get("h2", "")
+        for c in all_children
+        if "소아" in (c["payload"].get("h2") or "")
+        or any(kw in (c["payload"].get("h2") or "").lower() for kw in ("pediatric", "children", "adolescent"))
+    ]
+    print(f"소아 관련 h2 child: {len(soah_h2)}개 (0 예상) {soah_h2[:3] if soah_h2 else ''}")
 
     if args.dry_run:
         print("\n--dry-run: 파일 미생성")

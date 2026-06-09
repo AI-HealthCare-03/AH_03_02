@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from langchain_core.documents import Document
 from qdrant_client import QdrantClient
-from qdrant_client.models import FieldCondition, Filter, MatchValue
+from qdrant_client.models import FieldCondition, Filter, MatchAny, MatchValue
 
 from . import config as cfg
 from . import embedder
@@ -37,18 +37,27 @@ def retrieve(
     *,
     top_k: int = cfg.TOP_K,
     age_group: str = cfg.AGE_GROUP,
+    track: str | None = None,
     client: QdrantClient | None = None,
     query_vector: list[float] | None = None,
 ) -> tuple[list[Document], str, float]:
-    """질문 → child 검색(age_group 필터) → parent 맥락 조회.
+    """질문 → child 검색(age_group 필터, 선택적 track OR 필터) → parent 맥락 조회.
 
+    track 지정 시: age_group=adult AND track IN [track, "common"]
+      → 해당 트랙 전용 청크 + 공통 청크만 반환, 다른 트랙 청크 제외.
+    track=None(기본): age_group=adult 만 — 하위 호환.
     반환: (documents=child Document 리스트, parent_context=parent 텍스트 결합, top_score).
     client·query_vector 주입 가능 (테스트는 mock client + 벡터 주입으로 키·네트워크 불요).
     """
     client = client or get_client()
     qv = query_vector if query_vector is not None else embedder.embed_query(query)
 
-    flt = Filter(must=[FieldCondition(key="age_group", match=MatchValue(value=age_group))])
+    must_conditions: list = [FieldCondition(key="age_group", match=MatchValue(value=age_group))]
+    if track:
+        must_conditions.append(
+            FieldCondition(key="track", match=MatchAny(any=[track, "common"]))
+        )
+    flt = Filter(must=must_conditions)
     hits = client.query_points(
         collection_name=cfg.COLLECTION_CHILD,
         query=qv,
