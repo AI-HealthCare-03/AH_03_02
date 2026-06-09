@@ -1,71 +1,447 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { ClipboardCheck, FileText } from "lucide-react";
+import { ClipboardCheck, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  ReferenceArea,
+  ReferenceLine,
+  CartesianGrid,
+} from "recharts";
 import { TopNav } from "../components/TopNav";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { BtnSecondary } from "../components/BtnSecondary";
-import { healthCheckApi, ShapItem1, LifestyleShapItem, PeerDistribution } from "../api/healthCheck";
+import {
+  healthCheckApi,
+  ShapItem1,
+  LifestyleShapItem,
+  LifestyleItem,
+  PeerDistribution,
+  ClinicalItem,
+  ReportMeta,
+} from "../api/healthCheck";
 
-// ===== ShapBar 컴포넌트 =====
-// value를 number | string 모두 수용하도록 확장
-function ShapBar({
-  rank,
-  label,
-  value,
-  shap: _shap,
-  note,
-  barWidth,
-  color,
+// ===== ShapImpactBars: 좌우 2패널 가로막대 차트 =====
+// shap > 0 → 위험 상승(빨강, 왼쪽), shap < 0 → 위험 하강(초록, 오른쪽)
+function ShapImpactBars({
+  items,
+  raiseTitle,
+  lowerTitle,
 }: {
-  rank: number;
-  label: string;
-  value: number | string;
-  shap: number | string;
-  note?: string;
-  barWidth: number;
-  color: string;
+  items: { label: string; value: number; shap: number }[];
+  raiseTitle: string;
+  lowerTitle: string;
 }) {
+  // 전체 |shap| 합계 — 퍼센트 계산용 (필터된 항목 기준)
+  const totalAbsShap = items.reduce((s, it) => s + Math.abs(it.shap), 0);
+
+  // shap 부호로 분리 후 |shap| 내림차순 정렬
+  const raiseItems = items
+    .filter((it) => it.shap > 0)
+    .sort((a, b) => Math.abs(b.shap) - Math.abs(a.shap));
+  const lowerItems = items
+    .filter((it) => it.shap < 0)
+    .sort((a, b) => Math.abs(b.shap) - Math.abs(a.shap));
+
+  // 패널 내 최대 |shap| — 바 너비 비율 계산용
+  const raiseMax = raiseItems.reduce((m, it) => Math.max(m, Math.abs(it.shap)), 0);
+  const lowerMax = lowerItems.reduce((m, it) => Math.max(m, Math.abs(it.shap)), 0);
+
+  // 퍼센트 포맷 (1 decimal, 필터된 전체 합 기준)
+  const pct = (shap: number) =>
+    totalAbsShap > 0
+      ? ((Math.abs(shap) / totalAbsShap) * 100).toFixed(1)
+      : "0.0";
+
+  // 값 포맷: 정수면 그대로, 소수면 1자리만
+  const fmtValue = (v: number): string =>
+    Number.isInteger(v) ? String(v) : v.toFixed(1);
+
+  const renderPanel = (
+    panelItems: typeof raiseItems,
+    panelMax: number,
+    color: string,
+    title: string,
+  ) => (
+    <div className="flex flex-1 flex-col gap-[10px]">
+      {/* 패널 제목 */}
+      <p className="text-xs font-bold uppercase tracking-wide" style={{ color }}>
+        {title}
+      </p>
+
+      {panelItems.length === 0 ? (
+        <p className="text-xs text-text-muted">해당 항목 없음</p>
+      ) : (
+        panelItems.map((it, i) => {
+          const absShap = Math.abs(it.shap);
+          const barWidthPct =
+            panelMax > 0 ? (absShap / panelMax) * 100 : 0;
+          return (
+            <div key={it.label} className="flex flex-col gap-[4px]">
+              {/* 순위 + 레이블 */}
+              <p className="text-xs text-text-secondary leading-snug">
+                {i + 1}. {it.label}
+              </p>
+              {/* 바 트랙 + 퍼센트 */}
+              <div className="flex items-center gap-[6px]">
+                <div className="relative h-[18px] flex-1 rounded-sm bg-[#f0f0f0]">
+                  <div
+                    className="absolute left-0 top-0 h-full rounded-sm flex items-center pl-[4px] transition-all duration-300"
+                    style={{
+                      width: `${Math.max(barWidthPct, 8)}%`,
+                      backgroundColor: color,
+                    }}
+                  >
+                    <span className="text-[10px] font-medium text-white truncate">
+                      {fmtValue(it.value)}
+                    </span>
+                  </div>
+                </div>
+                <span
+                  className="w-[38px] text-right text-[11px] font-semibold shrink-0"
+                  style={{ color }}
+                >
+                  {pct(it.shap)}%
+                </span>
+              </div>
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+
   return (
-    <div className="flex w-full flex-col gap-[8px] rounded-md border border-border bg-bg p-[16px]">
-      <div className="flex items-center justify-between">
-        <p className="text-md font-bold text-text-primary">
-          {rank}. {label}
-        </p>
-        <p className="text-sm font-semibold" style={{ color }}>
-          {typeof value === "number" ? value.toLocaleString() : value}
-        </p>
+    <div className="flex flex-col gap-[12px] rounded-lg border border-border bg-bg p-[16px] shadow-sm">
+      <p className="text-sm font-bold text-text-primary">SHAP 영향 요인 분석</p>
+      <div className="flex flex-col gap-[16px] md:flex-row md:gap-[20px]">
+        {renderPanel(raiseItems, raiseMax, "#e74c3c", raiseTitle)}
+        {/* 구분선 — 중간 divider (md 이상에서만 세로선) */}
+        <div className="hidden md:block w-px bg-border self-stretch" />
+        <div className="block md:hidden h-px w-full bg-border" />
+        {renderPanel(lowerItems, lowerMax, "#27ae60", lowerTitle)}
       </div>
-      <div className="h-[8px] w-full rounded-sm bg-placeholder">
-        <div
-          className="h-full rounded-sm transition-all duration-300"
-          style={{ width: `${barWidth}px`, backgroundColor: color }}
-        />
-      </div>
-      {note && <p className="text-xs text-text-muted">{note}</p>}
+      <p className="text-[10px] text-text-muted">
+        ※ 막대 끝 숫자는 측정값, 우측 %는 전체 영향 중 해당 항목 비중입니다.
+      </p>
     </div>
   );
 }
 
-// ===== SHAP 크기에 따른 색상 결정 =====
-function shapColor(shap: number): string {
-  const abs = Math.abs(shap);
-  if (abs >= 0.07) return "#DC2626"; // 빨강 — 높은 기여
-  if (abs >= 0.03) return "#D97706"; // 주황 — 중간 기여
-  return "#6B7280"; // 회색 — 낮은 기여
+// ===== PeerDistributionCurve: Recharts AreaChart 또래 분포 =====
+// distribution이 null/undefined일 때는 peerTopPct 기반 합성 종형 곡선으로 폴백
+
+// ---- Recharts 내장 차트 렌더러 (실데이터·합성 공통) ----
+// data: [{x, y}], domain, myX, peerAvgX, zoneEdges [e1, e2]
+function PeerDistributionChart({
+  data,
+  xMin,
+  xMax,
+  myX,
+  peerAvgX,
+}: {
+  data: { x: number; y: number }[];
+  xMin: number;
+  xMax: number;
+  myX: number;
+  peerAvgX: number;
+}) {
+  // 도메인을 3등분하는 두 경계
+  const span = xMax - xMin;
+  const z1 = xMin + span / 3;
+  const z2 = xMin + (span * 2) / 3;
+
+  // X축 3등분 중앙 틱 — 각 존의 중간값
+  const lowCenter  = xMin + span / 6;
+  const midCenter  = xMin + span / 2;
+  const highCenter = xMin + span * 5 / 6;
+
+  // textAnchor 헬퍼: 플롯 왼쪽 12% → start, 오른쪽 12% → end, 나머지 → middle
+  const anchorFor = (xVal: number): "start" | "middle" | "end" => {
+    const pct = (xVal - xMin) / span;
+    if (pct < 0.12) return "start";
+    if (pct > 0.88) return "end";
+    return "middle";
+  };
+
+  // "나" 커스텀 라벨: 1행(맨 위), 빨강 볼드 + 작은 도트
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const myLabel = (props: any) => {
+    const { viewBox } = props;
+    if (!viewBox) return null;
+    const { x, y, width: _w, height: _h } = viewBox;
+    const anchor = anchorFor(myX);
+    // x 클램프: 텍스트가 차트 좌우 경계 밖으로 나가지 않도록
+    const rawX = x as number;
+    return (
+      <g>
+        {/* 빨강 라인 상단 도트 (플롯 최상단에 위치) */}
+        <circle cx={rawX} cy={y as number} r={3.5} fill="#e74c3c" />
+        {/* "나" 텍스트 — 상단 여백 1행 (플롯 위 18px), 빨강 볼드 */}
+        <text
+          x={rawX}
+          y={(y as number) - 18}
+          textAnchor={anchor}
+          fontSize={11}
+          fontWeight="bold"
+          fill="#e74c3c"
+        >
+          나
+        </text>
+      </g>
+    );
+  };
+
+  // "또래 평균" 커스텀 라벨: 2행(16px 아래), 회색
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const peerAvgLabel = (props: any) => {
+    const { viewBox } = props;
+    if (!viewBox) return null;
+    const { x, y } = viewBox;
+    const anchor = anchorFor(peerAvgX);
+    const rawX = x as number;
+    return (
+      <text
+        x={rawX}
+        y={(y as number) - 5}
+        textAnchor={anchor}
+        fontSize={10}
+        fill="#888"
+      >
+        또래 평균
+      </text>
+    );
+  };
+
+  return (
+    <ResponsiveContainer width="100%" height={180}>
+      <AreaChart
+        data={data}
+        margin={{ top: 32, right: 12, bottom: 8, left: 12 }}
+      >
+        {/* 그라데이션 정의 */}
+        <defs>
+          <linearGradient id="peerFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#378ADD" stopOpacity={0.35} />
+            <stop offset="100%" stopColor="#378ADD" stopOpacity={0.02} />
+          </linearGradient>
+        </defs>
+
+        {/* 매우 연한 수평 그리드 */}
+        <CartesianGrid vertical={false} stroke="#f0f0f0" />
+
+        {/* X축: 3등분 중앙 틱 → 낮음/보통/높음 */}
+        <XAxis
+          dataKey="x"
+          type="number"
+          domain={[xMin, xMax]}
+          ticks={[lowCenter, midCenter, highCenter]}
+          tickFormatter={(v: number) => {
+            if (Math.abs(v - lowCenter) < span * 0.01) return "낮음";
+            if (Math.abs(v - midCenter) < span * 0.01) return "보통";
+            return "높음";
+          }}
+          tickLine={false}
+          axisLine={{ stroke: "#d0d7de" }}
+          tick={{ fontSize: 10, fill: "#999" }}
+        />
+
+        {/* Y축 숨김 */}
+        <YAxis hide />
+
+        {/* 존 배경 밴드 (Area 아래 먼저 렌더) */}
+        <ReferenceArea x1={xMin} x2={z1} fill="#1D9E75" fillOpacity={0.08} strokeOpacity={0} />
+        <ReferenceArea x1={z1}  x2={z2} fill="#EF9F27" fillOpacity={0.08} strokeOpacity={0} />
+        <ReferenceArea x1={z2}  x2={xMax} fill="#E24B4A" fillOpacity={0.08} strokeOpacity={0} />
+
+        {/* 분포 곡선 Area */}
+        <Area
+          type="monotone"
+          dataKey="y"
+          stroke="#185FA5"
+          strokeWidth={2.5}
+          fill="url(#peerFill)"
+          dot={false}
+          activeDot={false}
+          isAnimationActive={false}
+        />
+
+        {/* 또래 평균 점선 — 2행 라벨 (16px 낮춰 스태거) */}
+        <ReferenceLine
+          x={peerAvgX}
+          stroke="#888"
+          strokeWidth={1.5}
+          strokeDasharray="4 3"
+          label={peerAvgLabel}
+        />
+
+        {/* 나 수직선 — 1행 라벨 (맨 위, 빨강) */}
+        <ReferenceLine
+          x={myX}
+          stroke="#e74c3c"
+          strokeWidth={2.5}
+          label={myLabel}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
 }
 
-// |shap| * 3000 으로 barWidth 산정, 최소 20 최대 280
-function shapBarWidth(shap: number): number {
-  return Math.min(280, Math.max(20, Math.abs(shap) * 3000));
+function PeerDistributionCurve({
+  distribution,
+  peerTopPct,
+  peerRelative,
+}: {
+  distribution: PeerDistribution | null | undefined;
+  peerTopPct: number | null;
+  peerRelative: string | null;
+}) {
+  // ---- 제목 문자열 ----
+  const titleParts: string[] = [];
+  if (peerTopPct !== null) titleParts.push(`상위 ${peerTopPct}%`);
+  if (peerRelative) titleParts.push(peerRelative);
+  const titleStr =
+    "또래 비교" + (titleParts.length > 0 ? ` — ${titleParts.join(" · ")}` : "");
+
+  // ---- 3점 이동평균 스무딩 (실데이터 노이즈 제거) ----
+  // s[i] = (c[i-1] + 2*c[i] + c[i+1]) / 4, 엣지 클램프
+  const smoothCounts = (c: number[]): number[] =>
+    c.map((v, i) => {
+      const prev = c[Math.max(i - 1, 0)];
+      const next = c[Math.min(i + 1, c.length - 1)];
+      return (prev + 2 * v + next) / 4;
+    });
+
+  // ============================================================
+  // 실데이터 분기
+  // ============================================================
+  if (distribution && distribution.counts.length > 0 && distribution.edges.length >= 2) {
+    const { counts, edges, my_bin } = distribution;
+
+    const xMin = edges[0];
+    const xMax = edges[edges.length - 1];
+
+    // 빈 중앙값
+    const xc = counts.map((_, i) => (edges[i] + edges[i + 1]) / 2);
+
+    // 스무딩 적용
+    const smoothed = smoothCounts(counts);
+    const maxSmoothed = Math.max(...smoothed, 1);
+
+    // 정규화 (0~1)
+    const normalized = smoothed.map((v) => v / maxSmoothed);
+
+    // Recharts 데이터: 앞뒤 0 앵커로 Area가 베이스라인까지 닫힘
+    const data = [
+      { x: xMin, y: 0 },
+      ...xc.map((x, i) => ({ x, y: normalized[i] })),
+      { x: xMax, y: 0 },
+    ];
+
+    // 또래 평균 = count 가중 평균
+    const totalCount = counts.reduce((s, c) => s + c, 0);
+    const peerAvgX =
+      totalCount > 0
+        ? xc.reduce((s, x, i) => s + x * counts[i], 0) / totalCount
+        : (xMin + xMax) / 2;
+
+    // 내 위치 = my_bin 클램프
+    const myBinClamped = Math.min(Math.max(my_bin, 0), xc.length - 1);
+    const myX = xc[myBinClamped];
+
+    return (
+      <div className="flex flex-col gap-[6px] rounded-lg border border-border bg-bg p-[14px] shadow-sm">
+        <p className="text-sm font-bold text-text-primary">{titleStr}</p>
+        <PeerDistributionChart
+          data={data}
+          xMin={xMin}
+          xMax={xMax}
+          myX={myX}
+          peerAvgX={peerAvgX}
+        />
+        <div className="flex justify-between">
+          <span className="text-[10px] text-text-muted">← 위험 요인 적음</span>
+          <span className="text-[10px] text-text-muted">위험 요인 많음 →</span>
+        </div>
+        <p className="text-[11px] leading-[1.5] text-text-muted">
+          같은 나이대와 비교해 생활습관이 건강에 주는 부담 정도입니다.
+          오른쪽일수록 또래보다 관리가 필요한 요인이 많음을 의미합니다.
+        </p>
+        <p className="text-[11px] leading-[1.5] text-text-muted">
+          ※ 질환이 있다는 의미가 아니며, 의학적 진단·발병 확률이 아닙니다.
+        </p>
+      </div>
+    );
+  }
+
+  // ============================================================
+  // 합성 종형 곡선 폴백 (distribution 없을 때)
+  // peerTopPct가 높을수록(예: 상위 90%) → 오른쪽(위험 많음) 쪽에 "나" 마커
+  // ============================================================
+  if (peerTopPct === null) {
+    return (
+      <p className="text-xs text-text-muted">또래 비교 데이터가 없습니다.</p>
+    );
+  }
+
+  // 합성 벨 곡선: 피크 x=40, sigma=22, x∈[0,100]
+  const SYNTH_MU = 40;
+  const SYNTH_SIGMA = 22;
+  const N_PTS = 40; // 더 촘촘한 포인트로 매끄러운 벨
+  const synthData: { x: number; y: number }[] = [];
+  // 앞 앵커
+  synthData.push({ x: 0, y: 0 });
+  for (let i = 1; i < N_PTS; i++) {
+    const xVal = (i / N_PTS) * 100;
+    const yVal = Math.exp(-0.5 * Math.pow((xVal - SYNTH_MU) / SYNTH_SIGMA, 2));
+    synthData.push({ x: xVal, y: yVal });
+  }
+  // 뒤 앵커
+  synthData.push({ x: 100, y: 0 });
+
+  // 또래 평균 = 벨 피크(SYNTH_MU)
+  const peerAvgX = SYNTH_MU;
+  // 내 위치: 상위 peerTopPct% → x = 100 - peerTopPct (클수록 오른쪽)
+  const myX = Math.min(Math.max(100 - peerTopPct, 0), 100);
+
+  return (
+    <div className="flex flex-col gap-[6px] rounded-lg border border-border bg-bg p-[14px] shadow-sm">
+      <p className="text-sm font-bold text-text-primary">{titleStr}</p>
+      <PeerDistributionChart
+        data={synthData}
+        xMin={0}
+        xMax={100}
+        myX={myX}
+        peerAvgX={peerAvgX}
+      />
+      <div className="flex justify-between">
+        <span className="text-[10px] text-text-muted">← 위험 요인 적음</span>
+        <span className="text-[10px] text-text-muted">위험 요인 많음 →</span>
+      </div>
+      <p className="text-[11px] leading-[1.5] text-text-muted">
+        같은 나이대와 비교해 생활습관이 건강에 주는 부담 정도입니다.
+        오른쪽일수록 또래보다 관리가 필요한 요인이 많음을 의미합니다.
+      </p>
+      <p className="text-[11px] leading-[1.5] text-text-muted">
+        ※ 질환이 있다는 의미가 아니며, 의학적 진단·발병 확률이 아닙니다.
+      </p>
+      <p className="text-[11px] leading-[1.5] text-text-muted">
+        ※ 또래 분포 데이터가 없어 위치만 개략 표시합니다.
+      </p>
+    </div>
+  );
 }
 
 // ===== 모델1 종합 요약 카드 =====
 function Model1SummaryCard({ summary }: { summary: string }) {
   if (!summary.trim()) return null;
   return (
-    <div className="flex items-start gap-[10px] rounded-md border border-accent bg-[#eff6ff] p-[14px]">
-      <FileText className="mt-[1px] h-[18px] w-[18px] shrink-0 text-accent" />
-      <p className="text-sm leading-[1.7] text-text-secondary">{summary}</p>
+    <div className="flex items-start gap-[12px] rounded-lg border border-accent bg-[#eff6ff] p-[16px]">
+      <FileText className="mt-[2px] h-[18px] w-[18px] shrink-0 text-accent" />
+      <p className="text-sm leading-[1.8] text-text-secondary">{summary}</p>
     </div>
   );
 }
@@ -74,20 +450,20 @@ function Model1SummaryCard({ summary }: { summary: string }) {
 function RecommendedTests({ tests }: { tests: string[] }) {
   if (tests.length === 0) return null;
   return (
-    <div className="flex flex-col gap-[8px] rounded-md border border-border bg-bg p-[14px]">
-      <div className="flex items-center gap-[6px]">
+    <div className="flex flex-col gap-[10px] rounded-lg border border-border bg-bg p-[16px] shadow-sm">
+      <div className="flex items-center gap-[8px]">
         <ClipboardCheck className="h-[16px] w-[16px] text-accent" />
         <p className="text-sm font-bold text-text-primary">권장 검사</p>
       </div>
-      <ul className="flex flex-col gap-[6px]">
+      <ul className="flex flex-col gap-[8px]">
         {tests.map((test, idx) => (
-          <li key={idx} className="flex items-start gap-[8px]">
-            <span className="mt-[3px] h-[8px] w-[8px] shrink-0 rounded-full bg-accent" />
+          <li key={idx} className="flex items-start gap-[10px]">
+            <span className="mt-[5px] h-[7px] w-[7px] shrink-0 rounded-full bg-accent" />
             <span className="text-sm leading-[1.6] text-text-secondary">{test}</span>
           </li>
         ))}
       </ul>
-      <p className="mt-[4px] text-[11px] leading-[1.4] text-text-muted">
+      <p className="mt-[2px] text-[11px] leading-[1.4] text-text-muted">
         ※ 이 목록은 AI 분석 기반 참고 사항이며, 의료 진단이 아닙니다.
       </p>
     </div>
@@ -97,7 +473,7 @@ function RecommendedTests({ tests }: { tests: string[] }) {
 // ===== 스켈레톤 로딩 카드 =====
 function SkeletonCard() {
   return (
-    <div className="flex w-full animate-pulse flex-col gap-[8px] rounded-md border border-border bg-bg p-[16px]">
+    <div className="flex w-full animate-pulse flex-col gap-[8px] rounded-lg border border-border bg-bg p-[16px]">
       <div className="h-[16px] w-2/3 rounded-sm bg-placeholder" />
       <div className="h-[8px] w-full rounded-sm bg-placeholder" />
       <div className="h-[12px] w-3/4 rounded-sm bg-placeholder" />
@@ -108,7 +484,7 @@ function SkeletonCard() {
 // ===== 계산 중 배너 =====
 function ComputingBanner() {
   return (
-    <div className="flex items-center gap-[12px] rounded-md border border-accent bg-[#eff6ff] p-[16px]">
+    <div className="flex items-center gap-[12px] rounded-lg border border-accent bg-[#eff6ff] p-[16px]">
       <div className="h-[20px] w-[20px] shrink-0 animate-spin rounded-full border-2 border-accent border-t-transparent" />
       <p className="text-sm text-text-secondary">
         AI가 위험 변수를 분석 중입니다. 최대 35초 내외 소요됩니다…
@@ -117,164 +493,475 @@ function ComputingBanner() {
   );
 }
 
-// ===== 연령대 분포 히스토그램 =====
-function PeerDistributionChart({
-  distribution,
-  peerTopPct,
-  peerRelative,
-}: {
-  distribution: PeerDistribution;
-  peerTopPct: number | null;
-  peerRelative: string | null;
-}) {
-  const { counts, edges, my_bin } = distribution;
-  const maxCount = Math.max(...counts, 1);
+// ===== status_level 색상 헬퍼 =====
+function statusLevelStyle(level: ClinicalItem["status_level"]): {
+  bg: string;
+  text: string;
+} {
+  switch (level) {
+    case "good":      return { bg: "#dcfce7", text: "#16A34A" };
+    case "info":      return { bg: "#dbeafe", text: "#2563EB" };
+    case "caution":   return { bg: "#fef9c3", text: "#CA8A04" };
+    case "warnLight": return { bg: "#ffedd5", text: "#EA580C" };
+    case "danger":    return { bg: "#fee2e2", text: "#DC2626" };
+  }
+}
 
-  // 등급별 색상
-  const levelColor =
-    peerRelative === "상"
-      ? "#16A34A"
-      : peerRelative === "중"
-      ? "#D97706"
-      : "#DC2626";
+// status_level → 왼쪽 액센트 바 색상
+function accentBarColor(level: ClinicalItem["status_level"]): string {
+  switch (level) {
+    case "good":      return "#16A34A";
+    case "info":      return "#2563EB";
+    case "caution":   return "#CA8A04";
+    case "warnLight": return "#EA580C";
+    case "danger":    return "#DC2626";
+  }
+}
 
-  // x축 라벨: 첫 · 중간 · 마지막 edge만 표기
-  const midIdx = Math.floor(edges.length / 2);
-  const labelIndices = new Set([0, midIdx, edges.length - 1]);
+// ===== 임상 상세 분석표 — 촘촘한 테이블 스타일 =====
+const CATEGORY_ORDER = ["혈압·혈당", "지질", "간·혈액", "신체", "기타"] as const;
+
+function ClinicalDetailTable({ items }: { items: ClinicalItem[] }) {
+  // 열린 행 인덱스 집합 (원래 items 배열 인덱스 기준)
+  const [openRows, setOpenRows] = useState<Set<number>>(new Set());
+
+  const toggleRow = (idx: number) => {
+    setOpenRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) {
+        next.delete(idx);
+      } else {
+        next.add(idx);
+      }
+      return next;
+    });
+  };
+
+  // 카테고리별로 그룹화 (원래 배열 인덱스 보존)
+  type IndexedItem = { item: ClinicalItem; idx: number };
+  const grouped: Record<string, IndexedItem[]> = {};
+  items.forEach((item, idx) => {
+    if (!grouped[item.category]) grouped[item.category] = [];
+    grouped[item.category].push({ item, idx });
+  });
+
+  // CATEGORY_ORDER 기준 + 비어있는 카테고리 제외
+  const orderedCategories = CATEGORY_ORDER.filter((cat) => grouped[cat]?.length);
+
+  if (items.length === 0) return null;
+
+  // 그리드 컬럼: 항목 | 정상범위 | 현재값 | 상태 | 펼침
+  const gridCols = "grid-cols-[1.4fr_1fr_1fr_0.8fr_22px]";
 
   return (
-    <div className="flex flex-col gap-[8px] rounded-md border border-border bg-bg p-[12px]">
-      {/* 제목 + 등급 뱃지 */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-bold text-text-primary">같은 연령대 분포</p>
-        <div className="flex items-center gap-[6px]">
-          {peerTopPct !== null && (
-            <span className="text-xs text-text-muted">상위 {peerTopPct}%</span>
-          )}
-          {peerRelative && (
-            <span
-              className="rounded-full px-[8px] py-[2px] text-xs font-bold text-white"
-              style={{ backgroundColor: levelColor }}
-            >
-              {peerRelative}
+    <div className="overflow-hidden rounded-lg border border-border bg-bg shadow-sm">
+      {/* 타이틀 + 캡션 */}
+      <div className="flex flex-wrap items-center justify-between gap-[4px] border-b border-border px-[16px] py-[12px]">
+        <p className="text-sm font-bold text-text-primary">임상 상세 분석표</p>
+        <p className="text-xs text-text-muted">항목을 누르면 설명·관련 질병이 펼쳐집니다.</p>
+      </div>
+
+      {/* 컬럼 헤더 행 — 진한 배경 */}
+      <div
+        className={`grid ${gridCols} gap-x-[8px] px-[16px] py-[8px]`}
+        style={{ backgroundColor: "#2c3e50" }}
+      >
+        <span className="text-xs font-semibold text-white">항목</span>
+        <span className="text-xs font-semibold text-white">정상범위</span>
+        <span className="text-xs font-semibold text-white">현재값</span>
+        <span className="text-xs font-semibold text-center text-white">상태</span>
+        <span />
+      </div>
+
+      {orderedCategories.map((cat) => (
+        <div key={cat}>
+          {/* 카테고리 구분 행 */}
+          <div
+            className="px-[16px] py-[6px]"
+            style={{ backgroundColor: "#dfe6ec" }}
+          >
+            <span className="text-xs font-semibold" style={{ color: "#34495e" }}>
+              〔 {cat} 〕
             </span>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {/* 히스토그램 막대 */}
-      <div className="flex h-[72px] items-end gap-[2px]">
-        {counts.map((count, i) => {
-          const heightPct = (count / maxCount) * 100;
-          const isMyBin = i === my_bin;
-          return (
-            <div
-              key={i}
-              className="flex-1 rounded-t-sm transition-all duration-300"
-              style={{
-                height: `${Math.max(heightPct, 4)}%`,
-                backgroundColor: isMyBin ? "#D97706" : "#D1D5DB",
-              }}
-              title={`${count}명${isMyBin ? " ← 내 위치" : ""}`}
-            />
-          );
-        })}
-      </div>
+          {grouped[cat].map(({ item, idx }) => {
+            const isOpen = openRows.has(idx);
+            const { bg, text: textColor } = statusLevelStyle(item.status_level);
+            const accentColor = accentBarColor(item.status_level);
 
-      {/* x축 라벨 */}
-      <div className="relative flex">
-        {edges.map((edge, i) =>
-          labelIndices.has(i) ? (
-            <span
-              key={i}
-              className="absolute text-[10px] text-text-muted"
-              style={{
-                left: `${(i / (edges.length - 1)) * 100}%`,
-                transform:
-                  i === 0
-                    ? "translateX(0)"
-                    : i === edges.length - 1
-                    ? "translateX(-100%)"
-                    : "translateX(-50%)",
-              }}
-            >
-              {edge.toFixed(1)}
-            </span>
-          ) : null
-        )}
-      </div>
+            return (
+              <div
+                key={item.feature}
+                className="border-b border-border last:border-b-0"
+                style={{ borderLeft: `3px solid ${accentColor}` }}
+              >
+                {/* 클릭 가능한 데이터 행 */}
+                <button
+                  type="button"
+                  onClick={() => toggleRow(idx)}
+                  className={`grid w-full ${gridCols} items-center gap-x-[8px] px-[16px] py-[9px] text-left transition-colors hover:bg-[#f8fafc] active:bg-[#f1f5f9] cursor-pointer`}
+                >
+                  {/* 항목 + 펼침 화살표 인라인 */}
+                  <span className="flex items-center gap-[4px] text-sm font-medium text-text-primary">
+                    {item.label}
+                  </span>
 
-      {/* 범례 + 캡션 */}
-      <div className="mt-[14px] flex items-center gap-[8px]">
-        <div className="flex items-center gap-[4px]">
-          <div className="h-[10px] w-[10px] rounded-sm bg-[#D97706]" />
-          <span className="text-[10px] text-text-muted">내 위치</span>
+                  {/* 정상범위 */}
+                  <span className="text-xs text-text-muted">{item.normal_range}</span>
+
+                  {/* 현재값 + 방향 삼각형 */}
+                  <span className="flex items-center gap-[3px] text-sm text-text-secondary">
+                    {item.value_text}
+                    {item.direction === "high" && (
+                      <span style={{ color: "#DC2626", fontSize: "11px" }}>▲</span>
+                    )}
+                    {item.direction === "low" && (
+                      <span style={{ color: "#2563EB", fontSize: "11px" }}>▼</span>
+                    )}
+                  </span>
+
+                  {/* 상태 셀 — 배경 틴트 */}
+                  <span
+                    className="inline-flex items-center justify-center rounded px-[6px] py-[2px] text-xs font-semibold text-center"
+                    style={{ backgroundColor: bg, color: textColor }}
+                  >
+                    {item.status}
+                  </span>
+
+                  {/* 펼침 표시기 */}
+                  <span className="flex items-center justify-center text-text-muted">
+                    {isOpen ? (
+                      <ChevronUp className="h-[13px] w-[13px]" />
+                    ) : (
+                      <ChevronDown className="h-[13px] w-[13px]" />
+                    )}
+                  </span>
+                </button>
+
+                {/* 펼침 패널 — 설명 + 관련 질병 */}
+                {isOpen && (
+                  <div
+                    className="px-[18px] py-[12px]"
+                    style={{ backgroundColor: "#f8fafc", borderTop: "1px solid #e2e8f0" }}
+                  >
+                    <p className="mb-[6px] text-sm leading-[1.7] text-text-secondary">
+                      {item.desc}
+                    </p>
+                    <div className="flex flex-col gap-[3px]">
+                      {item.disease_low && item.disease_low !== "—" && (
+                        <p className="text-xs text-text-muted">
+                          <span className="font-semibold" style={{ color: "#2563EB" }}>미달 시:</span>{" "}
+                          {item.disease_low}
+                        </p>
+                      )}
+                      {item.disease_high && item.disease_high !== "—" && (
+                        <p className="text-xs text-text-muted">
+                          <span className="font-semibold" style={{ color: "#DC2626" }}>초과 시:</span>{" "}
+                          {item.disease_high}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-        <div className="flex items-center gap-[4px]">
-          <div className="h-[10px] w-[10px] rounded-sm bg-[#D1D5DB]" />
-          <span className="text-[10px] text-text-muted">또래</span>
-        </div>
-        <span className="ml-auto text-[10px] text-text-muted">
-          낮음 ← 생활습관 위험도 → 높음
-        </span>
-      </div>
+      ))}
     </div>
   );
 }
 
-// ===== 또래 비교 게이지 (peer_distribution 없을 때 폴백) =====
-function PeerGauge({
-  peerTopPct,
-  peerRelative,
-}: {
-  peerTopPct: number | null;
-  peerRelative: string | null;
-}) {
-  if (peerTopPct === null && peerRelative === null) {
-    return (
-      <p className="text-xs text-text-muted">또래 비교 데이터가 없습니다.</p>
-    );
-  }
+// ===== 생활습관 핵심 요약 카드 =====
+// NOTE: 백엔드에 domain 필드가 아직 없어 식이/운동/기타 도메인 분류는 생략.
+//       improve / maintain 그룹 기준으로만 표시.
+function LifestyleSummaryCard({ items }: { items: LifestyleItem[] }) {
+  const improveItems = items.filter((it) => it.group === "improve");
+  const maintainItems = items.filter((it) => it.group === "maintain");
 
-  const pct = peerTopPct ?? 50;
-  // 게이지: 상위 pct%를 오른쪽에서 채움 (상위 10% → 90% fill)
-  const fillWidth = Math.min(100, Math.max(0, 100 - pct));
-  const levelColor =
-    peerRelative === "상"
-      ? "#16A34A"
-      : peerRelative === "중"
-      ? "#D97706"
-      : "#DC2626";
+  if (items.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-[6px] rounded-md border border-border bg-bg p-[12px]">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-bold text-text-primary">또래 생활습관 비교</p>
-        {peerRelative && (
-          <span
-            className="rounded-full px-[8px] py-[2px] text-xs font-bold text-white"
-            style={{ backgroundColor: levelColor }}
-          >
-            {peerRelative}
-          </span>
-        )}
+    <div className="flex flex-col gap-[12px] rounded-lg border border-border bg-bg p-[16px] shadow-sm">
+      {/* 제목 + 요약 카운트 */}
+      <div className="flex flex-wrap items-center gap-[8px]">
+        <p className="text-sm font-bold text-text-primary">건강 상태 핵심 요약</p>
+        <span
+          className="rounded-full px-[8px] py-[2px] text-xs font-semibold"
+          style={{ backgroundColor: "#fee2e2", color: "#DC2626" }}
+        >
+          개선 필요 {improveItems.length}개
+        </span>
+        <span
+          className="rounded-full px-[8px] py-[2px] text-xs font-semibold"
+          style={{ backgroundColor: "#dcfce7", color: "#16A34A" }}
+        >
+          잘 관리됨 {maintainItems.length}개
+        </span>
       </div>
-      <div className="h-[8px] w-full rounded-sm bg-placeholder">
-        <div
-          className="h-full rounded-sm transition-all duration-300"
-          style={{ width: `${fillWidth}%`, backgroundColor: levelColor }}
-        />
-      </div>
-      {peerTopPct !== null && (
-        <p className="text-xs text-text-muted">
-          같은 연령대 상위 {peerTopPct}%{peerRelative ? ` · ${peerRelative}` : ""}
-        </p>
+
+      {/* 개선 필요 섹션 */}
+      {improveItems.length > 0 && (
+        <div className="flex flex-col gap-[6px]">
+          <p className="text-xs font-semibold" style={{ color: "#DC2626" }}>개선이 필요한 항목</p>
+          <ul className="flex flex-col gap-[6px]">
+            {improveItems.map((it) => (
+              <li key={it.feature} className="flex items-start gap-[8px]">
+                <span className="mt-[5px] h-[6px] w-[6px] shrink-0 rounded-full bg-[#DC2626]" />
+                <span className="text-sm leading-[1.6] text-text-secondary">
+                  <span className="font-medium text-text-primary">{it.label}</span>
+                  {it.action ? ` — ${it.action}` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* 잘 관리됨 섹션 */}
+      {maintainItems.length > 0 && (
+        <div className="flex flex-col gap-[4px]">
+          <p className="text-xs font-semibold" style={{ color: "#16A34A" }}>잘 관리되고 있는 항목</p>
+          <p className="text-sm leading-[1.6] text-text-secondary">
+            {maintainItems.map((it) => it.label).join(" · ")}
+          </p>
+        </div>
       )}
     </div>
   );
 }
 
+// ===== 생활습관 상세 분석표 — 촘촘한 테이블 스타일 =====
+// NOTE: 백엔드에 domain 필드가 아직 없어 카테고리별 분류는 생략.
+//       improve(개선 필요) 그룹 먼저, maintain(잘 관리) 그룹 다음 순서로 표시.
+function LifestyleDetailTable({ items }: { items: LifestyleItem[] }) {
+  const [openRows, setOpenRows] = useState<Set<string>>(new Set());
+
+  const toggleRow = (feature: string) => {
+    setOpenRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(feature)) {
+        next.delete(feature);
+      } else {
+        next.add(feature);
+      }
+      return next;
+    });
+  };
+
+  const improveItems = items.filter((it) => it.group === "improve");
+  const maintainItems = items.filter((it) => it.group === "maintain");
+
+  if (items.length === 0) return null;
+
+  // 그리드 컬럼: 항목 | 정상범위 | 현재값 | 상태 | 펼침
+  const gridCols = "grid-cols-[1.4fr_1fr_1fr_0.8fr_22px]";
+
+  // 각 그룹 렌더 헬퍼
+  const renderGroup = (
+    groupItems: LifestyleItem[],
+    groupLabel: string,
+    accentColor: string,
+    dividerBg: string,
+    dividerText: string,
+  ) => {
+    if (groupItems.length === 0) return null;
+    return (
+      <div key={groupLabel}>
+        {/* 그룹 구분 행 */}
+        <div
+          className="px-[16px] py-[6px]"
+          style={{ backgroundColor: dividerBg }}
+        >
+          <span className="text-xs font-semibold" style={{ color: dividerText }}>
+            〔 {groupLabel} 〕
+          </span>
+        </div>
+
+        {groupItems.map((item) => {
+          const isOpen = openRows.has(item.feature);
+          const { bg, text: textColor } = statusLevelStyle(item.status_level);
+          const hasAction = item.action && item.action.trim().length > 0;
+
+          return (
+            <div
+              key={item.feature}
+              className="border-b border-border last:border-b-0"
+              style={{ borderLeft: `3px solid ${accentColor}` }}
+            >
+              {/* 클릭 가능한 데이터 행 */}
+              <button
+                type="button"
+                onClick={() => hasAction && toggleRow(item.feature)}
+                className={`grid w-full ${gridCols} items-center gap-x-[8px] px-[16px] py-[9px] text-left transition-colors ${
+                  hasAction ? "hover:bg-[#f8fafc] active:bg-[#f1f5f9] cursor-pointer" : "cursor-default"
+                }`}
+              >
+                {/* 항목 */}
+                <span className="text-sm font-medium text-text-primary">{item.label}</span>
+
+                {/* 정상범위 */}
+                <span className="text-xs text-text-muted">{item.normal_range}</span>
+
+                {/* 현재값 */}
+                <span className="text-sm text-text-secondary">{item.value_text}</span>
+
+                {/* 상태 셀 — 배경 틴트 */}
+                <span
+                  className="inline-flex items-center justify-center rounded px-[6px] py-[2px] text-xs font-semibold"
+                  style={{ backgroundColor: bg, color: textColor }}
+                >
+                  {item.status}
+                </span>
+
+                {/* 펼침 표시기 (개선 항목만) */}
+                <span className="flex items-center justify-center text-text-muted">
+                  {hasAction ? (
+                    isOpen ? (
+                      <ChevronUp className="h-[13px] w-[13px]" />
+                    ) : (
+                      <ChevronDown className="h-[13px] w-[13px]" />
+                    )
+                  ) : null}
+                </span>
+              </button>
+
+              {/* 펼침 패널: action 텍스트 */}
+              {isOpen && hasAction && (
+                <div
+                  className="px-[18px] py-[12px]"
+                  style={{ backgroundColor: "#f8fafc", borderTop: "1px solid #e2e8f0" }}
+                >
+                  <p className="text-sm leading-[1.7] text-text-secondary">
+                    💡 {item.action}
+                  </p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-border bg-bg shadow-sm">
+      {/* 타이틀 + 캡션 */}
+      <div className="flex flex-wrap items-center justify-between gap-[4px] border-b border-border px-[16px] py-[12px]">
+        <p className="text-sm font-bold text-text-primary">생활습관 상세 분석표</p>
+        <p className="text-xs text-text-muted">개선 항목을 누르면 행동 지침이 펼쳐집니다.</p>
+      </div>
+
+      {/* 컬럼 헤더 행 — 진한 배경 */}
+      <div
+        className={`grid ${gridCols} gap-x-[8px] px-[16px] py-[8px]`}
+        style={{ backgroundColor: "#2c3e50" }}
+      >
+        <span className="text-xs font-semibold text-white">항목</span>
+        <span className="text-xs font-semibold text-white">정상범위</span>
+        <span className="text-xs font-semibold text-white">현재값</span>
+        <span className="text-xs font-semibold text-center text-white">상태</span>
+        <span />
+      </div>
+
+      {/* 개선 필요 그룹 — 붉은 계열 구분선 */}
+      {renderGroup(
+        improveItems,
+        "개선이 필요한 항목",
+        "#DC2626",
+        "#fff5f5",
+        "#b91c1c",
+      )}
+      {/* 잘 관리 그룹 — 초록 계열 구분선 */}
+      {renderGroup(
+        maintainItems,
+        "잘 관리되고 있는 항목",
+        "#16A34A",
+        "#f0fdf4",
+        "#15803d",
+      )}
+    </div>
+  );
+}
+
+// ===== 리포트 메타 카드 =====
+function gradeStyle(grade: string): { bg: string; text: string } {
+  if (grade === "높음") return { bg: "#fee2e2", text: "#DC2626" };
+  if (grade === "주의") return { bg: "#fef9c3", text: "#CA8A04" };
+  return { bg: "#dcfce7", text: "#16A34A" };
+}
+
+function ReportMetaCard({ meta }: { meta: ReportMeta | null | undefined }) {
+  if (!meta) return null;
+
+  const grade = gradeStyle(meta.grade);
+  const conditionsText = meta.conditions.length > 0 ? meta.conditions.join(" · ") : "없음";
+  const familyText = meta.family_history.length > 0 ? meta.family_history.join(" · ") : "없음";
+
+  return (
+    <div className="flex flex-col gap-[12px] rounded-lg border border-border bg-bg p-[20px] shadow-sm">
+      {/* 제목 행: 그룹 제목 + 등급 뱃지 */}
+      <div className="flex flex-wrap items-center gap-[10px]">
+        <p className="text-base font-bold text-text-primary">{meta.group_title}</p>
+        <span
+          className="rounded-full px-[10px] py-[3px] text-xs font-bold"
+          style={{ backgroundColor: grade.bg, color: grade.text }}
+        >
+          등급: {meta.grade}
+        </span>
+      </div>
+
+      {/* CKD 위험도 점수 — 별도 행으로 명확히 분리 */}
+      {meta.score !== null && (
+        <p className="text-sm font-medium text-text-secondary">
+          CKD 위험도 선별 점수{" "}
+          <span className="text-lg font-bold text-text-primary">{meta.score}</span>
+          <span className="text-sm text-text-muted"> / 100</span>
+        </p>
+      )}
+
+      {/* 배경 요인 */}
+      <div className="flex flex-col gap-[4px]">
+        <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">배경 요인</p>
+        <p className="text-sm text-text-secondary">
+          나이 {meta.age !== null ? `${meta.age}세` : "—"} · 성별{" "}
+          {meta.gender ?? "—"} · 기저질환 {conditionsText} · 가족력 {familyText}
+        </p>
+      </div>
+
+      {/* 그룹 메시지 */}
+      {meta.group_message && (
+        <p
+          className="text-sm leading-[1.7] text-text-secondary"
+          style={{ whiteSpace: "pre-line" }}
+        >
+          {meta.group_message}
+        </p>
+      )}
+
+      {/* 면책 보조 문구 */}
+      <p className="text-[11px] leading-[1.5] text-text-muted">
+        ※ 나이·성별·가족력은 바꿀 수 없지만, 다른 요인 관리로 위험을 줄일 수 있습니다.
+      </p>
+    </div>
+  );
+}
+
+
 const GUIDE_TIMEOUT_MS = 45000; // 가이드 선생성 대기 상한(~25s 생성 + 여유)
+
+// ===== 섹션 헤딩 컴포넌트 =====
+function SectionHeading({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <div className="flex flex-col gap-[4px] border-b-2 pb-[10px]" style={{ borderColor: "#2c3e50" }}>
+      <h2 className="text-base font-bold tracking-tight" style={{ color: "#2c3e50" }}>{title}</h2>
+      {subtitle && (
+        <span className="text-xs text-text-muted">{subtitle}</span>
+      )}
+    </div>
+  );
+}
 
 // ===== 메인 페이지 =====
 export function LLMActionGuidePage() {
@@ -341,144 +1028,107 @@ export function LLMActionGuidePage() {
   const model1Summary: string = report?.model1_summary ?? "";
   const recommendedTests: string[] = report?.recommended_tests ?? [];
 
+  // ===== 임상 상세 분석 + 리포트 메타 (Phase A 추가) =====
+  const clinicalItems: ClinicalItem[] = report?.clinical_items ?? [];
+  const reportMeta: ReportMeta | null = report?.report_meta ?? null;
+
   // ===== 모델2 생활습관 =====
   const model2 = report?.shap_model2 ?? null;
-  const lifestyleItems: LifestyleShapItem[] = model2?.items ?? [];
+  const lifestyleShapItems: LifestyleShapItem[] = model2?.items ?? [];
+
+  // ===== 생활습관 상세 항목 (Phase C — lifestyle_items) =====
+  const lifestyleItems: LifestyleItem[] = report?.lifestyle_items ?? [];
 
   // ===== AI 가이드 텍스트 =====
   const aiGuide = report?.ai_guide ?? "";
   const hasGuide = aiGuide.trim().length > 0;
   const guidePending = !isComputing && !hasGuide && !guideTimedOut;
 
+  // SHAP은 모델이 쓰는 전체 변수의 기여도를 보여준다(임상 상세표=앱 측정값과 별개 뷰).
+
   return (
     <div className="flex min-h-screen flex-col bg-bg-alt">
       <ScreenLabel label="15 · LLM 행동 가이드 (SHAP 기반 + PII 토큰화, REQ-LLM-001/002)" />
       <TopNav />
 
-      <main className="flex flex-1 flex-col gap-[16px] p-[24px] md:flex-row md:p-[32px]">
-        {/* ===== 에러 배너 ===== */}
-        {error && (
-          <div className="mb-[8px] w-full rounded-md border border-destructive bg-[#fef2f2] p-[12px]">
-            <p className="text-sm text-destructive">{error}</p>
-          </div>
-        )}
+      {/* ===== 풀폭 세로 레이아웃 — 최대 1100px 센터 정렬 ===== */}
+      <main className="flex flex-1 flex-col gap-[24px] px-[16px] py-[28px] md:px-[32px] md:py-[36px]">
+        <div className="mx-auto w-full max-w-[1100px] flex flex-col gap-[40px]">
 
-        {/* ===== 계산 중 배너 (전체 폭) ===== */}
-        {isComputing && (
-          <div className="w-full">
-            <ComputingBanner />
-          </div>
-        )}
-
-        {/* ===== 좌: 모델1 위험 변수 ===== */}
-        <div className="flex flex-1 flex-col gap-[12px]">
-          <h2 className="text-lg font-bold text-text-primary">
-            모델1 위험 변수 (SHAP Top-N)
-          </h2>
-
-          {/* 종합 요약 카드 (상단) */}
-          {!isLoading && <Model1SummaryCard summary={model1Summary} />}
-
-          {isLoading && (
-            <>
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard />
-            </>
+          {/* ─── 에러 배너 ─── */}
+          {error && (
+            <div className="rounded-lg border border-destructive bg-[#fef2f2] p-[14px]">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
           )}
 
-          {!isLoading && model1Items.length === 0 && !isComputing && (
-            <p className="text-sm text-text-muted">
-              위험 변수 데이터가 없습니다.
-            </p>
-          )}
+          {/* ─── 계산 중 배너 ─── */}
+          {isComputing && <ComputingBanner />}
 
-          {!isLoading &&
-            model1Items.map((item, idx) => (
-              <ShapBar
-                key={item.feature}
-                rank={idx + 1}
-                label={item.feature}
-                value={item.value}
-                shap={item.shap}
-                note={item.note}
-                barWidth={shapBarWidth(item.shap)}
-                color={shapColor(item.shap)}
+          {/* ══════════════════════════════════════
+              섹션 1: 리포트 메타
+          ══════════════════════════════════════ */}
+          <section className="flex flex-col gap-[14px]">
+            {isLoading && <SkeletonCard />}
+            {!isLoading && !isComputing && <ReportMetaCard meta={reportMeta} />}
+          </section>
+
+          {/* ══════════════════════════════════════
+              섹션 2: 모델1 임상 위험 분석
+          ══════════════════════════════════════ */}
+          <section className="flex flex-col gap-[18px]">
+            <SectionHeading
+              title="CKD 위험 분석"
+              subtitle="혈액·신체 계측 기반 CKD 선별 위험 요인"
+            />
+
+            {isLoading && (
+              <>
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
+              </>
+            )}
+
+            {!isLoading && model1Items.length === 0 && !isComputing && (
+              <p className="text-sm text-text-muted">위험 변수 데이터가 없습니다.</p>
+            )}
+
+            {/* 모델1 SHAP 2단 가로막대 차트 — 모델이 쓰는 전체 변수 기여도 */}
+            {!isLoading && model1Items.length > 0 && (
+              <ShapImpactBars
+                items={model1Items.map((it) => ({
+                  label: it.feature,
+                  value: it.value,
+                  shap: it.shap,
+                }))}
+                raiseTitle="위험을 높이는 요인"
+                lowerTitle="위험을 낮추는 요인"
               />
-            ))}
+            )}
 
-          {/* 권장 검사 리스트 (하단) */}
-          {!isLoading && <RecommendedTests tests={recommendedTests} />}
-        </div>
+            {/* 종합 요약 카드 */}
+            {!isLoading && <Model1SummaryCard summary={model1Summary} />}
 
-        {/* ===== 중: 모델2 생활습관 + 또래 비교 ===== */}
-        <div className="flex flex-1 flex-col gap-[12px]">
-          <h2 className="text-lg font-bold text-text-primary">
-            모델2 생활습관 분석
-          </h2>
+            {/* 임상 상세 분석표 */}
+            {!isLoading && !isComputing && clinicalItems.length > 0 && (
+              <ClinicalDetailTable items={clinicalItems} />
+            )}
+            {isLoading && <SkeletonCard />}
 
-          {isLoading && (
-            <>
-              <SkeletonCard />
-              <SkeletonCard />
-            </>
-          )}
+            {/* 권장 검사 리스트 */}
+            {!isLoading && <RecommendedTests tests={recommendedTests} />}
+          </section>
 
-          {!isLoading && model2 === null && !isComputing && (
-            <p className="text-sm text-text-muted">
-              생활습관 데이터가 없습니다.
-            </p>
-          )}
+          {/* ══════════════════════════════════════
+              섹션 3: 모델2 생활습관 분석
+          ══════════════════════════════════════ */}
+          <section className="flex flex-col gap-[18px]">
+            <SectionHeading
+              title="생활습관 분석"
+              subtitle="음주·흡연·운동·식이·수면 등 생활습관 위험 요인"
+            />
 
-          {!isLoading && model2 !== null && (
-            <>
-              {/* 생활습관 점수 */}
-              <div className="rounded-md border border-border bg-bg p-[12px]">
-                <p className="text-sm text-text-muted">종합 생활습관 점수</p>
-                <p className="text-2xl font-bold text-text-primary">
-                  {(model2.lifestyle_score * 100).toFixed(0)}
-                  <span className="text-sm font-normal text-text-muted"> / 100</span>
-                </p>
-              </div>
-
-              {/* 또래 비교: 분포 그래프 우선, 없으면 게이지 폴백 */}
-              {model2.peer_distribution ? (
-                <PeerDistributionChart
-                  distribution={model2.peer_distribution}
-                  peerTopPct={model2.peer_top_pct}
-                  peerRelative={model2.peer_relative}
-                />
-              ) : (
-                <PeerGauge
-                  peerTopPct={model2.peer_top_pct}
-                  peerRelative={model2.peer_relative}
-                />
-              )}
-
-              {/* 생활습관 SHAP 항목 */}
-              {lifestyleItems.map((item, idx) => (
-                <ShapBar
-                  key={item.feature}
-                  rank={idx + 1}
-                  label={item.feature}
-                  value={item.value}
-                  shap={item.shap}
-                  note={`SHAP ${item.shap >= 0 ? "+" : ""}${item.shap.toFixed(3)}`}
-                  barWidth={shapBarWidth(item.shap)}
-                  color={shapColor(item.shap)}
-                />
-              ))}
-            </>
-          )}
-        </div>
-
-        {/* ===== 우: AI 행동 가이드 ===== */}
-        <div className="flex flex-1 flex-col gap-[12px]">
-          <h2 className="text-lg font-bold text-text-primary">
-            AI 행동 가이드
-          </h2>
-
-          <div className="flex flex-1 flex-col gap-[12px] rounded-md border border-border bg-bg p-[16px]">
             {isLoading && (
               <>
                 <SkeletonCard />
@@ -486,62 +1136,133 @@ export function LLMActionGuidePage() {
               </>
             )}
 
-            {!isLoading && isComputing && (
-              <p className="text-sm text-text-secondary">
-                위험 변수 분석이 완료되면 가이드가 생성됩니다.
-              </p>
+            {!isLoading && model2 === null && !isComputing && (
+              <p className="text-sm text-text-muted">생활습관 데이터가 없습니다.</p>
             )}
 
-            {!isLoading && guidePending && (
+            {!isLoading && model2 !== null && (
               <>
-                <SkeletonCard />
-                <p className="text-sm text-text-secondary">
-                  AI 가이드를 생성하고 있습니다… (최대 1분 소요)
-                </p>
+                {/* 생활습관 점수 */}
+                <div className="rounded-lg border border-border bg-bg p-[16px] shadow-sm">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-text-muted mb-[4px]">종합 생활습관 점수</p>
+                  <p className="text-2xl font-bold text-text-primary">
+                    {(model2.lifestyle_score * 100).toFixed(0)}
+                    <span className="text-sm font-normal text-text-muted"> / 100</span>
+                  </p>
+                </div>
+
+                {/* 모델2 생활습관 SHAP 2단 가로막대 차트 — 모델이 쓰는 전체 변수 기여도 */}
+                {lifestyleShapItems.length > 0 && (
+                  <ShapImpactBars
+                    items={lifestyleShapItems.map((it) => ({
+                      label: it.feature,
+                      value: it.value,
+                      shap: it.shap,
+                    }))}
+                    raiseTitle="개선이 필요한 항목"
+                    lowerTitle="잘 관리되고 있는 항목"
+                  />
+                )}
+
+                {/* 또래 비교: 항상 곡선 표시 (분포 데이터 없을 시 합성 종형 곡선 폴백) */}
+                {(model2.peer_distribution || model2.peer_top_pct !== null) ? (
+                  <PeerDistributionCurve
+                    distribution={model2.peer_distribution ?? null}
+                    peerTopPct={model2.peer_top_pct}
+                    peerRelative={model2.peer_relative}
+                  />
+                ) : (
+                  <p className="text-xs text-text-muted">또래 비교 데이터가 없습니다.</p>
+                )}
+
+                {/* Phase C: 생활습관 핵심 요약 카드 */}
+                {lifestyleItems.length > 0 && (
+                  <LifestyleSummaryCard items={lifestyleItems} />
+                )}
+
+                {/* Phase C: 생활습관 상세 분석표 */}
+                {lifestyleItems.length > 0 && (
+                  <LifestyleDetailTable items={lifestyleItems} />
+                )}
               </>
             )}
+          </section>
 
-            {!isLoading && !isComputing && !hasGuide && guideTimedOut && (
-              <p className="text-sm text-text-secondary">
-                가이드를 준비하지 못했습니다. 다시 시도해주세요.
-              </p>
-            )}
+          {/* ══════════════════════════════════════
+              섹션 4: AI 행동 가이드
+          ══════════════════════════════════════ */}
+          <section className="flex flex-col gap-[18px]">
+            <SectionHeading
+              title="AI 행동 가이드"
+              subtitle="SHAP 분석 기반 개인화 생활 개선 가이드"
+            />
 
-            {!isLoading && hasGuide && (
-              <p
-                className="text-sm leading-[1.8] text-text-secondary"
-                style={{ whiteSpace: "pre-wrap" }}
-              >
-                {aiGuide}
-              </p>
-            )}
+            <div className="flex flex-col gap-[14px] rounded-lg border border-border bg-bg p-[20px] shadow-sm">
+              {isLoading && (
+                <>
+                  <SkeletonCard />
+                  <SkeletonCard />
+                </>
+              )}
 
-            {/* 면책 문구 */}
-            <div className="mt-auto rounded-sm border border-warning bg-[#fef3c7] p-[12px]">
-              <p className="text-xs leading-[1.5] text-warning">
-                본 서비스는 의료 진단·처방을 대체하지 않습니다. 정확한 진단·치료는 의사 상담을 받으세요.
-              </p>
+              {!isLoading && isComputing && (
+                <p className="text-sm text-text-secondary">
+                  위험 변수 분석이 완료되면 가이드가 생성됩니다.
+                </p>
+              )}
+
+              {!isLoading && guidePending && (
+                <>
+                  <SkeletonCard />
+                  <p className="text-sm text-text-secondary">
+                    AI 가이드를 생성하고 있습니다… (최대 1분 소요)
+                  </p>
+                </>
+              )}
+
+              {!isLoading && !isComputing && !hasGuide && guideTimedOut && (
+                <p className="text-sm text-text-secondary">
+                  가이드를 준비하지 못했습니다. 다시 시도해주세요.
+                </p>
+              )}
+
+              {!isLoading && hasGuide && (
+                <p
+                  className="text-sm leading-[1.8] text-text-secondary"
+                  style={{ whiteSpace: "pre-wrap" }}
+                >
+                  {aiGuide}
+                </p>
+              )}
+
+              {/* 면책 문구 */}
+              <div className="mt-[2px] rounded-md border border-warning bg-[#fef3c7] p-[12px]">
+                <p className="text-xs leading-[1.5] text-warning">
+                  본 서비스는 의료 진단·처방을 대체하지 않습니다. 정확한 진단·치료는 의사 상담을 받으세요.
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div className="flex gap-[12px]">
-            <BtnSecondary
-              label="다시 생성"
-              className="flex-1"
-              onClick={() => refetch()}
-            />
-            <BtnSecondary
-              label="복사"
-              className="flex-1"
-              onClick={() => {
-                if (hasGuide) navigator.clipboard.writeText(aiGuide);
-              }}
-            />
-          </div>
+            <div className="flex gap-[12px]">
+              <BtnSecondary
+                label="다시 생성"
+                className="flex-1"
+                onClick={() => refetch()}
+              />
+              <BtnSecondary
+                label="복사"
+                className="flex-1"
+                onClick={() => {
+                  if (hasGuide) navigator.clipboard.writeText(aiGuide);
+                }}
+              />
+            </div>
 
-          <p className="text-xs leading-[1.5] text-text-muted">
-            사용자 PII는 토큰화되어 LLM에 전송됩니다. 응답 마지막 줄에 면책 문구가 자동 추가됩니다.
-          </p>
+            <p className="text-xs leading-[1.5] text-text-muted">
+              사용자 PII는 토큰화되어 LLM에 전송됩니다. 응답 마지막 줄에 면책 문구가 자동 추가됩니다.
+            </p>
+          </section>
+
         </div>
       </main>
     </div>
