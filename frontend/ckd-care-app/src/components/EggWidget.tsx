@@ -24,8 +24,8 @@ function progressColor(progress: number, isCharge: boolean): string {
 
 function nextThreshold(progress: number): { name: string; remaining: number } | null {
   if (progress < HATCH_AT) return { name: "부화", remaining: HATCH_AT - progress };
-  if (progress < EVOLVE_2) return { name: "2단계", remaining: EVOLVE_2 - progress };
-  if (progress < GOAL_CHECKINS) return { name: "완전체", remaining: GOAL_CHECKINS - progress };
+  if (progress < EVOLVE_2) return { name: "다음 진화", remaining: EVOLVE_2 - progress };
+  if (progress < GOAL_CHECKINS) return { name: "다음 진화", remaining: GOAL_CHECKINS - progress };
   return null;
 }
 
