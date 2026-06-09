@@ -134,12 +134,23 @@ function PeerDistributionCurve({
 }) {
   // ---- 레이아웃 상수 ----
   const W = 320;
-  const H = 140;
+  const H = 158;         // 높이 증가: 상단 스태거 라벨 + 하단 존 라벨 여유
   const PAD_L = 8;
   const PAD_R = 8;
-  const PAD_T = 28;  // 제목/라벨용 여백
-  const PAD_B = 30;  // 하단 라벨 여백
+  const PAD_T = 42;      // 상단 여백 증가: "나"(1행) + "또래 평균"(2행) 스태거 수용
+  const PAD_B = 32;      // 하단 라벨 여백
   const CURVE_H = H - PAD_T - PAD_B; // 실제 곡선 영역 높이
+
+  // ---- 라벨 수직 위치 (겹침 방지 스태거) ----
+  // "나" 라벨: 상단 1행 (곡선 위 여백 상단부)
+  const MY_LBL_Y = PAD_T - 26;
+  // "또래 평균" 라벨: 2행 (14px 아래로 스태거)
+  const PEER_LBL_Y = PAD_T - 12;
+
+  // ---- 라벨 x 클램프 헬퍼 (텍스트가 viewBox 밖으로 나가지 않도록) ----
+  // approxHalfW: 텍스트 절반 너비 추정값 (fontSize × 글자수 × 0.55 / 2)
+  const clampLabelX = (x: number, approxHalfW: number): number =>
+    Math.min(Math.max(x, PAD_L + approxHalfW), W - PAD_R - approxHalfW);
 
   // 합성 종형 곡선 포인트 생성 헬퍼 (x∈[0,100], 정규분포 형태)
   // mu: 벨 피크 위치(0~100), sigma: 너비
@@ -185,6 +196,83 @@ function PeerDistributionCurve({
   if (peerRelative) titleParts.push(peerRelative);
   const titleStr =
     "또래 비교" + (titleParts.length > 0 ? ` — ${titleParts.join(" · ")}` : "");
+
+  // ---- 공통 SVG 내부 요소 렌더 헬퍼 ----
+  // 존 배경 + 곡선 + 두 수직선 + 스태거 라벨 + 베이스라인 + 존 라벨
+  const renderSvgContent = (
+    fillPath: string,
+    curvePath: string,
+    peerAvgSvgX: number,
+    mySvgX: number,
+  ) => {
+    // "나" 라벨 x: 클램프 (약 7px 반너비 — fontSize9 × 1글자)
+    const myLblX = clampLabelX(mySvgX, 7);
+    // "또래 평균" 라벨 x: 클램프 (약 22px 반너비 — fontSize8 × 4글자)
+    const peerLblX = clampLabelX(peerAvgSvgX, 22);
+
+    const baselineY = PAD_T + CURVE_H;
+
+    return (
+      <>
+        {/* 존 배경 밴드 */}
+        {zones.map((z, i) => (
+          <rect key={i} x={z.x} y={PAD_T} width={thirdW} height={CURVE_H} fill={z.color} fillOpacity={z.opacity} />
+        ))}
+
+        {/* 곡선 면 + 선 */}
+        <path d={fillPath} fill="#378ADD" fillOpacity={0.16} />
+        <path d={curvePath} fill="none" stroke="#185FA5" strokeWidth="2.5" strokeLinejoin="round" />
+
+        {/* x축 베이스라인 */}
+        <line
+          x1={PAD_L} y1={baselineY}
+          x2={W - PAD_R} y2={baselineY}
+          stroke="#d0d7de" strokeWidth="1"
+        />
+
+        {/* 또래 평균 수직 점선 */}
+        <line
+          x1={peerAvgSvgX} y1={PAD_T}
+          x2={peerAvgSvgX} y2={baselineY}
+          stroke="#888" strokeWidth="1.5" strokeDasharray="4 3"
+        />
+        {/* 또래 평균 라벨 — 2행(스태거 하단) */}
+        <text
+          x={peerLblX} y={PEER_LBL_Y}
+          textAnchor="middle" fontSize="8" fill="#888"
+        >
+          또래 평균
+        </text>
+
+        {/* 나 수직선 */}
+        <line
+          x1={mySvgX} y1={PAD_T}
+          x2={mySvgX} y2={baselineY}
+          stroke="#e74c3c" strokeWidth="2.5"
+        />
+        {/* 나 마커 도트 (라인 상단) */}
+        <circle cx={mySvgX} cy={PAD_T} r="3.5" fill="#e74c3c" />
+        {/* 나 라벨 — 1행(스태거 상단), 빨강+볼드 */}
+        <text
+          x={myLblX} y={MY_LBL_Y}
+          textAnchor="middle" fontSize="9" fontWeight="bold" fill="#e74c3c"
+        >
+          나
+        </text>
+
+        {/* 존 라벨 (베이스라인 아래, 충분한 간격) */}
+        {zones.map((z, i) => (
+          <text
+            key={`lbl-${i}`}
+            x={z.x + thirdW / 2} y={baselineY + 16}
+            textAnchor="middle" fontSize="9" fill="#999"
+          >
+            {z.label}
+          </text>
+        ))}
+      </>
+    );
+  };
 
   // ============================================================
   // 실데이터 분기
@@ -233,23 +321,10 @@ function PeerDistributionCurve({
         <svg
           viewBox={`0 0 ${W} ${H}`}
           width="100%"
-          style={{ display: "block", overflow: "visible" }}
+          style={{ display: "block", overflow: "hidden" }}
           aria-label="또래 생활습관 분포 곡선"
         >
-          {zones.map((z, i) => (
-            <rect key={i} x={z.x} y={PAD_T} width={thirdW} height={CURVE_H} fill={z.color} fillOpacity={z.opacity} />
-          ))}
-          {zones.map((z, i) => (
-            <text key={`lbl-${i}`} x={z.x + thirdW / 2} y={PAD_T + CURVE_H + 13} textAnchor="middle" fontSize="9" fill="#999">
-              {z.label}
-            </text>
-          ))}
-          <path d={fillPath} fill="#378ADD" fillOpacity={0.16} />
-          <path d={curvePath} fill="none" stroke="#185FA5" strokeWidth="2.5" strokeLinejoin="round" />
-          <line x1={peerAvgSvgX} y1={PAD_T} x2={peerAvgSvgX} y2={PAD_T + CURVE_H} stroke="#888" strokeWidth="1.5" strokeDasharray="4 3" />
-          <text x={peerAvgSvgX} y={PAD_T - 4} textAnchor="middle" fontSize="8" fill="#888">또래 평균</text>
-          <line x1={mySvgX} y1={PAD_T} x2={mySvgX} y2={PAD_T + CURVE_H} stroke="#e74c3c" strokeWidth="2.5" />
-          <text x={mySvgX} y={PAD_T - 4} textAnchor="middle" fontSize="9" fontWeight="bold" fill="#e74c3c">나</text>
+          {renderSvgContent(fillPath, curvePath, peerAvgSvgX, mySvgX)}
         </svg>
         <div className="flex justify-between">
           <span className="text-[10px] text-text-muted">← 위험 요인 적음</span>
@@ -312,23 +387,10 @@ function PeerDistributionCurve({
       <svg
         viewBox={`0 0 ${W} ${H}`}
         width="100%"
-        style={{ display: "block", overflow: "visible" }}
+        style={{ display: "block", overflow: "hidden" }}
         aria-label="또래 생활습관 분포 곡선 (개략)"
       >
-        {zones.map((z, i) => (
-          <rect key={i} x={z.x} y={PAD_T} width={thirdW} height={CURVE_H} fill={z.color} fillOpacity={z.opacity} />
-        ))}
-        {zones.map((z, i) => (
-          <text key={`lbl-${i}`} x={z.x + thirdW / 2} y={PAD_T + CURVE_H + 13} textAnchor="middle" fontSize="9" fill="#999">
-            {z.label}
-          </text>
-        ))}
-        <path d={fillPath} fill="#378ADD" fillOpacity={0.16} />
-        <path d={curvePath} fill="none" stroke="#185FA5" strokeWidth="2.5" strokeLinejoin="round" />
-        <line x1={peerAvgSvgX} y1={PAD_T} x2={peerAvgSvgX} y2={PAD_T + CURVE_H} stroke="#888" strokeWidth="1.5" strokeDasharray="4 3" />
-        <text x={peerAvgSvgX} y={PAD_T - 4} textAnchor="middle" fontSize="8" fill="#888">또래 평균</text>
-        <line x1={mySvgX} y1={PAD_T} x2={mySvgX} y2={PAD_T + CURVE_H} stroke="#e74c3c" strokeWidth="2.5" />
-        <text x={mySvgX} y={PAD_T - 4} textAnchor="middle" fontSize="9" fontWeight="bold" fill="#e74c3c">나</text>
+        {renderSvgContent(fillPath, curvePath, peerAvgSvgX, mySvgX)}
       </svg>
       <div className="flex justify-between">
         <span className="text-[10px] text-text-muted">← 위험 요인 적음</span>
