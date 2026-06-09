@@ -393,7 +393,18 @@ function statusLevelStyle(level: ClinicalItem["status_level"]): {
   }
 }
 
-// ===== 임상 상세 분석표 =====
+// status_level → 왼쪽 액센트 바 색상
+function accentBarColor(level: ClinicalItem["status_level"]): string {
+  switch (level) {
+    case "good":      return "#16A34A";
+    case "info":      return "#2563EB";
+    case "caution":   return "#CA8A04";
+    case "warnLight": return "#EA580C";
+    case "danger":    return "#DC2626";
+  }
+}
+
+// ===== 임상 상세 분석표 — 촘촘한 테이블 스타일 =====
 const CATEGORY_ORDER = ["혈압·혈당", "지질", "간·혈액", "신체", "기타"] as const;
 
 function ClinicalDetailTable({ items }: { items: ClinicalItem[] }) {
@@ -425,43 +436,62 @@ function ClinicalDetailTable({ items }: { items: ClinicalItem[] }) {
 
   if (items.length === 0) return null;
 
+  // 그리드 컬럼: 항목 | 정상범위 | 현재값 | 상태 | 펼침
+  const gridCols = "grid-cols-[1.4fr_1fr_1fr_0.8fr_22px]";
+
   return (
-    <div className="flex flex-col gap-0 rounded-md border border-border bg-bg overflow-hidden">
-      {/* 헤더 */}
-      <div className="flex items-center justify-between border-b border-border px-[14px] py-[10px]">
+    <div className="overflow-hidden rounded-md border border-border bg-bg">
+      {/* 타이틀 + 캡션 */}
+      <div className="flex flex-wrap items-center justify-between gap-[4px] border-b border-border px-[14px] py-[10px]">
         <p className="text-sm font-bold text-text-primary">임상 상세 분석표</p>
         <p className="text-xs text-text-muted">항목을 누르면 설명·관련 질병이 펼쳐집니다.</p>
       </div>
 
-      {/* 컬럼 헤더 */}
-      <div className="grid grid-cols-[2fr_1.5fr_2fr_1.5fr_24px] gap-x-[8px] border-b border-border bg-[#f8fafc] px-[14px] py-[6px]">
-        <span className="text-xs font-semibold text-text-muted">항목</span>
-        <span className="text-xs font-semibold text-text-muted">정상범위</span>
-        <span className="text-xs font-semibold text-text-muted">현재값</span>
-        <span className="text-xs font-semibold text-text-muted">상태</span>
+      {/* 컬럼 헤더 행 — 진한 배경 */}
+      <div
+        className={`grid ${gridCols} gap-x-[8px] px-[14px] py-[7px]`}
+        style={{ backgroundColor: "#2c3e50" }}
+      >
+        <span className="text-xs font-semibold text-white">항목</span>
+        <span className="text-xs font-semibold text-white">정상범위</span>
+        <span className="text-xs font-semibold text-white">현재값</span>
+        <span className="text-xs font-semibold text-center text-white">상태</span>
         <span />
       </div>
 
       {orderedCategories.map((cat) => (
         <div key={cat}>
-          {/* 카테고리 헤더 행 */}
-          <div className="bg-[#f1f5f9] px-[14px] py-[5px]">
-            <span className="text-xs font-semibold text-text-muted">〔 {cat} 〕</span>
+          {/* 카테고리 구분 행 */}
+          <div
+            className="px-[14px] py-[5px]"
+            style={{ backgroundColor: "#dfe6ec" }}
+          >
+            <span className="text-xs font-semibold" style={{ color: "#34495e" }}>
+              〔 {cat} 〕
+            </span>
           </div>
 
           {grouped[cat].map(({ item, idx }) => {
             const isOpen = openRows.has(idx);
             const { bg, text: textColor } = statusLevelStyle(item.status_level);
+            const accentColor = accentBarColor(item.status_level);
+
             return (
-              <div key={item.feature} className="border-b border-border last:border-b-0">
+              <div
+                key={item.feature}
+                className="border-b border-border last:border-b-0"
+                style={{ borderLeft: `3px solid ${accentColor}` }}
+              >
                 {/* 클릭 가능한 데이터 행 */}
                 <button
                   type="button"
                   onClick={() => toggleRow(idx)}
-                  className="grid w-full grid-cols-[2fr_1.5fr_2fr_1.5fr_24px] items-center gap-x-[8px] px-[14px] py-[10px] text-left transition-colors hover:bg-[#f8fafc] active:bg-[#f1f5f9]"
+                  className={`grid w-full ${gridCols} items-center gap-x-[8px] px-[14px] py-[8px] text-left transition-colors hover:bg-[#f8fafc] active:bg-[#f1f5f9] cursor-pointer`}
                 >
-                  {/* 항목 */}
-                  <span className="text-sm font-medium text-text-primary">{item.label}</span>
+                  {/* 항목 + 펼침 화살표 인라인 */}
+                  <span className="flex items-center gap-[4px] text-sm font-medium text-text-primary">
+                    {item.label}
+                  </span>
 
                   {/* 정상범위 */}
                   <span className="text-xs text-text-muted">{item.normal_range}</span>
@@ -477,40 +507,43 @@ function ClinicalDetailTable({ items }: { items: ClinicalItem[] }) {
                     )}
                   </span>
 
-                  {/* 상태 뱃지 */}
+                  {/* 상태 셀 — 배경 틴트 */}
                   <span
-                    className="inline-block rounded-full px-[7px] py-[2px] text-xs font-semibold"
+                    className="inline-flex items-center justify-center rounded px-[6px] py-[2px] text-xs font-semibold text-center"
                     style={{ backgroundColor: bg, color: textColor }}
                   >
                     {item.status}
                   </span>
 
                   {/* 펼침 표시기 */}
-                  <span className="text-text-muted">
+                  <span className="flex items-center justify-center text-text-muted">
                     {isOpen ? (
-                      <ChevronUp className="h-[14px] w-[14px]" />
+                      <ChevronUp className="h-[13px] w-[13px]" />
                     ) : (
-                      <ChevronDown className="h-[14px] w-[14px]" />
+                      <ChevronDown className="h-[13px] w-[13px]" />
                     )}
                   </span>
                 </button>
 
-                {/* 펼침 패널 */}
+                {/* 펼침 패널 — 설명 + 관련 질병 */}
                 {isOpen && (
-                  <div className="border-t border-border bg-[#f8fafc] px-[14px] py-[10px]">
+                  <div
+                    className="px-[17px] py-[10px]"
+                    style={{ backgroundColor: "#f8fafc", borderTop: "1px solid #e2e8f0" }}
+                  >
                     <p className="mb-[6px] text-sm leading-[1.7] text-text-secondary">
                       {item.desc}
                     </p>
                     <div className="flex flex-col gap-[3px]">
                       {item.disease_low && item.disease_low !== "—" && (
                         <p className="text-xs text-text-muted">
-                          <span className="font-semibold text-[#2563EB]">미달 시:</span>{" "}
+                          <span className="font-semibold" style={{ color: "#2563EB" }}>미달 시:</span>{" "}
                           {item.disease_low}
                         </p>
                       )}
                       {item.disease_high && item.disease_high !== "—" && (
                         <p className="text-xs text-text-muted">
-                          <span className="font-semibold text-[#DC2626]">초과 시:</span>{" "}
+                          <span className="font-semibold" style={{ color: "#DC2626" }}>초과 시:</span>{" "}
                           {item.disease_high}
                         </p>
                       )}
@@ -585,7 +618,7 @@ function LifestyleSummaryCard({ items }: { items: LifestyleItem[] }) {
   );
 }
 
-// ===== 생활습관 상세 분석표 =====
+// ===== 생활습관 상세 분석표 — 촘촘한 테이블 스타일 =====
 // NOTE: 백엔드에 domain 필드가 아직 없어 카테고리별 분류는 생략.
 //       improve(개선 필요) 그룹 먼저, maintain(잘 관리) 그룹 다음 순서로 표시.
 function LifestyleDetailTable({ items }: { items: LifestyleItem[] }) {
@@ -608,19 +641,28 @@ function LifestyleDetailTable({ items }: { items: LifestyleItem[] }) {
 
   if (items.length === 0) return null;
 
+  // 그리드 컬럼: 항목 | 정상범위 | 현재값 | 상태 | 펼침
+  const gridCols = "grid-cols-[1.4fr_1fr_1fr_0.8fr_22px]";
+
   // 각 그룹 렌더 헬퍼
   const renderGroup = (
     groupItems: LifestyleItem[],
     groupLabel: string,
     accentColor: string,
-    headerBg: string,
+    dividerBg: string,
+    dividerText: string,
   ) => {
     if (groupItems.length === 0) return null;
     return (
       <div key={groupLabel}>
-        {/* 그룹 헤더 행 */}
-        <div className="px-[14px] py-[5px]" style={{ backgroundColor: headerBg }}>
-          <span className="text-xs font-semibold text-text-muted">〔 {groupLabel} 〕</span>
+        {/* 그룹 구분 행 */}
+        <div
+          className="px-[14px] py-[5px]"
+          style={{ backgroundColor: dividerBg }}
+        >
+          <span className="text-xs font-semibold" style={{ color: dividerText }}>
+            〔 {groupLabel} 〕
+          </span>
         </div>
 
         {groupItems.map((item) => {
@@ -638,8 +680,8 @@ function LifestyleDetailTable({ items }: { items: LifestyleItem[] }) {
               <button
                 type="button"
                 onClick={() => hasAction && toggleRow(item.feature)}
-                className={`grid w-full grid-cols-[2fr_1.5fr_2fr_1.5fr_24px] items-center gap-x-[8px] px-[14px] py-[10px] text-left transition-colors ${
-                  hasAction ? "hover:bg-[#f8fafc] active:bg-[#f1f5f9]" : "cursor-default"
+                className={`grid w-full ${gridCols} items-center gap-x-[8px] px-[14px] py-[8px] text-left transition-colors ${
+                  hasAction ? "hover:bg-[#f8fafc] active:bg-[#f1f5f9] cursor-pointer" : "cursor-default"
                 }`}
               >
                 {/* 항목 */}
@@ -651,21 +693,21 @@ function LifestyleDetailTable({ items }: { items: LifestyleItem[] }) {
                 {/* 현재값 */}
                 <span className="text-sm text-text-secondary">{item.value_text}</span>
 
-                {/* 상태 뱃지 */}
+                {/* 상태 셀 — 배경 틴트 */}
                 <span
-                  className="inline-block rounded-full px-[7px] py-[2px] text-xs font-semibold"
+                  className="inline-flex items-center justify-center rounded px-[6px] py-[2px] text-xs font-semibold"
                   style={{ backgroundColor: bg, color: textColor }}
                 >
                   {item.status}
                 </span>
 
                 {/* 펼침 표시기 (개선 항목만) */}
-                <span className="text-text-muted">
+                <span className="flex items-center justify-center text-text-muted">
                   {hasAction ? (
                     isOpen ? (
-                      <ChevronUp className="h-[14px] w-[14px]" />
+                      <ChevronUp className="h-[13px] w-[13px]" />
                     ) : (
-                      <ChevronDown className="h-[14px] w-[14px]" />
+                      <ChevronDown className="h-[13px] w-[13px]" />
                     )
                   ) : null}
                 </span>
@@ -673,7 +715,10 @@ function LifestyleDetailTable({ items }: { items: LifestyleItem[] }) {
 
               {/* 펼침 패널: action 텍스트 */}
               {isOpen && hasAction && (
-                <div className="border-t border-border bg-[#f8fafc] px-[14px] py-[10px]">
+                <div
+                  className="px-[17px] py-[10px]"
+                  style={{ backgroundColor: "#f8fafc", borderTop: "1px solid #e2e8f0" }}
+                >
                   <p className="text-sm leading-[1.7] text-text-secondary">
                     💡 {item.action}
                   </p>
@@ -687,24 +732,41 @@ function LifestyleDetailTable({ items }: { items: LifestyleItem[] }) {
   };
 
   return (
-    <div className="flex flex-col gap-0 rounded-md border border-border bg-bg overflow-hidden">
-      {/* 헤더 */}
-      <div className="flex items-center justify-between border-b border-border px-[14px] py-[10px]">
+    <div className="overflow-hidden rounded-md border border-border bg-bg">
+      {/* 타이틀 + 캡션 */}
+      <div className="flex flex-wrap items-center justify-between gap-[4px] border-b border-border px-[14px] py-[10px]">
         <p className="text-sm font-bold text-text-primary">생활습관 상세 분석표</p>
         <p className="text-xs text-text-muted">개선 항목을 누르면 행동 지침이 펼쳐집니다.</p>
       </div>
 
-      {/* 컬럼 헤더 */}
-      <div className="grid grid-cols-[2fr_1.5fr_2fr_1.5fr_24px] gap-x-[8px] border-b border-border bg-[#f8fafc] px-[14px] py-[6px]">
-        <span className="text-xs font-semibold text-text-muted">항목</span>
-        <span className="text-xs font-semibold text-text-muted">정상범위</span>
-        <span className="text-xs font-semibold text-text-muted">현재값</span>
-        <span className="text-xs font-semibold text-text-muted">상태</span>
+      {/* 컬럼 헤더 행 — 진한 배경 */}
+      <div
+        className={`grid ${gridCols} gap-x-[8px] px-[14px] py-[7px]`}
+        style={{ backgroundColor: "#2c3e50" }}
+      >
+        <span className="text-xs font-semibold text-white">항목</span>
+        <span className="text-xs font-semibold text-white">정상범위</span>
+        <span className="text-xs font-semibold text-white">현재값</span>
+        <span className="text-xs font-semibold text-center text-white">상태</span>
         <span />
       </div>
 
-      {renderGroup(improveItems, "개선이 필요한 항목", "#DC2626", "#fff5f5")}
-      {renderGroup(maintainItems, "잘 관리되고 있는 항목", "#16A34A", "#f0fdf4")}
+      {/* 개선 필요 그룹 — 붉은 계열 구분선 */}
+      {renderGroup(
+        improveItems,
+        "개선이 필요한 항목",
+        "#DC2626",
+        "#fff5f5",
+        "#b91c1c",
+      )}
+      {/* 잘 관리 그룹 — 초록 계열 구분선 */}
+      {renderGroup(
+        maintainItems,
+        "잘 관리되고 있는 항목",
+        "#16A34A",
+        "#f0fdf4",
+        "#15803d",
+      )}
     </div>
   );
 }
@@ -822,6 +884,18 @@ function PeerGauge({
 
 const GUIDE_TIMEOUT_MS = 45000; // 가이드 선생성 대기 상한(~25s 생성 + 여유)
 
+// ===== 섹션 헤딩 컴포넌트 =====
+function SectionHeading({ title, subtitle }: { title: string; subtitle?: string }) {
+  return (
+    <div className="flex flex-wrap items-baseline gap-[10px] border-b-2 pb-[8px]" style={{ borderColor: "#2c3e50" }}>
+      <h2 className="text-lg font-bold" style={{ color: "#2c3e50" }}>{title}</h2>
+      {subtitle && (
+        <span className="text-xs text-text-muted">{subtitle}</span>
+      )}
+    </div>
+  );
+}
+
 // ===== 메인 페이지 =====
 export function LLMActionGuidePage() {
   // 1단계: 최신 검진 ID 조회
@@ -908,150 +982,84 @@ export function LLMActionGuidePage() {
       <ScreenLabel label="15 · LLM 행동 가이드 (SHAP 기반 + PII 토큰화, REQ-LLM-001/002)" />
       <TopNav />
 
-      <main className="flex flex-1 flex-col gap-[16px] p-[24px] md:flex-row md:p-[32px]">
-        {/* ===== 에러 배너 ===== */}
-        {error && (
-          <div className="mb-[8px] w-full rounded-md border border-destructive bg-[#fef2f2] p-[12px]">
-            <p className="text-sm text-destructive">{error}</p>
-          </div>
-        )}
+      {/* ===== 풀폭 세로 레이아웃 — 최대 1100px 센터 정렬 ===== */}
+      <main className="flex flex-1 flex-col gap-[24px] px-[16px] py-[24px] md:px-[32px] md:py-[32px]">
+        <div className="mx-auto w-full max-w-[1100px] flex flex-col gap-[32px]">
 
-        {/* ===== 계산 중 배너 (전체 폭) ===== */}
-        {isComputing && (
-          <div className="w-full">
-            <ComputingBanner />
-          </div>
-        )}
-
-        {/* ===== 좌: 모델1 위험 변수 ===== */}
-        <div className="flex flex-1 flex-col gap-[12px]">
-          <h2 className="text-lg font-bold text-text-primary">
-            모델1 위험 변수 (SHAP Top-N)
-          </h2>
-
-          {/* 리포트 메타 카드 (최상단) */}
-          {!isLoading && !isComputing && (
-            <ReportMetaCard meta={reportMeta} />
-          )}
-          {isLoading && <SkeletonCard />}
-
-          {/* 종합 요약 카드 */}
-          {!isLoading && <Model1SummaryCard summary={model1Summary} />}
-
-          {isLoading && (
-            <>
-              <SkeletonCard />
-              <SkeletonCard />
-              <SkeletonCard />
-            </>
+          {/* ─── 에러 배너 ─── */}
+          {error && (
+            <div className="rounded-md border border-destructive bg-[#fef2f2] p-[12px]">
+              <p className="text-sm text-destructive">{error}</p>
+            </div>
           )}
 
-          {!isLoading && model1Items.length === 0 && !isComputing && (
-            <p className="text-sm text-text-muted">
-              위험 변수 데이터가 없습니다.
-            </p>
-          )}
+          {/* ─── 계산 중 배너 ─── */}
+          {isComputing && <ComputingBanner />}
 
-          {/* 모델1 SHAP 2단 가로막대 차트 */}
-          {!isLoading && model1Items.length > 0 && (
-            <ShapImpactBars
-              items={model1Items.map((it) => ({
-                label: it.feature,
-                value: it.value,
-                shap: it.shap,
-              }))}
-              raiseTitle="위험을 높이는 요인"
-              lowerTitle="위험을 낮추는 요인"
+          {/* ══════════════════════════════════════
+              섹션 1: 리포트 메타
+          ══════════════════════════════════════ */}
+          <section className="flex flex-col gap-[12px]">
+            {isLoading && <SkeletonCard />}
+            {!isLoading && !isComputing && <ReportMetaCard meta={reportMeta} />}
+          </section>
+
+          {/* ══════════════════════════════════════
+              섹션 2: 모델1 임상 위험 분석
+          ══════════════════════════════════════ */}
+          <section className="flex flex-col gap-[16px]">
+            <SectionHeading
+              title="모델1 · 임상 위험 분석"
+              subtitle="혈액·신체 계측 기반 CKD 선별 위험 요인"
             />
-          )}
 
-          {/* 임상 상세 분석표 */}
-          {!isLoading && !isComputing && clinicalItems.length > 0 && (
-            <ClinicalDetailTable items={clinicalItems} />
-          )}
-          {isLoading && <SkeletonCard />}
+            {isLoading && (
+              <>
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
+              </>
+            )}
 
-          {/* 권장 검사 리스트 (하단) */}
-          {!isLoading && <RecommendedTests tests={recommendedTests} />}
-        </div>
+            {!isLoading && model1Items.length === 0 && !isComputing && (
+              <p className="text-sm text-text-muted">위험 변수 데이터가 없습니다.</p>
+            )}
 
-        {/* ===== 중: 모델2 생활습관 + 또래 비교 ===== */}
-        <div className="flex flex-1 flex-col gap-[12px]">
-          <h2 className="text-lg font-bold text-text-primary">
-            모델2 생활습관 분석
-          </h2>
+            {/* 모델1 SHAP 2단 가로막대 차트 */}
+            {!isLoading && model1Items.length > 0 && (
+              <ShapImpactBars
+                items={model1Items.map((it) => ({
+                  label: it.feature,
+                  value: it.value,
+                  shap: it.shap,
+                }))}
+                raiseTitle="위험을 높이는 요인"
+                lowerTitle="위험을 낮추는 요인"
+              />
+            )}
 
-          {isLoading && (
-            <>
-              <SkeletonCard />
-              <SkeletonCard />
-            </>
-          )}
+            {/* 종합 요약 카드 */}
+            {!isLoading && <Model1SummaryCard summary={model1Summary} />}
 
-          {!isLoading && model2 === null && !isComputing && (
-            <p className="text-sm text-text-muted">
-              생활습관 데이터가 없습니다.
-            </p>
-          )}
+            {/* 임상 상세 분석표 */}
+            {!isLoading && !isComputing && clinicalItems.length > 0 && (
+              <ClinicalDetailTable items={clinicalItems} />
+            )}
+            {isLoading && <SkeletonCard />}
 
-          {!isLoading && model2 !== null && (
-            <>
-              {/* 생활습관 점수 */}
-              <div className="rounded-md border border-border bg-bg p-[12px]">
-                <p className="text-sm text-text-muted">종합 생활습관 점수</p>
-                <p className="text-2xl font-bold text-text-primary">
-                  {(model2.lifestyle_score * 100).toFixed(0)}
-                  <span className="text-sm font-normal text-text-muted"> / 100</span>
-                </p>
-              </div>
+            {/* 권장 검사 리스트 */}
+            {!isLoading && <RecommendedTests tests={recommendedTests} />}
+          </section>
 
-              {/* 또래 비교: 스무스 분포곡선 우선, 없으면 게이지 폴백 */}
-              {model2.peer_distribution ? (
-                <PeerDistributionCurve
-                  distribution={model2.peer_distribution}
-                  peerTopPct={model2.peer_top_pct}
-                  peerRelative={model2.peer_relative}
-                />
-              ) : (
-                <PeerGauge
-                  peerTopPct={model2.peer_top_pct}
-                  peerRelative={model2.peer_relative}
-                />
-              )}
+          {/* ══════════════════════════════════════
+              섹션 3: 모델2 생활습관 분석
+          ══════════════════════════════════════ */}
+          <section className="flex flex-col gap-[16px]">
+            <SectionHeading
+              title="모델2 · 생활습관 분석"
+              subtitle="음주·흡연·운동·식이·수면 등 생활습관 위험 요인"
+            />
 
-              {/* 모델2 생활습관 SHAP 2단 가로막대 차트 */}
-              {lifestyleShapItems.length > 0 && (
-                <ShapImpactBars
-                  items={lifestyleShapItems.map((it) => ({
-                    label: it.feature,
-                    value: it.value,
-                    shap: it.shap,
-                  }))}
-                  raiseTitle="개선이 필요한 항목"
-                  lowerTitle="잘 관리되고 있는 항목"
-                />
-              )}
-
-              {/* Phase C: 생활습관 핵심 요약 카드 */}
-              {lifestyleItems.length > 0 && (
-                <LifestyleSummaryCard items={lifestyleItems} />
-              )}
-
-              {/* Phase C: 생활습관 상세 분석표 */}
-              {lifestyleItems.length > 0 && (
-                <LifestyleDetailTable items={lifestyleItems} />
-              )}
-            </>
-          )}
-        </div>
-
-        {/* ===== 우: AI 행동 가이드 ===== */}
-        <div className="flex flex-1 flex-col gap-[12px]">
-          <h2 className="text-lg font-bold text-text-primary">
-            AI 행동 가이드
-          </h2>
-
-          <div className="flex flex-1 flex-col gap-[12px] rounded-md border border-border bg-bg p-[16px]">
             {isLoading && (
               <>
                 <SkeletonCard />
@@ -1059,62 +1067,136 @@ export function LLMActionGuidePage() {
               </>
             )}
 
-            {!isLoading && isComputing && (
-              <p className="text-sm text-text-secondary">
-                위험 변수 분석이 완료되면 가이드가 생성됩니다.
-              </p>
+            {!isLoading && model2 === null && !isComputing && (
+              <p className="text-sm text-text-muted">생활습관 데이터가 없습니다.</p>
             )}
 
-            {!isLoading && guidePending && (
+            {!isLoading && model2 !== null && (
               <>
-                <SkeletonCard />
-                <p className="text-sm text-text-secondary">
-                  AI 가이드를 생성하고 있습니다… (최대 1분 소요)
-                </p>
+                {/* 생활습관 점수 */}
+                <div className="rounded-md border border-border bg-bg p-[12px]">
+                  <p className="text-sm text-text-muted">종합 생활습관 점수</p>
+                  <p className="text-2xl font-bold text-text-primary">
+                    {(model2.lifestyle_score * 100).toFixed(0)}
+                    <span className="text-sm font-normal text-text-muted"> / 100</span>
+                  </p>
+                </div>
+
+                {/* 모델2 생활습관 SHAP 2단 가로막대 차트 */}
+                {lifestyleShapItems.length > 0 && (
+                  <ShapImpactBars
+                    items={lifestyleShapItems.map((it) => ({
+                      label: it.feature,
+                      value: it.value,
+                      shap: it.shap,
+                    }))}
+                    raiseTitle="개선이 필요한 항목"
+                    lowerTitle="잘 관리되고 있는 항목"
+                  />
+                )}
+
+                {/* 또래 비교: 스무스 분포곡선 우선, 없으면 게이지 폴백 */}
+                {model2.peer_distribution ? (
+                  <PeerDistributionCurve
+                    distribution={model2.peer_distribution}
+                    peerTopPct={model2.peer_top_pct}
+                    peerRelative={model2.peer_relative}
+                  />
+                ) : (
+                  <PeerGauge
+                    peerTopPct={model2.peer_top_pct}
+                    peerRelative={model2.peer_relative}
+                  />
+                )}
+
+                {/* Phase C: 생활습관 핵심 요약 카드 */}
+                {lifestyleItems.length > 0 && (
+                  <LifestyleSummaryCard items={lifestyleItems} />
+                )}
+
+                {/* Phase C: 생활습관 상세 분석표 */}
+                {lifestyleItems.length > 0 && (
+                  <LifestyleDetailTable items={lifestyleItems} />
+                )}
               </>
             )}
+          </section>
 
-            {!isLoading && !isComputing && !hasGuide && guideTimedOut && (
-              <p className="text-sm text-text-secondary">
-                가이드를 준비하지 못했습니다. 다시 시도해주세요.
-              </p>
-            )}
+          {/* ══════════════════════════════════════
+              섹션 4: AI 행동 가이드
+          ══════════════════════════════════════ */}
+          <section className="flex flex-col gap-[16px]">
+            <SectionHeading
+              title="AI 행동 가이드"
+              subtitle="SHAP 분석 기반 개인화 생활 개선 가이드"
+            />
 
-            {!isLoading && hasGuide && (
-              <p
-                className="text-sm leading-[1.8] text-text-secondary"
-                style={{ whiteSpace: "pre-wrap" }}
-              >
-                {aiGuide}
-              </p>
-            )}
+            <div className="flex flex-col gap-[12px] rounded-md border border-border bg-bg p-[16px]">
+              {isLoading && (
+                <>
+                  <SkeletonCard />
+                  <SkeletonCard />
+                </>
+              )}
 
-            {/* 면책 문구 */}
-            <div className="mt-auto rounded-sm border border-warning bg-[#fef3c7] p-[12px]">
-              <p className="text-xs leading-[1.5] text-warning">
-                본 서비스는 의료 진단·처방을 대체하지 않습니다. 정확한 진단·치료는 의사 상담을 받으세요.
-              </p>
+              {!isLoading && isComputing && (
+                <p className="text-sm text-text-secondary">
+                  위험 변수 분석이 완료되면 가이드가 생성됩니다.
+                </p>
+              )}
+
+              {!isLoading && guidePending && (
+                <>
+                  <SkeletonCard />
+                  <p className="text-sm text-text-secondary">
+                    AI 가이드를 생성하고 있습니다… (최대 1분 소요)
+                  </p>
+                </>
+              )}
+
+              {!isLoading && !isComputing && !hasGuide && guideTimedOut && (
+                <p className="text-sm text-text-secondary">
+                  가이드를 준비하지 못했습니다. 다시 시도해주세요.
+                </p>
+              )}
+
+              {!isLoading && hasGuide && (
+                <p
+                  className="text-sm leading-[1.8] text-text-secondary"
+                  style={{ whiteSpace: "pre-wrap" }}
+                >
+                  {aiGuide}
+                </p>
+              )}
+
+              {/* 면책 문구 */}
+              <div className="mt-[4px] rounded-sm border border-warning bg-[#fef3c7] p-[12px]">
+                <p className="text-xs leading-[1.5] text-warning">
+                  본 서비스는 의료 진단·처방을 대체하지 않습니다. 정확한 진단·치료는 의사 상담을 받으세요.
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div className="flex gap-[12px]">
-            <BtnSecondary
-              label="다시 생성"
-              className="flex-1"
-              onClick={() => refetch()}
-            />
-            <BtnSecondary
-              label="복사"
-              className="flex-1"
-              onClick={() => {
-                if (hasGuide) navigator.clipboard.writeText(aiGuide);
-              }}
-            />
-          </div>
+            <div className="flex gap-[12px]">
+              <BtnSecondary
+                label="다시 생성"
+                className="flex-1"
+                onClick={() => refetch()}
+              />
+              <BtnSecondary
+                label="복사"
+                className="flex-1"
+                onClick={() => {
+                  if (hasGuide) navigator.clipboard.writeText(aiGuide);
+                }}
+              />
+            </div>
 
-          <p className="text-xs leading-[1.5] text-text-muted">
-            사용자 PII는 토큰화되어 LLM에 전송됩니다. 응답 마지막 줄에 면책 문구가 자동 추가됩니다.
-          </p>
+            <p className="text-xs leading-[1.5] text-text-muted">
+              사용자 PII는 토큰화되어 LLM에 전송됩니다. 응답 마지막 줄에 면책 문구가 자동 추가됩니다.
+            </p>
+          </section>
+
         </div>
       </main>
     </div>
