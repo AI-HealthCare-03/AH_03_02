@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Coins, History, ShieldCheck, Zap, Palette, PawPrint, Lock } from "lucide-react";
+import { Coins, History, ShieldCheck, Zap, PawPrint, Lock, Info } from "lucide-react";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 import { gamificationApi, pointsApi, type InventoryResponse, type ItemCode, type MascotResponse } from "../api/gamification";
@@ -34,15 +34,6 @@ const ITEMS: { [category: string]: ShopItem[] } = {
       icon: Zap,
     },
   ],
-  스킨소: [
-    { code: "SKIN_S_BLUE", name: "블루 스킨 (소)", price: 300, description: "기본 파랑 색상", maxQty: 1, icon: Palette },
-    { code: "SKIN_S_GREEN", name: "그린 스킨 (소)", price: 300, description: "기본 초록 색상", maxQty: 1, icon: Palette },
-  ],
-  스킨중: [
-    { code: "SKIN_M_RED", name: "레드 스킨 (중)", price: 700, description: "빨강 + 이펙트", maxQty: 1, icon: Palette },
-    { code: "SKIN_M_PURPLE", name: "퍼플 스킨 (중)", price: 700, description: "보라 + 이펙트", maxQty: 1, icon: Palette },
-  ],
-  스킨대: [{ code: "SKIN_L_GOLD", name: "골드 스킨 (대)", price: 1200, description: "시즌 한정", maxQty: 1, icon: Palette }],
   "동물 스킨 (1단계)": [
     { code: "SKIN_TURTLE_1", name: "거북이 (1단계)", price: 400, description: "느긋한 거북이로 변신.", maxQty: 1, icon: PawPrint, requiredStage: 1 },
     { code: "SKIN_PENGUIN_1", name: "펭귄 (1단계)", price: 400, description: "귀여운 펭귄으로 변신.", maxQty: 1, icon: PawPrint, requiredStage: 1 },
@@ -153,9 +144,19 @@ export function ShopPage() {
           </div>
         )}
 
-        {Object.entries(ITEMS).map(([category, items]) => (
+        {Object.entries(ITEMS).map(([category, items], idx) => (
           <section key={category} className="mt-[24px]">
             <h2 className="mb-[12px] text-lg font-bold text-text-primary">{category}</h2>
+            {/* 동물 스킨 카테고리 첫 등장 직후에만 안내 박스 */}
+            {idx > 0 && category.startsWith("동물 스킨 (1") && (
+              <div className="mb-[12px] flex items-start gap-[8px] rounded-md border border-info bg-info/5 px-[12px] py-[10px] text-xs leading-[1.5] text-text-secondary">
+                <Info size={14} className="mt-[2px] shrink-0 text-info" />
+                <div>
+                  <span className="font-bold text-text-primary">동물 스킨은 외형 고정입니다.</span>{" "}
+                  체크인으로 진화하는 건 <b>본래 캐릭터</b>(부화 시 추첨된 종)뿐이에요. 스킨을 장착해도 본래 캐릭터는 계속 자라요 — <b>스킨을 해제하면 진화된 모습</b>을 볼 수 있어요. 더 높은 단계 외형을 원하면 그 단계 스킨을 따로 구매하세요.
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-[12px]">
               {items.map((item) => {
                 const owned = qtyOf(item.code);
