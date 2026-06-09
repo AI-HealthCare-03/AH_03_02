@@ -14,3 +14,13 @@ def test_chat_job_roundtrip():
 def test_chat_result_error_or_answer():
     assert ChatResult(answer="ok").answer == "ok"
     assert ChatResult(error="boom").error == "boom"
+
+
+def test_chatjob_stream_default_false() -> None:
+    j = ChatJob(job_id="x", question="q")
+    assert j.stream is False
+
+
+def test_chatjob_stream_true() -> None:
+    j = ChatJob(job_id="x", question="q", stream=True)
+    assert j.stream is True
