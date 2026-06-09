@@ -306,6 +306,32 @@ export function DashboardPage() {
           </div>
         )}
 
+        {/* 검진·설문 관리 허브 진입 CTA — 입력/이력 보기 양쪽으로 확장 */}
+        <div className="mt-[16px] grid grid-cols-1 gap-[12px] md:grid-cols-2">
+          <Link
+            to="/checkup-management"
+            className="flex items-center gap-[12px] rounded-md border border-border bg-bg p-[16px] transition-colors hover:border-accent hover:bg-accent/5"
+          >
+            <span className="text-2xl">🩺</span>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-text-primary">검진 이력 관리</p>
+              <p className="mt-[2px] text-xs text-text-secondary">검진 수치 입력 · 이력 보기·삭제</p>
+            </div>
+            <span className="text-text-muted">→</span>
+          </Link>
+          <Link
+            to="/lifestyle-management"
+            className="flex items-center gap-[12px] rounded-md border border-border bg-bg p-[16px] transition-colors hover:border-accent hover:bg-accent/5"
+          >
+            <span className="text-2xl">📋</span>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-text-primary">생활습관 설문 관리</p>
+              <p className="mt-[2px] text-xs text-text-secondary">설문 작성 · 응답 이력 보기·삭제</p>
+            </div>
+            <span className="text-text-muted">→</span>
+          </Link>
+        </div>
+
         {/* Row1: 계기판 + 헬스 알 */}
         <div className="mt-[24px] grid grid-cols-3 items-stretch gap-[16px]">
           <div className="col-span-2 grid grid-cols-2 gap-[16px]">

@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import ORJSONResponse as Response
 
 from app.dependencies.security import get_request_user
@@ -59,3 +59,20 @@ async def get_survey(
 ) -> Response:
     result = await service.get_survey(survey_id=survey_id, user_id=user.id)
     return Response(result.model_dump(), status_code=status.HTTP_200_OK)
+
+
+@lifestyle_survey_router.delete(
+    "/{survey_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="생활습관 설문 삭제",
+    description="본인 소유 설문 1건 삭제.",
+)
+async def delete_survey(
+    survey_id: int,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[LifestyleSurveyService, Depends(LifestyleSurveyService)],
+) -> Response:
+    deleted = await service.delete_survey(survey_id=survey_id, user_id=user.id)
+    if not deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="설문을 찾을 수 없습니다.")
+    return Response(None, status_code=status.HTTP_204_NO_CONTENT)

@@ -69,4 +69,6 @@ export const lifestyleSurveyApi = {
     api.post<LifestyleSurveyResponse>("/lifestyle-surveys", body),
   list: (limit = 20, offset = 0) =>
     api.get<LifestyleSurveyListResponse>(`/lifestyle-surveys?limit=${limit}&offset=${offset}`),
+  delete: (id: number) =>
+    api.delete<void>(`/lifestyle-surveys/${id}`),
 };

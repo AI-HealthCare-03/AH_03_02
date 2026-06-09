@@ -78,6 +78,11 @@ class LifestyleSurveyRepository:
     async def get_by_id(self, survey_id: int, user_id: int) -> LifestyleSurvey | None:
         return await LifestyleSurvey.get_or_none(id=survey_id, user_id=user_id)
 
+    async def delete_by_id(self, survey_id: int, user_id: int) -> bool:
+        """본인 소유 설문 1건 삭제. 영향 행 수 > 0이면 True."""
+        deleted = await LifestyleSurvey.filter(id=survey_id, user_id=user_id).delete()
+        return deleted > 0
+
     async def exists_by_user(self, user_id: int) -> bool:
         return await LifestyleSurvey.filter(user_id=user_id).exists()
 

@@ -257,6 +257,10 @@ class HealthCheckService:
             return None
         return HealthCheckResponse.model_validate(hc)
 
+    async def delete_health_check(self, health_check_id: int, user_id: int) -> bool:
+        """본인 소유 검진 삭제. 없으면 False."""
+        return await self._repo.delete_by_id(health_check_id, user_id)
+
     # ── 모델1 리포트 헬퍼 (순수 함수, app_group 기반) ─────────────────────────
 
     @staticmethod

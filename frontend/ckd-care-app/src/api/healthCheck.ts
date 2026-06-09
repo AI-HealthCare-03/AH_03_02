@@ -92,4 +92,6 @@ export const healthCheckApi = {
     api.get<HealthCheckListResponse>(`/health-checks?limit=${limit}&offset=${offset}`),
   getReport: (id: number) =>
     api.get<ReportResponse>(`/health-checks/${id}/report`),
+  delete: (id: number) =>
+    api.delete<void>(`/health-checks/${id}`),
 };
