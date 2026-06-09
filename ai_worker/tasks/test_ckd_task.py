@@ -6,6 +6,24 @@ from ai_worker.schemas.ckd import CkdJob
 from ai_worker.tasks import ckd_task
 
 
+@pytest.fixture(autouse=True)
+async def _isolate_guide_tasks(monkeypatch):  # noqa: ANN001
+    """가이드 detached 태스크 격리:
+    기본 _run_rag/update_guide를 무해하게 stub하고 _GUIDE_TASKS를 테스트 간 정리한다.
+    개별 테스트는 자체 monkeypatch로 재정의할 수 있다(나중 setattr 우선)."""
+    monkeypatch.setattr(ckd_task, "_run_rag", lambda question, ctx: "")
+
+    async def _noop_update_guide(health_check_id, ai_guide):  # noqa: ANN001
+        return None
+
+    monkeypatch.setattr(ckd_task.db, "update_guide", _noop_update_guide)
+    ckd_task._GUIDE_TASKS.clear()
+    yield
+    for t in list(ckd_task._GUIDE_TASKS):
+        t.cancel()
+    ckd_task._GUIDE_TASKS.clear()
+
+
 @pytest.mark.asyncio
 async def test_handle_ckd_job(monkeypatch) -> None:  # noqa: ANN001
     """기본 예측 흐름: risk·app_group·shap(없을 때 None) 저장 확인."""
