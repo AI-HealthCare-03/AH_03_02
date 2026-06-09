@@ -11,132 +11,179 @@ gender 규약: 1 = 남성(M), 0 = 여성(F)
 # ──────────────────────────────────────────────────────────────────────────────
 
 M1_LABEL = {
-    'sbp': '수축기혈압',
-    'dbp': '이완기혈압',
-    'pulse_pressure': '맥압',
-    'fasting_glucose': '공복혈당(FBS)',
-    'total_cholesterol': '총콜레스테롤',
-    'ldl_cholesterol': '저밀도 지단백(LDL)',
-    'hdl_cholesterol': '고밀도 지단백(HDL)',
-    'triglycerides': '중성지방',
-    'creatinine': '크레아티닌',
-    'waist_cm': '허리둘레',
-    'bmi': '체질량지수(BMI, kg/m²)',
-    'waist_height_ratio': '허리-키 비율',
-    'smoking_current': '흡연 여부',
+    "sbp": "수축기혈압",
+    "dbp": "이완기혈압",
+    "pulse_pressure": "맥압",
+    "fasting_glucose": "공복혈당(FBS)",
+    "total_cholesterol": "총콜레스테롤",
+    "ldl_cholesterol": "저밀도 지단백(LDL)",
+    "hdl_cholesterol": "고밀도 지단백(HDL)",
+    "triglycerides": "중성지방",
+    "creatinine": "크레아티닌",
+    "waist_cm": "허리둘레",
+    "bmi": "체질량지수(BMI, kg/m²)",
+    "waist_height_ratio": "허리-키 비율",
+    "smoking_current": "흡연 여부",
 }
 
 M1_DESC = {
-    'sbp': '심장이 수축할 때 혈관 압력',
-    'dbp': '심장이 이완할 때 혈관 압력',
-    'pulse_pressure': '수축기·이완기 혈압의 차이',
-    'fasting_glucose': '공복 상태에서 잰 혈당',
-    'total_cholesterol': '혈액 속 전체 콜레스테롤',
-    'ldl_cholesterol': '혈관에 쌓이는 나쁜 콜레스테롤',
-    'hdl_cholesterol': '혈관을 청소하는 좋은 콜레스테롤',
-    'triglycerides': '혈액 속 지방 성분',
-    'creatinine': '신장의 여과 기능을 나타내는 노폐물 수치',
-    'waist_cm': '복부(내장) 비만 지표',
-    'bmi': '키 대비 체중 지표(kg/m²)',
-    'waist_height_ratio': '키 대비 허리둘레 비율',
-    'smoking_current': '0=비흡연  1=과거 흡연  2=현재 흡연',
+    "sbp": "심장이 수축할 때 혈관 압력",
+    "dbp": "심장이 이완할 때 혈관 압력",
+    "pulse_pressure": "수축기·이완기 혈압의 차이",
+    "fasting_glucose": "공복 상태에서 잰 혈당",
+    "total_cholesterol": "혈액 속 전체 콜레스테롤",
+    "ldl_cholesterol": "혈관에 쌓이는 나쁜 콜레스테롤",
+    "hdl_cholesterol": "혈관을 청소하는 좋은 콜레스테롤",
+    "triglycerides": "혈액 속 지방 성분",
+    "creatinine": "신장의 여과 기능을 나타내는 노폐물 수치",
+    "waist_cm": "복부(내장) 비만 지표",
+    "bmi": "키 대비 체중 지표(kg/m²)",
+    "waist_height_ratio": "키 대비 허리둘레 비율",
+    "smoking_current": "0=비흡연  1=과거 흡연  2=현재 흡연",
 }
 
 M1_DISEASE = {
-    'sbp': ('저혈압·탈수·부신기능저하·쇼크(중증) 등 원인 점검', '고혈압·뇌졸중·심혈관질환·심부전·고혈압성 신증'),
-    'dbp': ('저혈압·탈수 등 원인 점검', '고혈압·뇌졸중·심혈관질환·심부전·고혈압성 신증'),
-    'pulse_pressure': ('심박출량 감소·심부전·대동맥판막협착', '동맥경화(혈관 경직)·대동맥판막역류·갑상선기능항진'),
-    'fasting_glucose': ('기아·간질환·인슐린종 등 저혈당 원인 점검', '당뇨병·내당능장애·공복혈당장애·당뇨병성 신증·심혈관질환'),
-    'total_cholesterol': ('영양결핍·간질환·갑상선기능항진·흡수장애', '이상지질혈증·동맥경화·심혈관질환'),
-    'ldl_cholesterol': ('(대개 문제 적음) 영양결핍·간질환·갑상선항진', '동맥경화·관상동맥질환·심혈관질환'),
-    'hdl_cholesterol': ('낮은 것 자체가 위험 → 심혈관질환·동맥경화 위험↑', '대체로 보호적(높을수록 유리), 극히 높으면 드문 유전적 요인'),
-    'triglycerides': ('영양결핍·갑상선기능항진·흡수장애(드묾)', '고중성지방혈증·대사증후군·심혈관질환·췌장염(매우 높을 때)'),
-    'waist_cm': ('저체중·영양결핍', '복부비만·인슐린저항성·대사증후군·당뇨·심혈관질환'),
-    'bmi': ('영양결핍·근감소·면역저하·골다공증', '당뇨·고혈압·이상지질혈증·대사증후군·비만 관련 신증'),
-    'waist_height_ratio': ('—', '내장지방·대사증후군 위험'),
-    'creatinine': ('—', '신장 기능 저하 → 정밀검사(CKD·신부전)'),
-    'smoking_current': ('—', '심혈관질환·폐질환·암·COPD·신장 기능 저하 가속'),
+    "sbp": ("저혈압·탈수·부신기능저하·쇼크(중증) 등 원인 점검", "고혈압·뇌졸중·심혈관질환·심부전·고혈압성 신증"),
+    "dbp": ("저혈압·탈수 등 원인 점검", "고혈압·뇌졸중·심혈관질환·심부전·고혈압성 신증"),
+    "pulse_pressure": ("심박출량 감소·심부전·대동맥판막협착", "동맥경화(혈관 경직)·대동맥판막역류·갑상선기능항진"),
+    "fasting_glucose": (
+        "기아·간질환·인슐린종 등 저혈당 원인 점검",
+        "당뇨병·내당능장애·공복혈당장애·당뇨병성 신증·심혈관질환",
+    ),
+    "total_cholesterol": ("영양결핍·간질환·갑상선기능항진·흡수장애", "이상지질혈증·동맥경화·심혈관질환"),
+    "ldl_cholesterol": ("(대개 문제 적음) 영양결핍·간질환·갑상선항진", "동맥경화·관상동맥질환·심혈관질환"),
+    "hdl_cholesterol": (
+        "낮은 것 자체가 위험 → 심혈관질환·동맥경화 위험↑",
+        "대체로 보호적(높을수록 유리), 극히 높으면 드문 유전적 요인",
+    ),
+    "triglycerides": (
+        "영양결핍·갑상선기능항진·흡수장애(드묾)",
+        "고중성지방혈증·대사증후군·심혈관질환·췌장염(매우 높을 때)",
+    ),
+    "waist_cm": ("저체중·영양결핍", "복부비만·인슐린저항성·대사증후군·당뇨·심혈관질환"),
+    "bmi": ("영양결핍·근감소·면역저하·골다공증", "당뇨·고혈압·이상지질혈증·대사증후군·비만 관련 신증"),
+    "waist_height_ratio": ("—", "내장지방·대사증후군 위험"),
+    "creatinine": ("—", "신장 기능 저하 → 정밀검사(CKD·신부전)"),
+    "smoking_current": ("—", "심혈관질환·폐질환·암·COPD·신장 기능 저하 가속"),
 }
 
 # 형식: {feature: (unit, target_str, stages_or_dict)}
 # stages = [(lo, hi, label), …]  /  gender-split = {'M': […], 'F': […]}
 M1_STAGES = {
-    'sbp': ('mmHg', '<120', [(0, 120, '정상'), (120, 140, '주의'), (140, 9999, '위험')]),
-    'dbp': ('mmHg', '<80', [(0, 80, '정상'), (80, 90, '주의'), (90, 9999, '위험')]),
-    'fasting_glucose': ('mg/dL', '<100', [(0, 100, '정상'), (100, 126, '주의'), (126, 9999, '위험')]),
-    'total_cholesterol': ('mg/dL', '<200', [(0, 200, '적정'), (200, 240, '경계'), (240, 9999, '높음')]),
-    'ldl_cholesterol': ('mg/dL', '<100', [(0, 100, '적정'), (100, 130, '거의 적정'), (130, 160, '경계'), (160, 190, '높음'), (190, 9999, '매우 높음')]),
-    'hdl_cholesterol': ('mg/dL', '60~80', [(0, 40, '낮음'), (40, 60, '주의'), (60, 80, '적정'), (80, 9999, '높음(모니터링)')]),
-    'triglycerides': ('mg/dL', '<150', [(0, 150, '적정'), (150, 200, '경계'), (200, 500, '높음'), (500, 99999, '매우 높음')]),
-    'pulse_pressure': ('mmHg', '40 내외', [(0, 40, '낮음'), (40, 60, '정상'), (60, 999, '높음')]),
-    'waist_cm': ('cm', {'M': '<90', 'F': '<85'}, {'M': [(0, 90, '정상'), (90, 999, '복부비만')], 'F': [(0, 85, '정상'), (85, 999, '복부비만')]}),
-    'bmi': ('kg/m²', '18.5–22.9', [(0, 18.5, '저체중'), (18.5, 23, '정상'), (23, 25, '과체중'), (25, 30, '경도 비만'), (30, 35, '중등도 비만'), (35, 99, '고도 비만')]),
-    'waist_height_ratio': ('', '<0.5', [(0, 0.5, '정상'), (0.5, 9, '높음')]),
-    'creatinine': ('mg/dL', '0.50~1.4', [(0, 0.5, '낮음'), (0.5, 1.4, '정상'), (1.4, 99, '높음')]),
-    'smoking_current': ('', '비흡연', [(0, 1, '비흡연'), (1, 2, '과거 흡연'), (2, 99, '현재 흡연')]),
+    "sbp": ("mmHg", "<120", [(0, 120, "정상"), (120, 140, "주의"), (140, 9999, "위험")]),
+    "dbp": ("mmHg", "<80", [(0, 80, "정상"), (80, 90, "주의"), (90, 9999, "위험")]),
+    "fasting_glucose": ("mg/dL", "<100", [(0, 100, "정상"), (100, 126, "주의"), (126, 9999, "위험")]),
+    "total_cholesterol": ("mg/dL", "<200", [(0, 200, "적정"), (200, 240, "경계"), (240, 9999, "높음")]),
+    "ldl_cholesterol": (
+        "mg/dL",
+        "<100",
+        [(0, 100, "적정"), (100, 130, "거의 적정"), (130, 160, "경계"), (160, 190, "높음"), (190, 9999, "매우 높음")],
+    ),
+    "hdl_cholesterol": (
+        "mg/dL",
+        "60~80",
+        [(0, 40, "낮음"), (40, 60, "주의"), (60, 80, "적정"), (80, 9999, "높음(모니터링)")],
+    ),
+    "triglycerides": (
+        "mg/dL",
+        "<150",
+        [(0, 150, "적정"), (150, 200, "경계"), (200, 500, "높음"), (500, 99999, "매우 높음")],
+    ),
+    "pulse_pressure": ("mmHg", "40 내외", [(0, 40, "낮음"), (40, 60, "정상"), (60, 999, "높음")]),
+    "waist_cm": (
+        "cm",
+        {"M": "<90", "F": "<85"},
+        {"M": [(0, 90, "정상"), (90, 999, "복부비만")], "F": [(0, 85, "정상"), (85, 999, "복부비만")]},
+    ),
+    "bmi": (
+        "kg/m²",
+        "18.5–22.9",
+        [
+            (0, 18.5, "저체중"),
+            (18.5, 23, "정상"),
+            (23, 25, "과체중"),
+            (25, 30, "경도 비만"),
+            (30, 35, "중등도 비만"),
+            (35, 99, "고도 비만"),
+        ],
+    ),
+    "waist_height_ratio": ("", "<0.5", [(0, 0.5, "정상"), (0.5, 9, "높음")]),
+    "creatinine": ("mg/dL", "0.50~1.4", [(0, 0.5, "낮음"), (0.5, 1.4, "정상"), (1.4, 99, "높음")]),
+    "smoking_current": ("", "비흡연", [(0, 1, "비흡연"), (1, 2, "과거 흡연"), (2, 99, "현재 흡연")]),
 }
 
 # 상태 라벨 → 색상 hex (노트북 M1_STATUS_COLOR 그대로)
 # 주의: '낮음'은 단일 매핑 #fef9e7(caution). HDL '낮음' 특례는 색→level 변환 후 처리 불필요
 # (노트북도 동일 dict — 색은 동일하게 #fef9e7)
 M1_STATUS_COLOR = {
-    '정상': '#d5f5e3', '적정': '#d5f5e3', '양호': '#d5f5e3', '음성': '#d5f5e3', '거의 적정': '#d5f5e3',
-    '저체중': '#d6eaf8',
-    '주의': '#fef9e7', '경계': '#fef9e7', '과체중': '#fef9e7', '높음(모니터링)': '#fef9e7', '낮음': '#fef9e7',
-    '경도 비만': '#fdebd0',
-    '높음': '#fadbd8', '위험': '#fadbd8', '복부비만': '#fadbd8', '양성': '#fadbd8',
-    '매우 높음': '#fadbd8', '중등도 비만': '#fadbd8', '고도 비만': '#fadbd8',
-    '비흡연': '#d5f5e3', '과거 흡연': '#fef9e7', '현재 흡연': '#fadbd8',
+    "정상": "#d5f5e3",
+    "적정": "#d5f5e3",
+    "양호": "#d5f5e3",
+    "음성": "#d5f5e3",
+    "거의 적정": "#d5f5e3",
+    "저체중": "#d6eaf8",
+    "주의": "#fef9e7",
+    "경계": "#fef9e7",
+    "과체중": "#fef9e7",
+    "높음(모니터링)": "#fef9e7",
+    "낮음": "#fef9e7",
+    "경도 비만": "#fdebd0",
+    "높음": "#fadbd8",
+    "위험": "#fadbd8",
+    "복부비만": "#fadbd8",
+    "양성": "#fadbd8",
+    "매우 높음": "#fadbd8",
+    "중등도 비만": "#fadbd8",
+    "고도 비만": "#fadbd8",
+    "비흡연": "#d5f5e3",
+    "과거 흡연": "#fef9e7",
+    "현재 흡연": "#fadbd8",
 }
 
 # 색상 hex → status_level (카테고리)
 _COLOR_TO_LEVEL: dict[str, str] = {
-    '#d5f5e3': 'good',       # 초록: 정상·적정·양호 등
-    '#d6eaf8': 'info',       # 파랑: 저체중
-    '#fef9e7': 'caution',    # 노랑: 주의·경계·낮음 등
-    '#fdebd0': 'warnLight',  # 주황: 경도 비만
-    '#fadbd8': 'danger',     # 빨강: 높음·위험·복부비만 등
+    "#d5f5e3": "good",  # 초록: 정상·적정·양호 등
+    "#d6eaf8": "info",  # 파랑: 저체중
+    "#fef9e7": "caution",  # 노랑: 주의·경계·낮음 등
+    "#fdebd0": "warnLight",  # 주황: 경도 비만
+    "#fadbd8": "danger",  # 빨강: 높음·위험·복부비만 등
 }
 
 M1_CATEGORY = {
-    'sbp': '혈압·혈당',
-    'dbp': '혈압·혈당',
-    'fasting_glucose': '혈압·혈당',
-    'pulse_pressure': '혈압·혈당',
-    'total_cholesterol': '지질',
-    'hdl_cholesterol': '지질',
-    'ldl_cholesterol': '지질',
-    'triglycerides': '지질',
-    'creatinine': '간·혈액',
-    'waist_cm': '신체',
-    'bmi': '신체',
-    'waist_height_ratio': '신체',
-    'smoking_current': '기타',
+    "sbp": "혈압·혈당",
+    "dbp": "혈압·혈당",
+    "fasting_glucose": "혈압·혈당",
+    "pulse_pressure": "혈압·혈당",
+    "total_cholesterol": "지질",
+    "hdl_cholesterol": "지질",
+    "ldl_cholesterol": "지질",
+    "triglycerides": "지질",
+    "creatinine": "간·혈액",
+    "waist_cm": "신체",
+    "bmi": "신체",
+    "waist_height_ratio": "신체",
+    "smoking_current": "기타",
 }
 
-M1_CAT_ORDER = ['혈압·혈당', '지질', '간·혈액', '신체', '기타']
+M1_CAT_ORDER = ["혈압·혈당", "지질", "간·혈액", "신체", "기타"]
 
 M1_GROUP_TITLE = {
-    'A': '신장 집중 관리군',
-    'B': '신장 위험 관리군',
-    'C': '신장 사전 관리군',
-    'D': '건강 습관 형성군',
+    "A": "신장 집중 관리군",
+    "B": "신장 위험 관리군",
+    "C": "신장 사전 관리군",
+    "D": "건강 습관 형성군",
 }
 
 M1_GROUP_MESSAGE = {
-    'A': (
-        '이미 신장 기능이 저하된 단계입니다. 신장내과 진료, 검사, 상담 등 정기 모니터링이 필요합니다.\n'
+    "A": ("이미 신장 기능이 저하된 단계입니다. 신장내과 진료, 검사, 상담 등 정기 모니터링이 필요합니다.\n"),
+    "B": (
+        "신장 기능은 정상 범위지만 고혈압·당뇨 등 위험인자가 있어 적극 관리가 필요한 단계입니다.\n"
+        "위험 요인을 꾸준히 관리하면 신장 손상을 예방하는 데 도움이 됩니다.\n"
     ),
-    'B': (
-        '신장 기능은 정상 범위지만 고혈압·당뇨 등 위험인자가 있어 적극 관리가 필요한 단계입니다.\n'
-        '위험 요인을 꾸준히 관리하면 신장 손상을 예방하는 데 도움이 됩니다.\n'
-    ),
-    'C': (
-        '신장 기능은 정상 범위이며, 두드러진 위험인자는 적지만 모델이 위험 신호를 감지한 단계입니다.\n'
-    ),
-    'D': (
-        '현재 신장 건강과 관련된 뚜렷한 위험 신호는 보이지 않습니다.\n'
-        '지금의 건강 상태를 유지할 수 있도록 정기적인 건강검진과 균형 잡힌 생활습관을 이어가세요.\n'
+    "C": ("신장 기능은 정상 범위이며, 두드러진 위험인자는 적지만 모델이 위험 신호를 감지한 단계입니다.\n"),
+    "D": (
+        "현재 신장 건강과 관련된 뚜렷한 위험 신호는 보이지 않습니다.\n"
+        "지금의 건강 상태를 유지할 수 있도록 정기적인 건강검진과 균형 잡힌 생활습관을 이어가세요.\n"
     ),
 }
 
@@ -146,194 +193,217 @@ M1_GROUP_MESSAGE = {
 
 # PLAIN_LABEL subset (ast·alt 제외)
 M2_LABEL = {
-    'bmi': '체질량지수(BMI)',
-    'waist_cm': '허리둘레',
-    'hdl_cholesterol': '고밀도 지단백(HDL)',
-    'ldl_cholesterol': '저밀도 지단백(LDL)',
-    'triglycerides': '중성지방',
-    'sitting_hours': '하루 앉아있는 시간',
-    'walking_days': '걷기(주)',
-    'moderate_days': '중강도 운동(주)',
-    'vigorous_days': '고강도 운동(주)',
-    'smoking_current': '흡연 여부',
+    "bmi": "체질량지수(BMI)",
+    "waist_cm": "허리둘레",
+    "hdl_cholesterol": "고밀도 지단백(HDL)",
+    "ldl_cholesterol": "저밀도 지단백(LDL)",
+    "triglycerides": "중성지방",
+    "sitting_hours": "하루 앉아있는 시간",
+    "walking_days": "걷기(주)",
+    "moderate_days": "중강도 운동(주)",
+    "vigorous_days": "고강도 운동(주)",
+    "smoking_current": "흡연 여부",
 }
 
 # CLINICAL_STAGES subset (ast·alt 제외)
 M2_STAGES = {
-    'bmi': {
-        'unit': '',
-        'target': '18.5–22.9',
-        'stages': [
-            (0, 18.5, '저체중', '#3498db'),
-            (18.5, 23.0, '정상', '#27ae60'),
-            (23.0, 25.0, '과체중', '#f39c12'),
-            (25.0, 30.0, '경도 비만', '#e67e22'),
-            (30.0, 35.0, '중등도 비만', '#e74c3c'),
-            (35.0, 999, '고도 비만', '#c0392b'),
+    "bmi": {
+        "unit": "",
+        "target": "18.5–22.9",
+        "stages": [
+            (0, 18.5, "저체중", "#3498db"),
+            (18.5, 23.0, "정상", "#27ae60"),
+            (23.0, 25.0, "과체중", "#f39c12"),
+            (25.0, 30.0, "경도 비만", "#e67e22"),
+            (30.0, 35.0, "중등도 비만", "#e74c3c"),
+            (35.0, 999, "고도 비만", "#c0392b"),
         ],
     },
-    'waist_cm': {
-        'unit': 'cm',
-        'target': {'M': '90 미만', 'F': '85 미만'},
-        'stages': {
-            'M': [(0, 90, '정상', '#27ae60'), (90, 999, '복부비만', '#e74c3c')],
-            'F': [(0, 85, '정상', '#27ae60'), (85, 999, '복부비만', '#e74c3c')],
+    "waist_cm": {
+        "unit": "cm",
+        "target": {"M": "90 미만", "F": "85 미만"},
+        "stages": {
+            "M": [(0, 90, "정상", "#27ae60"), (90, 999, "복부비만", "#e74c3c")],
+            "F": [(0, 85, "정상", "#27ae60"), (85, 999, "복부비만", "#e74c3c")],
         },
     },
-    'hdl_cholesterol': {
-        'unit': 'mg/dL',
-        'target': '60~90',
-        'stages': [
-            (0, 40, '낮음', '#e74c3c'),
-            (40, 60, '주의', '#f39c12'),
-            (60, 90, '적절', '#27ae60'),
-            (90, 999, '높음', '#2980b9'),
+    "hdl_cholesterol": {
+        "unit": "mg/dL",
+        "target": "60~90",
+        "stages": [
+            (0, 40, "낮음", "#e74c3c"),
+            (40, 60, "주의", "#f39c12"),
+            (60, 90, "적절", "#27ae60"),
+            (90, 999, "높음", "#2980b9"),
         ],
     },
-    'ldl_cholesterol': {
-        'unit': 'mg/dL',
-        'target': '100 미만',
-        'stages': [
-            (0, 100, '적절', '#27ae60'),
-            (100, 130, '거의 적절', '#2ecc71'),
-            (130, 160, '약간 높음', '#f39c12'),
-            (160, 190, '높음', '#e67e22'),
-            (190, 999, '아주 높음', '#e74c3c'),
+    "ldl_cholesterol": {
+        "unit": "mg/dL",
+        "target": "100 미만",
+        "stages": [
+            (0, 100, "적절", "#27ae60"),
+            (100, 130, "거의 적절", "#2ecc71"),
+            (130, 160, "약간 높음", "#f39c12"),
+            (160, 190, "높음", "#e67e22"),
+            (190, 999, "아주 높음", "#e74c3c"),
         ],
     },
-    'triglycerides': {
-        'unit': 'mg/dL',
-        'target': '150 미만',
-        'stages': [
-            (0, 150, '적정', '#27ae60'),
-            (150, 199, '경계', '#f39c12'),
-            (200, 499, '높음', '#e67e22'),
-            (500, 9999, '매우 높음', '#e74c3c'),
+    "triglycerides": {
+        "unit": "mg/dL",
+        "target": "150 미만",
+        "stages": [
+            (0, 150, "적정", "#27ae60"),
+            (150, 199, "경계", "#f39c12"),
+            (200, 499, "높음", "#e67e22"),
+            (500, 9999, "매우 높음", "#e74c3c"),
         ],
     },
-    'sitting_hours': {
-        'unit': '시간',
-        'target': '6시간 미만',
-        'stages': [
-            (0, 6, '적정', '#27ae60'),
-            (6, 8, '주의', '#f39c12'),
-            (8, 999, '위험', '#e74c3c'),
+    "sitting_hours": {
+        "unit": "시간",
+        "target": "6시간 미만",
+        "stages": [
+            (0, 6, "적정", "#27ae60"),
+            (6, 8, "주의", "#f39c12"),
+            (8, 999, "위험", "#e74c3c"),
         ],
     },
-    'walking_days': {
-        'unit': '일/주',
-        'target': '주 5일 이상',
-        'stages': [
-            (5, 99, '양호', '#27ae60'),
-            (3, 5, '부족', '#f39c12'),
-            (0, 3, '매우 부족', '#e74c3c'),
+    "walking_days": {
+        "unit": "일/주",
+        "target": "주 5일 이상",
+        "stages": [
+            (5, 99, "양호", "#27ae60"),
+            (3, 5, "부족", "#f39c12"),
+            (0, 3, "매우 부족", "#e74c3c"),
         ],
     },
-    'moderate_days': {
-        'unit': '일/주',
-        'target': '주 5일 이상',
-        'stages': [
-            (5, 99, '양호', '#27ae60'),
-            (3, 5, '부족', '#f39c12'),
-            (0, 3, '매우 부족', '#e74c3c'),
+    "moderate_days": {
+        "unit": "일/주",
+        "target": "주 5일 이상",
+        "stages": [
+            (5, 99, "양호", "#27ae60"),
+            (3, 5, "부족", "#f39c12"),
+            (0, 3, "매우 부족", "#e74c3c"),
         ],
     },
-    'vigorous_days': {
-        'unit': '일/주',
-        'target': '주 3일 이상',
-        'stages': [
-            (3, 99, '양호', '#27ae60'),
-            (1, 3, '부족', '#f39c12'),
-            (0, 1, '매우 부족', '#e74c3c'),
+    "vigorous_days": {
+        "unit": "일/주",
+        "target": "주 3일 이상",
+        "stages": [
+            (3, 99, "양호", "#27ae60"),
+            (1, 3, "부족", "#f39c12"),
+            (0, 1, "매우 부족", "#e74c3c"),
         ],
     },
-    'smoking_current': {
-        'unit': '',
-        'target': '비흡연',
-        'stages': [
-            (0, 0.5, '비흡연', '#27ae60'),
-            (0.5, 2, '흡연', '#e74c3c'),
+    "smoking_current": {
+        "unit": "",
+        "target": "비흡연",
+        "stages": [
+            (0, 0.5, "비흡연", "#27ae60"),
+            (0.5, 2, "흡연", "#e74c3c"),
         ],
     },
 }
 
 # NORMAL_RANGES_MAP subset (ast·alt 제외)
 M2_NORMAL_RANGES = {
-    'bmi': [18.5, 22.9],
-    'waist_cm': {'M': [0, 90], 'F': [0, 85]},
-    'hdl_cholesterol': [60, 90],
-    'ldl_cholesterol': [0, 100],
-    'triglycerides': [0, 150],
-    'sitting_hours': [0, 5.999],
-    'walking_days': [5, 99],
-    'moderate_days': [5, 99],
-    'vigorous_days': [3, 99],
-    'smoking_current': [0, 0.5],
+    "bmi": [18.5, 22.9],
+    "waist_cm": {"M": [0, 90], "F": [0, 85]},
+    "hdl_cholesterol": [60, 90],
+    "ldl_cholesterol": [0, 100],
+    "triglycerides": [0, 150],
+    "sitting_hours": [0, 5.999],
+    "walking_days": [5, 99],
+    "moderate_days": [5, 99],
+    "vigorous_days": [3, 99],
+    "smoking_current": [0, 0.5],
 }
 
 # IMPROVE_ACTION subset (ast·alt 제외)
 M2_IMPROVE_ACTION = {
-    'bmi': '채소 먼저 천천히 먹고 규칙적 운동으로 정상 체중을 목표로 해보세요.',
-    'waist_cm': '유산소 운동과 저탄수화물 식단으로 복부 지방을 줄여보세요.',
-    'hdl_cholesterol': '유산소 운동을 늘리고 금연하면 좋은 콜레스테롤을 높일 수 있어요.',
-    'ldl_cholesterol': '버터·삼겹살 등 포화지방을 줄이고 채소·통곡물 섭취를 늘려보세요.',
-    'triglycerides': '흰쌀·설탕·음주를 줄이면 중성지방 개선에 효과적이에요.',
-    'sitting_hours': '앉은 시간이 길수록 부담이 쌓여요. 1시간마다 일어나 움직여보세요.',
-    'walking_days': '주 5일, 하루 30분 빠르게 걷기를 목표로 해보세요.',
-    'moderate_days': '숨이 약간 찰 정도의 운동을 주 5일 해보세요.',
-    'vigorous_days': '숨이 많이 찰 정도의 운동을 주 3일 이상 해보세요.',
-    'smoking_current': '금연은 신장을 포함한 전반적 건강에 가장 큰 효과가 있어요.',
+    "bmi": "채소 먼저 천천히 먹고 규칙적 운동으로 정상 체중을 목표로 해보세요.",
+    "waist_cm": "유산소 운동과 저탄수화물 식단으로 복부 지방을 줄여보세요.",
+    "hdl_cholesterol": "유산소 운동을 늘리고 금연하면 좋은 콜레스테롤을 높일 수 있어요.",
+    "ldl_cholesterol": "버터·삼겹살 등 포화지방을 줄이고 채소·통곡물 섭취를 늘려보세요.",
+    "triglycerides": "흰쌀·설탕·음주를 줄이면 중성지방 개선에 효과적이에요.",
+    "sitting_hours": "앉은 시간이 길수록 부담이 쌓여요. 1시간마다 일어나 움직여보세요.",
+    "walking_days": "주 5일, 하루 30분 빠르게 걷기를 목표로 해보세요.",
+    "moderate_days": "숨이 약간 찰 정도의 운동을 주 5일 해보세요.",
+    "vigorous_days": "숨이 많이 찰 정도의 운동을 주 3일 이상 해보세요.",
+    "smoking_current": "금연은 신장을 포함한 전반적 건강에 가장 큰 효과가 있어요.",
 }
 
 # MAINTAIN_MSG subset (ast·alt 제외)
 M2_MAINTAIN_MSG = {
-    'bmi': '건강 체중',
-    'waist_cm': '복부비만 없음',
-    'hdl_cholesterol': '고밀도 지단백 양호',
-    'ldl_cholesterol': '저밀도 지단백 양호',
-    'triglycerides': '중성지방 정상',
-    'sitting_hours': '좌식시간 적정',
-    'walking_days': '걷기 양호',
-    'moderate_days': '중강도 운동 충분',
-    'vigorous_days': '고강도 운동 실천',
-    'smoking_current': '비흡연',
+    "bmi": "건강 체중",
+    "waist_cm": "복부비만 없음",
+    "hdl_cholesterol": "고밀도 지단백 양호",
+    "ldl_cholesterol": "저밀도 지단백 양호",
+    "triglycerides": "중성지방 정상",
+    "sitting_hours": "좌식시간 적정",
+    "walking_days": "걷기 양호",
+    "moderate_days": "중강도 운동 충분",
+    "vigorous_days": "고강도 운동 실천",
+    "smoking_current": "비흡연",
 }
 
 # STATUS_COLOR (모델2 노트북 그대로)
 M2_STATUS_COLOR = {
-    '적정': '#d5f5e3', '정상': '#d5f5e3', '양호': '#d5f5e3', '비흡연': '#d5f5e3',
-    '거의 적절': '#d5f5e3', '적절': '#d5f5e3',
-    '저체중': '#d6eaf8',
-    '주의': '#fef9e7', '경계': '#fef9e7', '부족': '#fef9e7', '과체중': '#fef9e7',
-    '약간 높음': '#fef9e7', '경도 비만': '#fdebd0',
-    '높음': '#fadbd8', '위험': '#fadbd8', '복부비만': '#fadbd8', '낮음': '#fadbd8',
-    '흡연': '#fadbd8', '매우 부족': '#fadbd8', '매우 높음': '#fadbd8',
-    '아주 높음': '#fadbd8', '중등도 비만': '#fadbd8', '고도 비만': '#fadbd8',
+    "적정": "#d5f5e3",
+    "정상": "#d5f5e3",
+    "양호": "#d5f5e3",
+    "비흡연": "#d5f5e3",
+    "거의 적절": "#d5f5e3",
+    "적절": "#d5f5e3",
+    "저체중": "#d6eaf8",
+    "주의": "#fef9e7",
+    "경계": "#fef9e7",
+    "부족": "#fef9e7",
+    "과체중": "#fef9e7",
+    "약간 높음": "#fef9e7",
+    "경도 비만": "#fdebd0",
+    "높음": "#fadbd8",
+    "위험": "#fadbd8",
+    "복부비만": "#fadbd8",
+    "낮음": "#fadbd8",
+    "흡연": "#fadbd8",
+    "매우 부족": "#fadbd8",
+    "매우 높음": "#fadbd8",
+    "아주 높음": "#fadbd8",
+    "중등도 비만": "#fadbd8",
+    "고도 비만": "#fadbd8",
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 모델1 함수
 # ──────────────────────────────────────────────────────────────────────────────
 
+# (항목, 라벨)별 status_level 예외 — 라벨 색과 의학적 의미가 다른 경우.
+# HDL '낮음' = 좋은 콜레스테롤 부족 → 심혈관 위험(danger). 크레아티닌·맥압 '낮음'은 양성이라 caution 유지.
+M1_STATUS_LEVEL_OVERRIDE: dict[tuple[str, str], str] = {
+    ("hdl_cholesterol", "낮음"): "danger",
+}
+
+
 def m1_status(feature: str, value: float, gender: int) -> tuple[str, str]:
     """(status_label, status_level) 반환.
     status_label: M1_STAGES 구간 매칭 결과 라벨
     status_level: 색 hex → 'good'/'info'/'caution'/'warnLight'/'danger'
+                  단 (항목,라벨) 예외(M1_STATUS_LEVEL_OVERRIDE)가 있으면 우선 적용
     gender: 1=남성, 0=여성
     """
     label = _m1_stage(feature, value, gender)
-    color = M1_STATUS_COLOR.get(label, '#fef9e7')
-    level = _COLOR_TO_LEVEL.get(color, 'caution')
-    return label, level
+    color = M1_STATUS_COLOR.get(label, "#fef9e7")
+    level = _COLOR_TO_LEVEL.get(color, "caution")
+    return label, M1_STATUS_LEVEL_OVERRIDE.get((feature, label), level)
 
 
 def _m1_stage(feature: str, value: float, gender: int) -> str:
     """M1_STAGES 구간 매칭 → 라벨 반환 (내부 헬퍼)."""
     if feature not in M1_STAGES:
-        return '기타'
+        return "기타"
     stages = M1_STAGES[feature][2]
     if isinstance(stages, dict):
-        stages = stages['M'] if gender == 1 else stages['F']
+        stages = stages["M"] if gender == 1 else stages["F"]
     for lo, hi, label in stages:
         if lo <= value < hi:
             return label
@@ -342,31 +412,31 @@ def _m1_stage(feature: str, value: float, gender: int) -> str:
 
 def m1_unit(feature: str) -> str:
     """단위 문자열 반환."""
-    return M1_STAGES.get(feature, ('', ''))[0]
+    return M1_STAGES.get(feature, ("", ""))[0]
 
 
 def m1_normal_range(feature: str, gender: int) -> str:
     """정상범위 표기 문자열 + 단위 반환. 예: '<120 mmHg'"""
     if feature not in M1_STAGES:
-        return '-'
+        return "-"
     unit = M1_STAGES[feature][0]
     target = M1_STAGES[feature][1]
     if isinstance(target, dict):
-        target_str = target['M'] if gender == 1 else target['F']
+        target_str = target["M"] if gender == 1 else target["F"]
     else:
         target_str = target
     if unit:
-        return f'{target_str} {unit}'
+        return f"{target_str} {unit}"
     return target_str
 
 
 def m1_format(feature: str, raw: float) -> str:
     """표시용 값 문자열 반환 (노트북 m1_fmt 이식)."""
-    if feature in {'urine_protein_qual', 'urine_glucose'}:
-        return '양성' if raw >= 1 else '음성'
-    if feature == 'smoking_current':
-        return {0: '비흡연', 1: '과거 흡연', 2: '현재 흡연'}.get(int(raw), str(int(raw)))
-    return f'{raw:.1f}'
+    if feature in {"urine_protein_qual", "urine_glucose"}:
+        return "양성" if raw >= 1 else "음성"
+    if feature == "smoking_current":
+        return {0: "비흡연", 1: "과거 흡연", 2: "현재 흡연"}.get(int(raw), str(int(raw)))
+    return f"{raw:.1f}"
 
 
 def m1_direction(feature: str, value: float, gender: int) -> str:
@@ -375,34 +445,34 @@ def m1_direction(feature: str, value: float, gender: int) -> str:
     smoking_current: 1 이상이면 'high', 0이면 'normal'.
     범위를 정의하기 어려운 항목(waist_height_ratio 등)은 stage 라벨로 판단.
     """
-    if feature == 'smoking_current':
-        return 'high' if value >= 1 else 'normal'
+    if feature == "smoking_current":
+        return "high" if value >= 1 else "normal"
 
     # 구간 기반으로 정상 구간 경계 추출
     normal_bounds = _m1_normal_bounds(feature, gender)
     if normal_bounds is None:
-        return 'normal'
+        return "normal"
 
     lo, hi = normal_bounds
     if value < lo:
-        return 'low'
+        return "low"
     if value > hi:
-        return 'high'
-    return 'normal'
+        return "high"
+    return "normal"
 
 
 def _m1_normal_bounds(feature: str, gender: int) -> tuple[float, float] | None:
     """M1_STAGES에서 '정상/적정/비흡연' 라벨 구간의 (lo, hi) 반환 (내부 헬퍼).
     정상 라벨이 여러 구간에 걸치거나 없으면 None.
     """
-    _normal_labels = {'정상', '적정', '비흡연', '음성'}
+    _normal_labels = {"정상", "적정", "비흡연", "음성"}
 
     if feature not in M1_STAGES:
         return None
 
     stages = M1_STAGES[feature][2]
     if isinstance(stages, dict):
-        stages = stages['M'] if gender == 1 else stages['F']
+        stages = stages["M"] if gender == 1 else stages["F"]
 
     # 특수 케이스: 단조 증가 위험 (waist_height_ratio, triglycerides 등 하한=0)
     # 정상 라벨 구간 탐색
@@ -417,35 +487,36 @@ def _m1_normal_bounds(feature: str, gender: int) -> tuple[float, float] | None:
 
 def m1_group_title(group: str) -> str:
     """그룹 코드 → 그룹 제목."""
-    return M1_GROUP_TITLE.get(group, '')
+    return M1_GROUP_TITLE.get(group, "")
 
 
 def m1_group_message(group: str) -> str:
     """그룹 코드 → 그룹 메시지."""
-    return M1_GROUP_MESSAGE.get(group, '')
+    return M1_GROUP_MESSAGE.get(group, "")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
 # 모델2 함수
 # ──────────────────────────────────────────────────────────────────────────────
 
+
 def m2_status(feature: str, value: float, gender: int) -> tuple[str, str]:
     """(status_label, status_level) 반환 (모델2 CLINICAL_STAGES 기반).
     gender: 1=남성, 0=여성
     """
     label, _ = _m2_get_stage(feature, value, gender)
-    color = M2_STATUS_COLOR.get(label, '#fef9e7')
-    level = _COLOR_TO_LEVEL.get(color, 'caution')
+    color = M2_STATUS_COLOR.get(label, "#fef9e7")
+    level = _COLOR_TO_LEVEL.get(color, "caution")
     return label, level
 
 
 def _m2_get_stage(feature: str, value: float, gender: int) -> tuple[str, str]:
     """M2_STAGES 구간 매칭 → (label, color) 반환 (내부 헬퍼)."""
     if feature not in M2_STAGES:
-        return '기타', '#888888'
-    stages = M2_STAGES[feature]['stages']
+        return "기타", "#888888"
+    stages = M2_STAGES[feature]["stages"]
     if isinstance(stages, dict):
-        stages = stages['M'] if gender == 1 else stages['F']
+        stages = stages["M"] if gender == 1 else stages["F"]
     for lo, hi, label, color in stages:
         if lo <= value < hi:
             return label, color
@@ -455,10 +526,10 @@ def _m2_get_stage(feature: str, value: float, gender: int) -> tuple[str, str]:
 def m2_normal_range(feature: str, gender: int) -> str:
     """정상범위 표기 문자열 반환 (모델2 target 기반)."""
     if feature not in M2_STAGES:
-        return '-'
-    target = M2_STAGES[feature]['target']
+        return "-"
+    target = M2_STAGES[feature]["target"]
     if isinstance(target, dict):
-        return target['M'] if gender == 1 else target['F']
+        return target["M"] if gender == 1 else target["F"]
     return target
 
 
@@ -468,7 +539,7 @@ def m2_in_normal(feature: str, value: float, gender: int) -> bool:
         return False
     r = M2_NORMAL_RANGES[feature]
     if isinstance(r, dict):
-        r = r['M'] if gender == 1 else r['F']
+        r = r["M"] if gender == 1 else r["F"]
     return r[0] <= value <= r[1]
 
 
@@ -479,9 +550,9 @@ def m2_label(feature: str) -> str:
 
 def m2_improve_action(feature: str) -> str:
     """개선 행동 메시지 반환."""
-    return M2_IMPROVE_ACTION.get(feature, '')
+    return M2_IMPROVE_ACTION.get(feature, "")
 
 
 def m2_maintain_msg(feature: str) -> str:
     """유지 메시지 반환."""
-    return M2_MAINTAIN_MSG.get(feature, '')
+    return M2_MAINTAIN_MSG.get(feature, "")

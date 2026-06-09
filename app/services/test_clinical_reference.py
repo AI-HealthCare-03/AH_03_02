@@ -3,6 +3,7 @@ clinical_reference.py 단위 테스트
 - 순수 모듈 테스트 (DB·외부 의존 없음)
 - app/tests/conftest.py 범위 밖에 위치 → 운영DB drop 위험 없음
 """
+
 from app.services.clinical_reference import (
     m1_direction,
     m1_format,
@@ -46,13 +47,13 @@ class TestM1Status:
         assert label == "주의"
         assert level == "caution"
 
-    def test_hdl_low_is_caution(self):
-        # 38 mg/dL → 0~40 구간 → '낮음' → #fef9e7(노트북 M1_STATUS_COLOR 원본) → caution
-        # 주의: plan doc은 HDL낮음=danger로 서술했으나 노트북 canonical dict '낮음'→#fef9e7
-        # 노트북 원본을 신뢰하여 caution 으로 검증 (plan doc 주석 불일치 → 노트북 우선)
+    def test_hdl_low_is_danger(self):
+        # 38 mg/dL → 0~40 구간 → '낮음'. HDL 낮음=좋은 콜레스테롤 부족→심혈관 위험.
+        # (항목,라벨) 예외 M1_STATUS_LEVEL_OVERRIDE로 danger 처리 (주니 결정 2026-06-09).
+        # 크레아티닌·맥압 '낮음'은 caution 유지(아래 별도 테스트).
         label, level = m1_status("hdl_cholesterol", 38, gender=1)
         assert label == "낮음"
-        assert level == "caution"
+        assert level == "danger"
 
     def test_creatinine_high_is_danger(self):
         # 1.42 mg/dL → 1.4~99 → '높음'
