@@ -7,3 +7,8 @@ WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'ckduser')\gexec
 -- 볼륨 재사용 등 엣지케이스 대비 조건부 추가 생성
 SELECT 'CREATE DATABASE ckd_challenge OWNER ckduser'
 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'ckd_challenge')\gexec
+
+-- pytest 전용 DB — dev DB(ckd_challenge) 와이프 방지용 격리
+-- conftest의 _ensure_test_database_exists 폴백도 있지만, 최초 부팅 시 미리 만들어두면 더 안전
+SELECT 'CREATE DATABASE ckd_challenge_test OWNER ckduser'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'ckd_challenge_test')\gexec
