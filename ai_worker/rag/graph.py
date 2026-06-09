@@ -111,9 +111,9 @@ def get_graph():
     return _graph
 
 
-def run(question: str, user_context: dict | None = None) -> str:
-    """단일 질문 실행 → 최종 답변 문자열 (차단 시 가드 응답)."""
-    init = {
+def _init_state(question: str, user_context: dict | None, token_sink=None) -> dict:  # noqa: ANN001
+    """그래프 초기 상태 딕셔너리 생성 헬퍼 (run·run_stream 공통)."""
+    return {
         "messages": [{"role": "user", "content": question}],
         "documents": [],
         "parent_context": "",
@@ -127,10 +127,23 @@ def run(question: str, user_context: dict | None = None) -> str:
         "blocked": None,
         "domain": "",
         "user_context": user_context or {},
+        "token_sink": token_sink,
     }
+
+
+def run(question: str, user_context: dict | None = None) -> str:
+    """단일 질문 실행 → 최종 답변 문자열 (차단 시 가드 응답)."""
     t0 = time.perf_counter()
-    final = get_graph().invoke(init)
+    final = get_graph().invoke(_init_state(question, user_context))
     logger.info("[RAG-TIMING] TOTAL graph.invoke elapsed=%.3fs", time.perf_counter() - t0)
+    return final.get("blocked") or final.get("generation", "")
+
+
+def run_stream(question: str, user_context: dict | None, sink) -> str:  # noqa: ANN001
+    """스트리밍용 실행 — generate가 sink로 토큰 방출. 최종 답변 문자열 반환(차단 시 가드 응답)."""
+    t0 = time.perf_counter()
+    final = get_graph().invoke(_init_state(question, user_context, sink))
+    logger.info("[RAG-TIMING] TOTAL graph.invoke(stream) elapsed=%.3fs", time.perf_counter() - t0)
     return final.get("blocked") or final.get("generation", "")
 
 
