@@ -120,18 +120,16 @@ function ShapImpactBars({
 }
 
 // ===== PeerDistributionCurve: 스무스 곡선 또래 분포 =====
+// distribution이 null/undefined일 때는 peerTopPct 기반 합성 종형 곡선으로 폴백
 function PeerDistributionCurve({
   distribution,
   peerTopPct,
   peerRelative,
 }: {
-  distribution: PeerDistribution;
+  distribution: PeerDistribution | null | undefined;
   peerTopPct: number | null;
   peerRelative: string | null;
 }) {
-  const { counts, edges, my_bin } = distribution;
-  if (counts.length === 0 || edges.length < 2) return null;
-
   // ---- 레이아웃 상수 ----
   const W = 320;
   const H = 140;
@@ -141,30 +139,19 @@ function PeerDistributionCurve({
   const PAD_B = 30;  // 하단 라벨 여백
   const CURVE_H = H - PAD_T - PAD_B; // 실제 곡선 영역 높이
 
-  const xMin = edges[0];
-  const xMax = edges[edges.length - 1];
-  const xRange = xMax - xMin;
+  // 합성 종형 곡선 포인트 생성 헬퍼 (x∈[0,100], 정규분포 형태)
+  // mu: 벨 피크 위치(0~100), sigma: 너비
+  const makeSyntheticBell = (mu: number, sigma: number, nPts = 20) => {
+    const pts: { x: number; y: number }[] = [];
+    for (let i = 0; i <= nPts; i++) {
+      const xVal = (i / nPts) * 100; // 0~100 범위
+      const yVal = Math.exp(-0.5 * Math.pow((xVal - mu) / sigma, 2));
+      pts.push({ x: xVal, y: yVal });
+    }
+    return pts;
+  };
 
-  // 빈 중심
-  const xc = counts.map((_, i) => (edges[i] + edges[i + 1]) / 2);
-  const maxCount = Math.max(...counts, 1);
-
-  // 좌표 변환
-  const toSvgX = (v: number) =>
-    PAD_L + ((v - xMin) / xRange) * (W - PAD_L - PAD_R);
-  const toSvgY = (c: number) =>
-    PAD_T + CURVE_H - (c / maxCount) * CURVE_H;
-
-  // ---- Catmull-Rom → cubic bezier 변환으로 스무스 커브 생성 ----
-  const pts = xc.map((x, i) => ({ x: toSvgX(x), y: toSvgY(counts[i]) }));
-
-  // 시작점/끝점 추가 (양 ends를 0으로 채워 곡선이 지면에 닿도록)
-  const allPts = [
-    { x: toSvgX(xMin), y: toSvgY(0) },
-    ...pts,
-    { x: toSvgX(xMax), y: toSvgY(0) },
-  ];
-
+  // Catmull-Rom → cubic bezier 변환 (실데이터/합성 공통)
   const catmullRomToBezier = (points: { x: number; y: number }[]) => {
     if (points.length < 2) return "";
     let d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
@@ -173,7 +160,6 @@ function PeerDistributionCurve({
       const p1 = points[i];
       const p2 = points[i + 1];
       const p3 = points[Math.min(i + 2, points.length - 1)];
-      // Catmull-Rom alpha=0.5 → 제어점
       const cp1x = p1.x + (p2.x - p0.x) / 6;
       const cp1y = p1.y + (p2.y - p0.y) / 6;
       const cp2x = p2.x - (p3.x - p1.x) / 6;
@@ -183,13 +169,6 @@ function PeerDistributionCurve({
     return d;
   };
 
-  const curvePath = catmullRomToBezier(allPts);
-  // 채우기 경로: 커브 + 바닥선으로 닫기
-  const fillPath =
-    curvePath +
-    ` L ${toSvgX(xMax).toFixed(2)} ${(PAD_T + CURVE_H).toFixed(2)}` +
-    ` L ${toSvgX(xMin).toFixed(2)} ${(PAD_T + CURVE_H).toFixed(2)} Z`;
-
   // ---- 구간 색상 (3등분) ----
   const thirdW = (W - PAD_L - PAD_R) / 3;
   const zones = [
@@ -198,18 +177,6 @@ function PeerDistributionCurve({
     { x: PAD_L + thirdW * 2, color: "#E24B4A", opacity: 0.10, label: "높음" },
   ];
 
-  // ---- 또래 평균 위치 ----
-  const totalCount = counts.reduce((s, c) => s + c, 0);
-  const weightedMeanX =
-    totalCount > 0
-      ? xc.reduce((s, x, i) => s + x * counts[i], 0) / totalCount
-      : (xMin + xMax) / 2;
-  const peerAvgSvgX = toSvgX(weightedMeanX);
-
-  // ---- 내 위치 ----
-  const myBinClamped = Math.min(Math.max(my_bin, 0), xc.length - 1);
-  const mySvgX = toSvgX(xc[myBinClamped]);
-
   // ---- 제목 문자열 ----
   const titleParts: string[] = [];
   if (peerTopPct !== null) titleParts.push(`상위 ${peerTopPct}%`);
@@ -217,105 +184,163 @@ function PeerDistributionCurve({
   const titleStr =
     "또래 비교" + (titleParts.length > 0 ? ` — ${titleParts.join(" · ")}` : "");
 
+  // ============================================================
+  // 실데이터 분기
+  // ============================================================
+  if (distribution && distribution.counts.length > 0 && distribution.edges.length >= 2) {
+    const { counts, edges, my_bin } = distribution;
+
+    const xMin = edges[0];
+    const xMax = edges[edges.length - 1];
+    const xRange = xMax - xMin;
+
+    const xc = counts.map((_, i) => (edges[i] + edges[i + 1]) / 2);
+    const maxCount = Math.max(...counts, 1);
+
+    const toSvgX = (v: number) =>
+      PAD_L + ((v - xMin) / xRange) * (W - PAD_L - PAD_R);
+    const toSvgY = (c: number) =>
+      PAD_T + CURVE_H - (c / maxCount) * CURVE_H;
+
+    const pts = xc.map((x, i) => ({ x: toSvgX(x), y: toSvgY(counts[i]) }));
+    const allPts = [
+      { x: toSvgX(xMin), y: toSvgY(0) },
+      ...pts,
+      { x: toSvgX(xMax), y: toSvgY(0) },
+    ];
+
+    const curvePath = catmullRomToBezier(allPts);
+    const fillPath =
+      curvePath +
+      ` L ${toSvgX(xMax).toFixed(2)} ${(PAD_T + CURVE_H).toFixed(2)}` +
+      ` L ${toSvgX(xMin).toFixed(2)} ${(PAD_T + CURVE_H).toFixed(2)} Z`;
+
+    const totalCount = counts.reduce((s, c) => s + c, 0);
+    const weightedMeanX =
+      totalCount > 0
+        ? xc.reduce((s, x, i) => s + x * counts[i], 0) / totalCount
+        : (xMin + xMax) / 2;
+    const peerAvgSvgX = toSvgX(weightedMeanX);
+
+    const myBinClamped = Math.min(Math.max(my_bin, 0), xc.length - 1);
+    const mySvgX = toSvgX(xc[myBinClamped]);
+
+    return (
+      <div className="flex flex-col gap-[6px] rounded-md border border-border bg-bg p-[12px]">
+        <p className="text-sm font-bold text-text-primary">{titleStr}</p>
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          width="100%"
+          style={{ display: "block", overflow: "visible" }}
+          aria-label="또래 생활습관 분포 곡선"
+        >
+          {zones.map((z, i) => (
+            <rect key={i} x={z.x} y={PAD_T} width={thirdW} height={CURVE_H} fill={z.color} fillOpacity={z.opacity} />
+          ))}
+          {zones.map((z, i) => (
+            <text key={`lbl-${i}`} x={z.x + thirdW / 2} y={PAD_T + CURVE_H + 13} textAnchor="middle" fontSize="9" fill="#999">
+              {z.label}
+            </text>
+          ))}
+          <path d={fillPath} fill="#378ADD" fillOpacity={0.16} />
+          <path d={curvePath} fill="none" stroke="#185FA5" strokeWidth="2.5" strokeLinejoin="round" />
+          <line x1={peerAvgSvgX} y1={PAD_T} x2={peerAvgSvgX} y2={PAD_T + CURVE_H} stroke="#888" strokeWidth="1.5" strokeDasharray="4 3" />
+          <text x={peerAvgSvgX} y={PAD_T - 4} textAnchor="middle" fontSize="8" fill="#888">또래 평균</text>
+          <line x1={mySvgX} y1={PAD_T} x2={mySvgX} y2={PAD_T + CURVE_H} stroke="#e74c3c" strokeWidth="2.5" />
+          <text x={mySvgX} y={PAD_T - 4} textAnchor="middle" fontSize="9" fontWeight="bold" fill="#e74c3c">나</text>
+        </svg>
+        <div className="flex justify-between">
+          <span className="text-[10px] text-text-muted">← 위험 요인 적음</span>
+          <span className="text-[10px] text-text-muted">위험 요인 많음 →</span>
+        </div>
+        <p className="text-[11px] leading-[1.5] text-text-muted">
+          같은 나이대와 비교해 생활습관이 건강에 주는 부담 정도입니다.
+          오른쪽일수록 또래보다 관리가 필요한 요인이 많음을 의미합니다.
+        </p>
+        <p className="text-[11px] leading-[1.5] text-text-muted">
+          ※ 질환이 있다는 의미가 아니며, 의학적 진단·발병 확률이 아닙니다.
+        </p>
+      </div>
+    );
+  }
+
+  // ============================================================
+  // 합성 종형 곡선 폴백 (distribution 없을 때)
+  // peerTopPct가 높을수록(예: 상위 90%) → 오른쪽(위험 많음) 쪽에 "나" 마커
+  // mySvgX 위치 = 100 - peerTopPct (상위 10% → x=90, 상위 80% → x=20)
+  // ============================================================
+  if (peerTopPct === null) {
+    return (
+      <p className="text-xs text-text-muted">또래 비교 데이터가 없습니다.</p>
+    );
+  }
+
+  // 합성 벨 곡선: 피크는 x=40 (살짝 왼쪽 쏠린 종형), sigma=22
+  const SYNTH_MU = 40;
+  const SYNTH_SIGMA = 22;
+  const syntheticPts = makeSyntheticBell(SYNTH_MU, SYNTH_SIGMA);
+
+  // SVG 좌표 변환 (x: 0~100 → SVG, y: 0~1 → SVG)
+  const toSvgXSynth = (v: number) => PAD_L + (v / 100) * (W - PAD_L - PAD_R);
+  const toSvgYSynth = (c: number) => PAD_T + CURVE_H - c * CURVE_H;
+
+  const svgPts = syntheticPts.map((p) => ({ x: toSvgXSynth(p.x), y: toSvgYSynth(p.y) }));
+  const allSvgPts = [
+    { x: toSvgXSynth(0), y: toSvgYSynth(0) },
+    ...svgPts,
+    { x: toSvgXSynth(100), y: toSvgYSynth(0) },
+  ];
+
+  const curvePath = catmullRomToBezier(allSvgPts);
+  const fillPath =
+    curvePath +
+    ` L ${toSvgXSynth(100).toFixed(2)} ${(PAD_T + CURVE_H).toFixed(2)}` +
+    ` L ${toSvgXSynth(0).toFixed(2)} ${(PAD_T + CURVE_H).toFixed(2)} Z`;
+
+  // 또래 평균 = 벨 피크(SYNTH_MU)
+  const peerAvgSvgX = toSvgXSynth(SYNTH_MU);
+
+  // 내 위치: 상위 peerTopPct% → x = 100 - peerTopPct (클수록 오른쪽)
+  const myX = Math.min(Math.max(100 - peerTopPct, 0), 100);
+  const mySvgX = toSvgXSynth(myX);
+
   return (
     <div className="flex flex-col gap-[6px] rounded-md border border-border bg-bg p-[12px]">
-      {/* 제목 */}
       <p className="text-sm font-bold text-text-primary">{titleStr}</p>
-
-      {/* SVG 차트 */}
       <svg
         viewBox={`0 0 ${W} ${H}`}
         width="100%"
         style={{ display: "block", overflow: "visible" }}
-        aria-label="또래 생활습관 분포 곡선"
+        aria-label="또래 생활습관 분포 곡선 (개략)"
       >
-        {/* 배경 구간 색 */}
         {zones.map((z, i) => (
-          <rect
-            key={i}
-            x={z.x}
-            y={PAD_T}
-            width={thirdW}
-            height={CURVE_H}
-            fill={z.color}
-            fillOpacity={z.opacity}
-          />
+          <rect key={i} x={z.x} y={PAD_T} width={thirdW} height={CURVE_H} fill={z.color} fillOpacity={z.opacity} />
         ))}
-
-        {/* 구간 라벨 (하단) */}
         {zones.map((z, i) => (
-          <text
-            key={`lbl-${i}`}
-            x={z.x + thirdW / 2}
-            y={PAD_T + CURVE_H + 13}
-            textAnchor="middle"
-            fontSize="9"
-            fill="#999"
-          >
+          <text key={`lbl-${i}`} x={z.x + thirdW / 2} y={PAD_T + CURVE_H + 13} textAnchor="middle" fontSize="9" fill="#999">
             {z.label}
           </text>
         ))}
-
-        {/* 곡선 채우기 */}
         <path d={fillPath} fill="#378ADD" fillOpacity={0.16} />
-
-        {/* 곡선 선 */}
         <path d={curvePath} fill="none" stroke="#185FA5" strokeWidth="2.5" strokeLinejoin="round" />
-
-        {/* 또래 평균 점선 */}
-        <line
-          x1={peerAvgSvgX}
-          y1={PAD_T}
-          x2={peerAvgSvgX}
-          y2={PAD_T + CURVE_H}
-          stroke="#888"
-          strokeWidth="1.5"
-          strokeDasharray="4 3"
-        />
-        <text
-          x={peerAvgSvgX}
-          y={PAD_T - 4}
-          textAnchor="middle"
-          fontSize="8"
-          fill="#888"
-        >
-          또래 평균
-        </text>
-
-        {/* 내 위치 실선 */}
-        <line
-          x1={mySvgX}
-          y1={PAD_T}
-          x2={mySvgX}
-          y2={PAD_T + CURVE_H}
-          stroke="#e74c3c"
-          strokeWidth="2.5"
-        />
-        <text
-          x={mySvgX}
-          y={PAD_T - 4}
-          textAnchor="middle"
-          fontSize="9"
-          fontWeight="bold"
-          fill="#e74c3c"
-        >
-          나
-        </text>
+        <line x1={peerAvgSvgX} y1={PAD_T} x2={peerAvgSvgX} y2={PAD_T + CURVE_H} stroke="#888" strokeWidth="1.5" strokeDasharray="4 3" />
+        <text x={peerAvgSvgX} y={PAD_T - 4} textAnchor="middle" fontSize="8" fill="#888">또래 평균</text>
+        <line x1={mySvgX} y1={PAD_T} x2={mySvgX} y2={PAD_T + CURVE_H} stroke="#e74c3c" strokeWidth="2.5" />
+        <text x={mySvgX} y={PAD_T - 4} textAnchor="middle" fontSize="9" fontWeight="bold" fill="#e74c3c">나</text>
       </svg>
-
-      {/* 하단 방향 캡션 */}
       <div className="flex justify-between">
         <span className="text-[10px] text-text-muted">← 위험 요인 적음</span>
         <span className="text-[10px] text-text-muted">위험 요인 많음 →</span>
       </div>
-
-      {/* 설명 캡션 */}
       <p className="text-[11px] leading-[1.5] text-text-muted">
         같은 나이대와 비교해 생활습관이 건강에 주는 부담 정도입니다.
         오른쪽일수록 또래보다 관리가 필요한 요인이 많음을 의미합니다.
       </p>
       <p className="text-[11px] leading-[1.5] text-text-muted">
         ※ 질환이 있다는 의미가 아니며, 의학적 진단·발병 확률이 아닙니다.
+      </p>
+      <p className="text-[11px] leading-[1.5] text-text-muted">
+        ※ 또래 분포 데이터가 없어 위치만 개략 표시합니다.
       </p>
     </div>
   );
@@ -830,57 +855,6 @@ function ReportMetaCard({ meta }: { meta: ReportMeta | null | undefined }) {
   );
 }
 
-// ===== 또래 비교 게이지 (peer_distribution 없을 때 폴백) =====
-function PeerGauge({
-  peerTopPct,
-  peerRelative,
-}: {
-  peerTopPct: number | null;
-  peerRelative: string | null;
-}) {
-  if (peerTopPct === null && peerRelative === null) {
-    return (
-      <p className="text-xs text-text-muted">또래 비교 데이터가 없습니다.</p>
-    );
-  }
-
-  const pct = peerTopPct ?? 50;
-  // 게이지: 상위 pct%를 오른쪽에서 채움 (상위 10% → 90% fill)
-  const fillWidth = Math.min(100, Math.max(0, 100 - pct));
-  const levelColor =
-    peerRelative === "상"
-      ? "#16A34A"
-      : peerRelative === "중"
-      ? "#D97706"
-      : "#DC2626";
-
-  return (
-    <div className="flex flex-col gap-[6px] rounded-md border border-border bg-bg p-[12px]">
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-bold text-text-primary">또래 생활습관 비교</p>
-        {peerRelative && (
-          <span
-            className="rounded-full px-[8px] py-[2px] text-xs font-bold text-white"
-            style={{ backgroundColor: levelColor }}
-          >
-            {peerRelative}
-          </span>
-        )}
-      </div>
-      <div className="h-[8px] w-full rounded-sm bg-placeholder">
-        <div
-          className="h-full rounded-sm transition-all duration-300"
-          style={{ width: `${fillWidth}%`, backgroundColor: levelColor }}
-        />
-      </div>
-      {peerTopPct !== null && (
-        <p className="text-xs text-text-muted">
-          같은 연령대 상위 {peerTopPct}%{peerRelative ? ` · ${peerRelative}` : ""}
-        </p>
-      )}
-    </div>
-  );
-}
 
 const GUIDE_TIMEOUT_MS = 45000; // 가이드 선생성 대기 상한(~25s 생성 + 여유)
 
@@ -1009,7 +983,7 @@ export function LLMActionGuidePage() {
           ══════════════════════════════════════ */}
           <section className="flex flex-col gap-[16px]">
             <SectionHeading
-              title="모델1 · 임상 위험 분석"
+              title="CKD 위험 분석"
               subtitle="혈액·신체 계측 기반 CKD 선별 위험 요인"
             />
 
@@ -1056,7 +1030,7 @@ export function LLMActionGuidePage() {
           ══════════════════════════════════════ */}
           <section className="flex flex-col gap-[16px]">
             <SectionHeading
-              title="모델2 · 생활습관 분석"
+              title="생활습관 분석"
               subtitle="음주·흡연·운동·식이·수면 등 생활습관 위험 요인"
             />
 
@@ -1095,18 +1069,15 @@ export function LLMActionGuidePage() {
                   />
                 )}
 
-                {/* 또래 비교: 스무스 분포곡선 우선, 없으면 게이지 폴백 */}
-                {model2.peer_distribution ? (
+                {/* 또래 비교: 항상 곡선 표시 (분포 데이터 없을 시 합성 종형 곡선 폴백) */}
+                {(model2.peer_distribution || model2.peer_top_pct !== null) ? (
                   <PeerDistributionCurve
-                    distribution={model2.peer_distribution}
+                    distribution={model2.peer_distribution ?? null}
                     peerTopPct={model2.peer_top_pct}
                     peerRelative={model2.peer_relative}
                   />
                 ) : (
-                  <PeerGauge
-                    peerTopPct={model2.peer_top_pct}
-                    peerRelative={model2.peer_relative}
-                  />
+                  <p className="text-xs text-text-muted">또래 비교 데이터가 없습니다.</p>
                 )}
 
                 {/* Phase C: 생활습관 핵심 요약 카드 */}
