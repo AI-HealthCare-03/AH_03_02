@@ -4,7 +4,16 @@ from typing import Annotated
 from pydantic import AfterValidator, BaseModel, EmailStr, Field
 
 from app.core.validators import validate_birthday, validate_password, validate_phone_number
+from app.models.user_consent import ConsentType
 from app.models.users import Gender
+
+
+class ConsentItem(BaseModel):
+    """회원가입 시 약관 동의 1건."""
+
+    consent_type: ConsentType
+    version: Annotated[str, Field(max_length=20)] = "v1"
+    agreed: bool
 
 
 class SignUpRequest(BaseModel):
@@ -17,6 +26,9 @@ class SignUpRequest(BaseModel):
     gender: Gender
     birth_date: Annotated[date, AfterValidator(validate_birthday)]
     phone_number: Annotated[str, AfterValidator(validate_phone_number)]
+    # 약관 동의 — 필수 3종(TERMS_OF_SERVICE·PRIVACY_INFO·SENSITIVE_HEALTH) 모두 agreed=True여야 가입 가능
+    # 백워드 호환을 위해 기본값 빈 리스트 — 신규 클라이언트만 채워 보냄
+    consents: list[ConsentItem] = Field(default_factory=list)
 
 
 class LoginRequest(BaseModel):

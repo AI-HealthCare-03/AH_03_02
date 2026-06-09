@@ -9,6 +9,12 @@ export interface LoginResponse {
   access_token: string;
 }
 
+export interface ConsentItem {
+  consent_type: "TERMS_OF_SERVICE" | "PRIVACY_INFO" | "SENSITIVE_HEALTH" | "MARKETING";
+  version: string;
+  agreed: boolean;
+}
+
 export interface SignUpRequest {
   email: string;
   password: string;
@@ -16,6 +22,7 @@ export interface SignUpRequest {
   gender: "MALE" | "FEMALE";
   birth_date: string;
   phone_number: string;
+  consents?: ConsentItem[];
 }
 
 export interface UserInfo {
