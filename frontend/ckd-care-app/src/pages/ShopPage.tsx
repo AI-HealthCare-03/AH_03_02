@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Coins, History, ShieldCheck, Zap, Palette, PawPrint } from "lucide-react";
+import { Coins, History, ShieldCheck, Zap, Palette, PawPrint, Lock } from "lucide-react";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
-import { gamificationApi, pointsApi, type InventoryResponse, type ItemCode } from "../api/gamification";
+import { gamificationApi, pointsApi, type InventoryResponse, type ItemCode, type MascotResponse } from "../api/gamification";
 
 interface ShopItem {
   code: ItemCode;
@@ -12,6 +12,7 @@ interface ShopItem {
   description: string;
   maxQty?: number;
   icon: React.ComponentType<{ size?: number; className?: string }>;
+  requiredStage?: number; // 동물 스킨 진화 게이팅 — 누적 최고 단계 >= 이 값이어야 구매 가능
 }
 
 const ITEMS: { [category: string]: ShopItem[] } = {
@@ -43,25 +44,45 @@ const ITEMS: { [category: string]: ShopItem[] } = {
   ],
   스킨대: [{ code: "SKIN_L_GOLD", name: "골드 스킨 (대)", price: 1200, description: "시즌 한정", maxQty: 1, icon: Palette }],
   "동물 스킨 (1단계)": [
-    { code: "SKIN_TURTLE_1", name: "거북이 (1단계)", price: 400, description: "느긋한 거북이로 변신. 장착 시 알이 거북이 1단계로 표시.", maxQty: 1, icon: PawPrint },
-    { code: "SKIN_PENGUIN_1", name: "펭귄 (1단계)", price: 400, description: "귀여운 펭귄으로 변신. 장착 시 알이 펭귄 1단계로 표시.", maxQty: 1, icon: PawPrint },
-    { code: "SKIN_SQUIRREL_1", name: "다람쥐 (1단계)", price: 400, description: "활발한 다람쥐로 변신. 장착 시 알이 다람쥐 1단계로 표시.", maxQty: 1, icon: PawPrint },
-    { code: "SKIN_RABBIT_1", name: "토끼 (1단계)", price: 400, description: "발랄한 토끼로 변신. 장착 시 알이 토끼 1단계로 표시.", maxQty: 1, icon: PawPrint },
-    { code: "SKIN_PANDA_1", name: "판다 (1단계)", price: 400, description: "느긋한 판다로 변신. 장착 시 알이 판다 1단계로 표시.", maxQty: 1, icon: PawPrint },
+    { code: "SKIN_TURTLE_1", name: "거북이 (1단계)", price: 400, description: "느긋한 거북이로 변신.", maxQty: 1, icon: PawPrint, requiredStage: 1 },
+    { code: "SKIN_PENGUIN_1", name: "펭귄 (1단계)", price: 400, description: "귀여운 펭귄으로 변신.", maxQty: 1, icon: PawPrint, requiredStage: 1 },
+    { code: "SKIN_SQUIRREL_1", name: "다람쥐 (1단계)", price: 400, description: "활발한 다람쥐로 변신.", maxQty: 1, icon: PawPrint, requiredStage: 1 },
+    { code: "SKIN_RABBIT_1", name: "토끼 (1단계)", price: 400, description: "발랄한 토끼로 변신.", maxQty: 1, icon: PawPrint, requiredStage: 1 },
+    { code: "SKIN_PANDA_1", name: "판다 (1단계)", price: 400, description: "느긋한 판다로 변신.", maxQty: 1, icon: PawPrint, requiredStage: 1 },
+  ],
+  "동물 스킨 (2단계)": [
+    { code: "SKIN_TURTLE_2", name: "거북이 (2단계)", price: 700, description: "성장한 거북이 모습. 2단계 진화 후 해제.", maxQty: 1, icon: PawPrint, requiredStage: 2 },
+    { code: "SKIN_PENGUIN_2", name: "펭귄 (2단계)", price: 700, description: "성장한 펭귄 모습. 2단계 진화 후 해제.", maxQty: 1, icon: PawPrint, requiredStage: 2 },
+    { code: "SKIN_SQUIRREL_2", name: "다람쥐 (2단계)", price: 700, description: "성장한 다람쥐 모습. 2단계 진화 후 해제.", maxQty: 1, icon: PawPrint, requiredStage: 2 },
+    { code: "SKIN_RABBIT_2", name: "토끼 (2단계)", price: 700, description: "성장한 토끼 모습. 2단계 진화 후 해제.", maxQty: 1, icon: PawPrint, requiredStage: 2 },
+    { code: "SKIN_PANDA_2", name: "판다 (2단계)", price: 700, description: "성장한 판다 모습. 2단계 진화 후 해제.", maxQty: 1, icon: PawPrint, requiredStage: 2 },
+  ],
+  "동물 스킨 (완전체)": [
+    { code: "SKIN_TURTLE_3", name: "거북이 (완전체)", price: 1200, description: "완전체 거북이. 3단계 진화 후 해제.", maxQty: 1, icon: PawPrint, requiredStage: 3 },
+    { code: "SKIN_PENGUIN_3", name: "펭귄 (완전체)", price: 1200, description: "완전체 펭귄. 3단계 진화 후 해제.", maxQty: 1, icon: PawPrint, requiredStage: 3 },
+    { code: "SKIN_SQUIRREL_3", name: "다람쥐 (완전체)", price: 1200, description: "완전체 다람쥐. 3단계 진화 후 해제.", maxQty: 1, icon: PawPrint, requiredStage: 3 },
+    { code: "SKIN_RABBIT_3", name: "토끼 (완전체)", price: 1200, description: "완전체 토끼. 3단계 진화 후 해제.", maxQty: 1, icon: PawPrint, requiredStage: 3 },
+    { code: "SKIN_PANDA_3", name: "판다 (완전체)", price: 1200, description: "완전체 판다. 3단계 진화 후 해제.", maxQty: 1, icon: PawPrint, requiredStage: 3 },
   ],
 };
 
 export function ShopPage() {
   const [balance, setBalance] = useState(0);
   const [inventory, setInventory] = useState<InventoryResponse | null>(null);
+  const [mascot, setMascot] = useState<MascotResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState<ItemCode | null>(null);
   const [message, setMessage] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
 
   async function reload() {
-    const [bal, inv] = await Promise.all([pointsApi.getBalance(), gamificationApi.getInventory()]);
+    const [bal, inv, m] = await Promise.all([
+      pointsApi.getBalance(),
+      gamificationApi.getInventory(),
+      gamificationApi.getMascot(),
+    ]);
     setBalance(bal.balance);
     setInventory(inv);
+    setMascot(m);
   }
 
   useEffect(() => {
@@ -140,10 +161,17 @@ export function ShopPage() {
                 const owned = qtyOf(item.code);
                 const isCapped = item.maxQty !== undefined && owned >= item.maxQty;
                 const cantAfford = balance < item.price;
-                const disabled = isCapped || cantAfford || purchasing === item.code;
+                const maxStage = mascot?.max_stage_ever ?? 0;
+                const isLocked = item.requiredStage !== undefined && maxStage < item.requiredStage;
+                const disabled = isCapped || cantAfford || isLocked || purchasing === item.code;
                 const Icon = item.icon;
                 return (
-                  <div key={item.code} className="flex items-start gap-[12px] rounded-md border border-border bg-bg p-[16px]">
+                  <div
+                    key={item.code}
+                    className={`flex items-start gap-[12px] rounded-md border p-[16px] ${
+                      isLocked ? "border-border bg-bg-alt opacity-70" : "border-border bg-bg"
+                    }`}
+                  >
                     <Icon size={28} className="shrink-0 text-text-secondary" />
                     <div className="flex-1">
                       <div className="flex items-start justify-between">
@@ -155,13 +183,26 @@ export function ShopPage() {
                         )}
                       </div>
                       <p className="mt-1 text-xs text-text-muted">{item.description}</p>
+                      {isLocked && (
+                        <p className="mt-1 flex items-center gap-1 text-xs font-bold text-warning">
+                          <Lock size={12} />
+                          {item.requiredStage}단계 진화 시 잠금 해제 (현재 누적 최고 {maxStage}단계)
+                        </p>
+                      )}
                       <button
                         onClick={() => handlePurchase(item.code)}
                         disabled={disabled}
+                        title={isLocked ? `${item.requiredStage}단계 진화 후 구매 가능` : undefined}
                         className="mt-2 flex items-center gap-1 rounded-md border border-accent px-3 py-1.5 text-sm text-accent hover:bg-accent hover:text-bg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-accent"
                       >
-                        <Coins size={14} />
-                        {isCapped ? "보유 최대" : cantAfford ? `${item.price}pt (부족)` : `${item.price}pt 구매`}
+                        {isLocked ? <Lock size={14} /> : <Coins size={14} />}
+                        {isLocked
+                          ? `잠김 (${item.requiredStage}단계 필요)`
+                          : isCapped
+                          ? "보유 최대"
+                          : cantAfford
+                          ? `${item.price}pt (부족)`
+                          : `${item.price}pt 구매`}
                       </button>
                     </div>
                   </div>

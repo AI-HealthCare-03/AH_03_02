@@ -4,6 +4,7 @@ import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 import {
   ANIMAL_SKIN_TO_SPECIES,
+  ANIMAL_SKIN_TO_STAGE,
   gamificationApi,
   SKIN_LABEL,
   SPECIES_LABEL,
@@ -20,11 +21,9 @@ const SKIN_ITEM_CODES: ItemCode[] = [
   "SKIN_M_RED",
   "SKIN_M_PURPLE",
   "SKIN_L_GOLD",
-  "SKIN_TURTLE_1",
-  "SKIN_PENGUIN_1",
-  "SKIN_SQUIRREL_1",
-  "SKIN_RABBIT_1",
-  "SKIN_PANDA_1",
+  "SKIN_TURTLE_1", "SKIN_PENGUIN_1", "SKIN_SQUIRREL_1", "SKIN_RABBIT_1", "SKIN_PANDA_1",
+  "SKIN_TURTLE_2", "SKIN_PENGUIN_2", "SKIN_SQUIRREL_2", "SKIN_RABBIT_2", "SKIN_PANDA_2",
+  "SKIN_TURTLE_3", "SKIN_PENGUIN_3", "SKIN_SQUIRREL_3", "SKIN_RABBIT_3", "SKIN_PANDA_3",
 ];
 
 export function CollectionPage() {
@@ -260,6 +259,7 @@ function SkinCard({
   onEquip: () => void;
 }) {
   const animalSpecies = code ? ANIMAL_SKIN_TO_SPECIES[code] : null;
+  const animalStage = code ? ANIMAL_SKIN_TO_STAGE[code] ?? 1 : 1;
   return (
     <div
       className={`flex flex-col items-center gap-[8px] rounded-md border-2 p-[12px] ${
@@ -268,7 +268,7 @@ function SkinCard({
     >
       <div className={`flex h-[60px] w-[60px] items-center justify-center overflow-hidden rounded-full ${color}`}>
         {animalSpecies ? (
-          <CharacterImage species={animalSpecies} stage={1} size={52} emojiClass="text-3xl" />
+          <CharacterImage species={animalSpecies} stage={animalStage} size={52} emojiClass="text-3xl" />
         ) : (
           <Sparkles size={24} className="text-text-secondary" />
         )}

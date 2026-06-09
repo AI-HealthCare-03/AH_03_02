@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ANIMAL_SKIN_TO_SPECIES, gamificationApi, PROFICIENCY_LABEL, type MascotResponse } from "../api/gamification";
+import { ANIMAL_SKIN_TO_SPECIES, ANIMAL_SKIN_TO_STAGE, gamificationApi, PROFICIENCY_LABEL, type MascotResponse } from "../api/gamification";
 import { BackgroundImage } from "./BackgroundImage";
 import { CharacterImage } from "./CharacterImage";
 
@@ -63,9 +63,10 @@ export function EggWidget() {
 
   // 동물 스킨 장착 시 표시 species/stage override (실제 진행 데이터는 유지)
   const skinSpecies = data.skin_active ? ANIMAL_SKIN_TO_SPECIES[data.skin_active] ?? null : null;
+  const skinStage = data.skin_active ? ANIMAL_SKIN_TO_STAGE[data.skin_active] ?? null : null;
   const displaySpecies = skinSpecies ?? egg.species;
   const stageIdx = Math.max(0, Math.min(egg.current_stage, 3));
-  const displayStage = skinSpecies ? 1 : stageIdx;
+  const displayStage = skinStage ?? stageIdx;
   const label = STAGE_LABEL[stageIdx];
   const progress = egg.progress_checkins;
   const percentToGoal = Math.round((progress / GOAL_CHECKINS) * 100);
