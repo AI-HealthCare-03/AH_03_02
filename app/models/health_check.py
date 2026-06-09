@@ -52,6 +52,8 @@ class HealthCheck(models.Model):
     # SHAP 리포트 (ai_worker 예측 job이 비동기로 채움)
     shap_model1 = fields.JSONField(null=True, description="모델1 위험변수 SHAP Top-N")
     shap_model2 = fields.JSONField(null=True, description="모델2 생활습관 SHAP + 또래비교")
+    # AI 행동 가이드 (ai_worker가 예측 직후 비동기 선생성·저장 — 리포트는 읽기만)
+    ai_guide = fields.TextField(null=True, description="RAG 기반 AI 행동 가이드(선생성 캐시)")
 
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
