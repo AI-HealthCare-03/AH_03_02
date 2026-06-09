@@ -8,6 +8,7 @@ import {
   healthCheckApi,
   ShapItem1,
   LifestyleShapItem,
+  LifestyleItem,
   PeerDistribution,
   ClinicalItem,
   ReportMeta,
@@ -267,6 +268,189 @@ function ClinicalDetailTable({ items }: { items: ClinicalItem[] }) {
           })}
         </div>
       ))}
+    </div>
+  );
+}
+
+// ===== 생활습관 핵심 요약 카드 =====
+// NOTE: 백엔드에 domain 필드가 아직 없어 식이/운동/기타 도메인 분류는 생략.
+//       improve / maintain 그룹 기준으로만 표시.
+function LifestyleSummaryCard({ items }: { items: LifestyleItem[] }) {
+  const improveItems = items.filter((it) => it.group === "improve");
+  const maintainItems = items.filter((it) => it.group === "maintain");
+
+  if (items.length === 0) return null;
+
+  return (
+    <div className="flex flex-col gap-[10px] rounded-md border border-border bg-bg p-[14px]">
+      {/* 제목 + 요약 카운트 */}
+      <div className="flex flex-wrap items-center gap-[8px]">
+        <p className="text-sm font-bold text-text-primary">건강 상태 핵심 요약</p>
+        <span
+          className="rounded-full px-[7px] py-[2px] text-xs font-semibold"
+          style={{ backgroundColor: "#fee2e2", color: "#DC2626" }}
+        >
+          개선 필요 {improveItems.length}개
+        </span>
+        <span
+          className="rounded-full px-[7px] py-[2px] text-xs font-semibold"
+          style={{ backgroundColor: "#dcfce7", color: "#16A34A" }}
+        >
+          잘 관리됨 {maintainItems.length}개
+        </span>
+      </div>
+
+      {/* 개선 필요 섹션 */}
+      {improveItems.length > 0 && (
+        <div className="flex flex-col gap-[6px]">
+          <p className="text-xs font-semibold text-[#DC2626]">🔴 개선이 필요한 항목</p>
+          <ul className="flex flex-col gap-[5px]">
+            {improveItems.map((it) => (
+              <li key={it.feature} className="flex items-start gap-[6px]">
+                <span className="mt-[4px] h-[6px] w-[6px] shrink-0 rounded-full bg-[#DC2626]" />
+                <span className="text-sm leading-[1.6] text-text-secondary">
+                  <span className="font-medium text-text-primary">{it.label}</span>
+                  {it.action ? ` — ${it.action}` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* 잘 관리됨 섹션 */}
+      {maintainItems.length > 0 && (
+        <div className="flex flex-col gap-[4px]">
+          <p className="text-xs font-semibold text-[#16A34A]">🟢 잘 관리되고 있는 항목</p>
+          <p className="text-sm leading-[1.6] text-text-secondary">
+            {maintainItems.map((it) => it.label).join(" · ")}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ===== 생활습관 상세 분석표 =====
+// NOTE: 백엔드에 domain 필드가 아직 없어 카테고리별 분류는 생략.
+//       improve(개선 필요) 그룹 먼저, maintain(잘 관리) 그룹 다음 순서로 표시.
+function LifestyleDetailTable({ items }: { items: LifestyleItem[] }) {
+  const [openRows, setOpenRows] = useState<Set<string>>(new Set());
+
+  const toggleRow = (feature: string) => {
+    setOpenRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(feature)) {
+        next.delete(feature);
+      } else {
+        next.add(feature);
+      }
+      return next;
+    });
+  };
+
+  const improveItems = items.filter((it) => it.group === "improve");
+  const maintainItems = items.filter((it) => it.group === "maintain");
+
+  if (items.length === 0) return null;
+
+  // 각 그룹 렌더 헬퍼
+  const renderGroup = (
+    groupItems: LifestyleItem[],
+    groupLabel: string,
+    accentColor: string,
+    headerBg: string,
+  ) => {
+    if (groupItems.length === 0) return null;
+    return (
+      <div key={groupLabel}>
+        {/* 그룹 헤더 행 */}
+        <div className="px-[14px] py-[5px]" style={{ backgroundColor: headerBg }}>
+          <span className="text-xs font-semibold text-text-muted">〔 {groupLabel} 〕</span>
+        </div>
+
+        {groupItems.map((item) => {
+          const isOpen = openRows.has(item.feature);
+          const { bg, text: textColor } = statusLevelStyle(item.status_level);
+          const hasAction = item.action && item.action.trim().length > 0;
+
+          return (
+            <div
+              key={item.feature}
+              className="border-b border-border last:border-b-0"
+              style={{ borderLeft: `3px solid ${accentColor}` }}
+            >
+              {/* 클릭 가능한 데이터 행 */}
+              <button
+                type="button"
+                onClick={() => hasAction && toggleRow(item.feature)}
+                className={`grid w-full grid-cols-[2fr_1.5fr_2fr_1.5fr_24px] items-center gap-x-[8px] px-[14px] py-[10px] text-left transition-colors ${
+                  hasAction ? "hover:bg-[#f8fafc] active:bg-[#f1f5f9]" : "cursor-default"
+                }`}
+              >
+                {/* 항목 */}
+                <span className="text-sm font-medium text-text-primary">{item.label}</span>
+
+                {/* 정상범위 */}
+                <span className="text-xs text-text-muted">{item.normal_range}</span>
+
+                {/* 현재값 */}
+                <span className="text-sm text-text-secondary">{item.value_text}</span>
+
+                {/* 상태 뱃지 */}
+                <span
+                  className="inline-block rounded-full px-[7px] py-[2px] text-xs font-semibold"
+                  style={{ backgroundColor: bg, color: textColor }}
+                >
+                  {item.status}
+                </span>
+
+                {/* 펼침 표시기 (개선 항목만) */}
+                <span className="text-text-muted">
+                  {hasAction ? (
+                    isOpen ? (
+                      <ChevronUp className="h-[14px] w-[14px]" />
+                    ) : (
+                      <ChevronDown className="h-[14px] w-[14px]" />
+                    )
+                  ) : null}
+                </span>
+              </button>
+
+              {/* 펼침 패널: action 텍스트 */}
+              {isOpen && hasAction && (
+                <div className="border-t border-border bg-[#f8fafc] px-[14px] py-[10px]">
+                  <p className="text-sm leading-[1.7] text-text-secondary">
+                    💡 {item.action}
+                  </p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex flex-col gap-0 rounded-md border border-border bg-bg overflow-hidden">
+      {/* 헤더 */}
+      <div className="flex items-center justify-between border-b border-border px-[14px] py-[10px]">
+        <p className="text-sm font-bold text-text-primary">생활습관 상세 분석표</p>
+        <p className="text-xs text-text-muted">개선 항목을 누르면 행동 지침이 펼쳐집니다.</p>
+      </div>
+
+      {/* 컬럼 헤더 */}
+      <div className="grid grid-cols-[2fr_1.5fr_2fr_1.5fr_24px] gap-x-[8px] border-b border-border bg-[#f8fafc] px-[14px] py-[6px]">
+        <span className="text-xs font-semibold text-text-muted">항목</span>
+        <span className="text-xs font-semibold text-text-muted">정상범위</span>
+        <span className="text-xs font-semibold text-text-muted">현재값</span>
+        <span className="text-xs font-semibold text-text-muted">상태</span>
+        <span />
+      </div>
+
+      {renderGroup(improveItems, "개선이 필요한 항목", "#DC2626", "#fff5f5")}
+      {renderGroup(maintainItems, "잘 관리되고 있는 항목", "#16A34A", "#f0fdf4")}
     </div>
   );
 }
@@ -560,7 +744,10 @@ export function LLMActionGuidePage() {
 
   // ===== 모델2 생활습관 =====
   const model2 = report?.shap_model2 ?? null;
-  const lifestyleItems: LifestyleShapItem[] = model2?.items ?? [];
+  const lifestyleShapItems: LifestyleShapItem[] = model2?.items ?? [];
+
+  // ===== 생활습관 상세 항목 (Phase C — lifestyle_items) =====
+  const lifestyleItems: LifestyleItem[] = report?.lifestyle_items ?? [];
 
   // ===== AI 가이드 텍스트 =====
   const aiGuide = report?.ai_guide ?? "";
@@ -685,7 +872,7 @@ export function LLMActionGuidePage() {
               )}
 
               {/* 생활습관 SHAP 항목 */}
-              {lifestyleItems.map((item, idx) => (
+              {lifestyleShapItems.map((item, idx) => (
                 <ShapBar
                   key={item.feature}
                   rank={idx + 1}
@@ -697,6 +884,16 @@ export function LLMActionGuidePage() {
                   color={shapColor(item.shap)}
                 />
               ))}
+
+              {/* Phase C: 생활습관 핵심 요약 카드 */}
+              {lifestyleItems.length > 0 && (
+                <LifestyleSummaryCard items={lifestyleItems} />
+              )}
+
+              {/* Phase C: 생활습관 상세 분석표 */}
+              {lifestyleItems.length > 0 && (
+                <LifestyleDetailTable items={lifestyleItems} />
+              )}
             </>
           )}
         </div>
