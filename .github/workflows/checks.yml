@@ -79,14 +79,17 @@ jobs:
       - name: Install dependencies
         run: uv sync --group app --frozen
 
-      - name: Create ckduser maintenance database
+      - name: Create ckduser maintenance + test databases
         # asyncpg가 DB DROP/CREATE 시 maintenance DB로 username(ckduser)을 기본 사용.
         # ckduser DB가 없으면 "database ckduser does not exist" 에러 발생 → 미리 생성.
+        # ckd_challenge_test는 conftest 폴백이 만들지만 CI에서도 명시 (로컬과 패턴 통일).
         env:
           PGPASSWORD: ckdpass1234
         run: |
           psql -h localhost -U ckduser -d ckd_challenge \
             -c "CREATE DATABASE ckduser OWNER ckduser;"
+          psql -h localhost -U ckduser -d ckd_challenge \
+            -c "CREATE DATABASE ckd_challenge_test OWNER ckduser;"
 
       - name: Check if tests exist
         id: check_tests
