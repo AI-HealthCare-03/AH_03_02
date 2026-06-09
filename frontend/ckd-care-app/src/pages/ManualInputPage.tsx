@@ -61,9 +61,13 @@ export function ManualInputPage() {
   const [error, setError] = useState("");
   const [warning, setWarning] = useState("");
 
-  // CKD 진단 게이트 및 투석 종류
-  const [ckdDiagnosed, setCkdDiagnosed] = useState<"yes" | "no" | "">("");
-  const [dialysisType, setDialysisType] = useState<DialysisType>("none");
+  // CKD 진단 게이트 및 투석 종류 (재입력 시 prefill 값으로 초기화)
+  const [ckdDiagnosed, setCkdDiagnosed] = useState<"yes" | "no" | "">(
+    prefill?.dialysis_type != null ? "yes" : ""
+  );
+  const [dialysisType, setDialysisType] = useState<DialysisType>(
+    prefill?.dialysis_type ?? "none"
+  );
 
   const [form, setForm] = useState({
     checked_date: prefill?.checked_date ?? new Date().toISOString().slice(0, 10),
