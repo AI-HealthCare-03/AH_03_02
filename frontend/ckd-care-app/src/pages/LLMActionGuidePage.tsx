@@ -178,12 +178,12 @@ function PeerDistributionChart({
     const rawX = x as number;
     return (
       <g>
-        {/* 상단 도트 */}
-        <circle cx={rawX} cy={(y as number) + 2} r={3.5} fill="#e74c3c" />
-        {/* "나" 텍스트 — 도트 바로 위 (y - 6) */}
+        {/* 빨강 라인 상단 도트 (플롯 최상단에 위치) */}
+        <circle cx={rawX} cy={y as number} r={3.5} fill="#e74c3c" />
+        {/* "나" 텍스트 — 상단 여백 1행 (플롯 위 18px), 빨강 볼드 */}
         <text
           x={rawX}
-          y={(y as number) - 6}
+          y={(y as number) - 18}
           textAnchor={anchor}
           fontSize={11}
           fontWeight="bold"
@@ -206,7 +206,7 @@ function PeerDistributionChart({
     return (
       <text
         x={rawX}
-        y={(y as number) + 10}
+        y={(y as number) - 5}
         textAnchor={anchor}
         fontSize={10}
         fill="#888"
@@ -265,6 +265,7 @@ function PeerDistributionChart({
           strokeWidth={2.5}
           fill="url(#peerFill)"
           dot={false}
+          activeDot={false}
           isAnimationActive={false}
         />
 
