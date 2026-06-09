@@ -1,12 +1,44 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import type { HealthCheckResponse } from "../api/healthCheck";
+import type { HealthCheckResponse, DialysisType } from "../api/healthCheck";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 import { TextInput } from "../components/TextInput";
 import { BtnPrimary } from "../components/BtnPrimary";
 import { BtnSecondary } from "../components/BtnSecondary";
 import { healthCheckApi } from "../api/healthCheck";
+
+// 예/아니오 또는 선택 옵션 버튼 그룹 (LifestyleSurveyPage의 SelectGroup 패턴 동일)
+function SelectGroup<T extends string>({
+  label, options, value, onChange,
+}: {
+  label: string;
+  options: { value: T; label: string }[];
+  value: T | "";
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-[4px]">
+      <label className="text-sm font-normal text-text-secondary">{label}</label>
+      <div className="flex gap-[8px]">
+        {options.map((o) => (
+          <button
+            key={o.value}
+            type="button"
+            onClick={() => onChange(o.value)}
+            className={`flex-1 rounded-sm border px-[12px] py-[8px] text-sm ${
+              value === o.value
+                ? "border-accent bg-accent font-bold text-bg"
+                : "border-border-strong bg-bg font-normal text-text-primary"
+            }`}
+          >
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function toNum(v: string): number | null {
   const n = parseFloat(v);
@@ -28,6 +60,14 @@ export function ManualInputPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [warning, setWarning] = useState("");
+
+  // CKD 진단 게이트 및 투석 종류 (재입력 시 prefill 값으로 초기화)
+  const [ckdDiagnosed, setCkdDiagnosed] = useState<"yes" | "no" | "">(
+    prefill?.dialysis_type != null ? "yes" : ""
+  );
+  const [dialysisType, setDialysisType] = useState<DialysisType>(
+    prefill?.dialysis_type ?? "none"
+  );
 
   const [form, setForm] = useState({
     checked_date: prefill?.checked_date ?? new Date().toISOString().slice(0, 10),
@@ -88,6 +128,8 @@ export function ManualInputPage() {
         triglycerides: toNum(form.triglycerides),
         hdl_cholesterol: toNum(form.hdl),
         total_cholesterol: toNum(form.total_cholesterol),
+        // CKD 진단 시에만 투석 종류 전송, 미진단이면 null
+        dialysis_type: ckdDiagnosed === "yes" ? dialysisType : null,
       });
       if (res.safety_warning) {
         setWarning(res.safety_warning);
@@ -169,6 +211,38 @@ export function ManualInputPage() {
               <div className="flex flex-col gap-[12px]">
                 <TextInput label="크레아티닌 (mg/dL)" placeholder="1.0" value={form.creatinine} onChange={set("creatinine")} />
                 <p className="text-xs text-text-muted">입력 시 CKD-EPI 공식으로 eGFR 자동 계산</p>
+              </div>
+            </div>
+
+            {/* CKD 진단 여부 게이트 및 투석 종류 */}
+            <div className="rounded-md border border-border bg-bg p-[16px]">
+              <p className="mb-[12px] text-md font-bold text-text-primary">CKD 진단 여부</p>
+              <div className="flex flex-col gap-[16px]">
+                <SelectGroup<"yes" | "no">
+                  label="CKD 진단을 받으셨나요?"
+                  value={ckdDiagnosed}
+                  onChange={setCkdDiagnosed}
+                  options={[
+                    { value: "yes", label: "예" },
+                    { value: "no", label: "아니오" },
+                  ]}
+                />
+                {ckdDiagnosed === "yes" && (
+                  <SelectGroup<DialysisType>
+                    label="투석 종류"
+                    value={dialysisType}
+                    onChange={setDialysisType}
+                    options={[
+                      { value: "none", label: "투석 안 함" },
+                      { value: "hemodialysis", label: "혈액투석" },
+                      { value: "peritoneal", label: "복막투석" },
+                      { value: "transplant", label: "이식" },
+                    ]}
+                  />
+                )}
+                {ckdDiagnosed === "yes" && (
+                  <p className="text-xs text-danger">진단받으셨다면 주치의 지시를 우선하세요.</p>
+                )}
               </div>
             </div>
           </div>
