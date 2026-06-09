@@ -156,12 +156,18 @@ class GamificationService:
             except ValueError:
                 skin_active = None
 
+        # 동물 스킨 게이팅 — 누적 최고 진화 단계
+        from app.services.inventory import InventoryService
+
+        max_stage_ever = await InventoryService.get_max_stage_ever(user_id)
+
         return MascotResponse(
             current_egg=current_egg,
             charge_mode=charge,
             legendary_unlocked=legendary_unlocked,
             skin_active=skin_active,
             proficiency=user.proficiency,
+            max_stage_ever=max_stage_ever,
         )
 
     async def exit_charge_mode(self, user_id: int) -> ChargeModeResponse:
