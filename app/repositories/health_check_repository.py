@@ -50,10 +50,12 @@ class HealthCheckRepository:
         limit: int = 20,
         offset: int = 0,
     ) -> tuple[int, list[HealthCheck]]:
-        """사용자의 검진 이력 목록 (최신 검진일 기준 내림차순)."""
+        """사용자의 검진 이력 목록 (최신 검진일 기준 내림차순, 같은 날짜면 최근 생성분 우선)."""
         qs = HealthCheck.filter(user_id=user_id)
         total = await qs.count()
-        items = await qs.order_by("-checked_date").offset(offset).limit(limit)
+        # 같은 checked_date가 여러 건이면 id 내림차순으로 가장 최근 검진이 먼저 오게 한다
+        # (리포트가 '최신 검진'으로 가장 최근 생성분을 집도록 — 같은 날 재검진 대비)
+        items = await qs.order_by("-checked_date", "-id").offset(offset).limit(limit)
         return total, items
 
     async def get_by_id(self, health_check_id: int, user_id: int) -> HealthCheck | None:

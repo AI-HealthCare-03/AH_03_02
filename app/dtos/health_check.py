@@ -84,11 +84,20 @@ class ShapItem(BaseModel):
     note: str | None = None  # 모델1만 note 사용, 모델2 items는 None
 
 
+class PeerDistribution(BaseModel):
+    """연령대 또래 lifestyle_score 분포 히스토그램 (리포트 또래 곡선용)."""
+
+    counts: list[int]
+    edges: list[float]
+    my_bin: int
+
+
 class LifestyleShap(BaseModel):
     items: list[ShapItem]
     lifestyle_score: float
     peer_top_pct: int | None = None
     peer_relative: str | None = None
+    peer_distribution: PeerDistribution | None = None
 
 
 class ClinicalItem(BaseModel):
