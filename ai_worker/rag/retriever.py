@@ -64,9 +64,7 @@ def retrieve(
 
     must_conditions: list = [FieldCondition(key="age_group", match=MatchValue(value=age_group))]
     if track:
-        must_conditions.append(
-            FieldCondition(key="track", match=MatchAny(any=[track, "common"]))
-        )
+        must_conditions.append(FieldCondition(key="track", match=MatchAny(any=[track, "common"])))
     flt = Filter(must=must_conditions)
     _t = time.perf_counter()
     hits = client.query_points(

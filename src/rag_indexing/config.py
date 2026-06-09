@@ -20,7 +20,7 @@ CHUNKS_DIR = PKG_ROOT / "chunks"  # chunking.py JSONL 덤프 출력 (.gitignore 
 # doc_type 매핑 (폴더 → 분류) — payload.doc_type 의 단일 정의
 # ─────────────────────────────────────────────
 DOC_TYPE_BY_FOLDER = {
-    "kdigo": "clinical",        # KDIGO 공식 국제 가이드라인 (영문)
+    "kdigo": "clinical",  # KDIGO 공식 국제 가이드라인 (영문)
     "ksn_guideline": "clinical",  # 국내 임상 진료지침 (KSN 신장학회) + 영문 임상연구
     "knsn": "nutrition",  # 국문 영양·환자교육 (KSN 영양 + 질병관리청 바로알기)
     "lifestyle": "lifestyle",  # 생활습관 (운동·금연·절주·수면·스트레스)
@@ -60,10 +60,10 @@ KO_LANG_THRESHOLD = 0.10  # 한글/(한글+라틴) ≥ 이 값이면 ko, 아니�
 #   신장학용어집 = 용어 정의만 있어 RAG 오검색 유발
 # ─────────────────────────────────────────────
 SKIP_FILE_SUBSTRINGS = [
-    "소아청소년",       # 타겟(40세+) 밖
-    "CKRT",            # 중환자 지속신대체요법 시술
-    "신장학용어집",     # 용어 정의만 → RAG 오검색 유발
-    "콩팥병 만화",      # 이미지 PDF — OCR 미처리 (0 chunk)
+    "소아청소년",  # 타겟(40세+) 밖
+    "CKRT",  # 중환자 지속신대체요법 시술
+    "신장학용어집",  # 용어 정의만 → RAG 오검색 유발
+    "콩팥병 만화",  # 이미지 PDF — OCR 미처리 (0 chunk)
     "꼭 알아두어야 할 복지정보",  # 이미지 PDF — OCR 미처리 (0 chunk)
 ]
 # 자료 개수는 하드코딩하지 않는다 (2026-06-02) — chunking.collect_pdfs 가 PDF_GLOBS 각각이
@@ -166,7 +166,7 @@ PAYLOAD_FIELDS = [
     "parent_id",  # child → parent 조회 키
     "chunk_idx",
     "age_group",  # adult | pediatric (uploader 가 부착 — P1-4)
-    "track",      # non_dialysis | hemodialysis | peritoneal | common (chunking 단계 부착)
+    "track",  # non_dialysis | hemodialysis | peritoneal | common (chunking 단계 부착)
     "text",  # 원문 (uploader 가 부착 — 검색 결과 반환용)
 ]
 
