@@ -261,7 +261,9 @@ async def test_handle_ckd_job_spawns_guide(monkeypatch) -> None:  # noqa: ANN001
     def fake_load():
         return ("PRED1", "PRED2", {"impute": {}}, 0.06)
 
-    def fake_run_inference(data, ref_date, predictor, threshold, stats, egfr_override=None, *, predictor2=None, explain=False):  # noqa: ANN001
+    def fake_run_inference(
+        data, ref_date, predictor, threshold, stats, egfr_override=None, *, predictor2=None, explain=False
+    ):  # noqa: ANN001
         return {
             "ckd_risk_score": 0.1,
             "app_group": "G2",
@@ -288,7 +290,9 @@ async def test_handle_ckd_job_spawns_guide(monkeypatch) -> None:  # noqa: ANN001
     monkeypatch.setattr(ckd_task, "_run_rag", fake_run_rag)
 
     job = CkdJob(
-        health_check_id=42, egfr=58.0, checked_date="2024-06-01",
+        health_check_id=42,
+        egfr=58.0,
+        checked_date="2024-06-01",
         payload={"gender": "MALE", "age": 58, "weight": 70.0},
     )
     await ckd_task.handle_ckd_job(job)
