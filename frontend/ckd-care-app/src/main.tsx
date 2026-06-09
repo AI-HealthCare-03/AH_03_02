@@ -41,7 +41,9 @@ import { DiningModePage } from "./pages/DiningModePage";
 import { RAGChatbotPage } from "./pages/RAGChatbotPage";
 import { SimulationPage } from "./pages/SimulationPage";
 import { CheckupHistoryPage } from "./pages/CheckupHistoryPage";
+import { CheckupManagementPage } from "./pages/CheckupManagementPage";
 import { LifestyleSurveyHistoryPage } from "./pages/LifestyleSurveyHistoryPage";
+import { LifestyleManagementPage } from "./pages/LifestyleManagementPage";
 import { EmergencyGuardPage } from "./pages/EmergencyGuardPage";
 import { OAuthCallbackPage } from "./pages/OAuthCallbackPage";
 import { ShopPage } from "./pages/ShopPage";
@@ -93,6 +95,8 @@ function AppRoutes() {
       <Route path="/dining-mode" element={<PrivateRoute><DiningModePage /></PrivateRoute>} />
       <Route path="/rag-chatbot" element={<PrivateRoute><RAGChatbotPage /></PrivateRoute>} />
       <Route path="/simulation" element={<PrivateRoute><SimulationPage /></PrivateRoute>} />
+      <Route path="/checkup-management" element={<PrivateRoute><CheckupManagementPage /></PrivateRoute>} />
+      <Route path="/lifestyle-management" element={<PrivateRoute><LifestyleManagementPage /></PrivateRoute>} />
       <Route path="/checkup-history" element={<PrivateRoute><CheckupHistoryPage /></PrivateRoute>} />
       <Route path="/health-check-history" element={<PrivateRoute><CheckupHistoryPage /></PrivateRoute>} />
       <Route path="/lifestyle-survey-history" element={<PrivateRoute><LifestyleSurveyHistoryPage /></PrivateRoute>} />

@@ -60,6 +60,11 @@ class HealthCheckRepository:
         """단건 조회 — user_id 조건으로 타인 검진 접근 차단."""
         return await HealthCheck.get_or_none(id=health_check_id, user_id=user_id)
 
+    async def delete_by_id(self, health_check_id: int, user_id: int) -> bool:
+        """단건 삭제 — user_id 조건으로 타인 소유분 보호. 영향 행 수 > 0 이면 True."""
+        deleted = await HealthCheck.filter(id=health_check_id, user_id=user_id).delete()
+        return deleted > 0
+
     async def update_prediction(
         self,
         health_check_id: int,

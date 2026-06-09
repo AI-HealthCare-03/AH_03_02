@@ -87,6 +87,23 @@ async def get_health_check(
     return Response(result.model_dump(), status_code=status.HTTP_200_OK)
 
 
+@health_check_router.delete(
+    "/{health_check_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="검진 기록 삭제",
+    description="본인 소유 검진 1건 삭제. SHAP 리포트는 ON DELETE 정책에 따름.",
+)
+async def delete_health_check(
+    health_check_id: int,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[HealthCheckService, Depends(HealthCheckService)],
+) -> Response:
+    deleted = await service.delete_health_check(health_check_id=health_check_id, user_id=user.id)
+    if not deleted:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="검진 기록을 찾을 수 없습니다.")
+    return Response(None, status_code=status.HTTP_204_NO_CONTENT)
+
+
 @health_check_router.get(
     "/{health_check_id}/report",
     response_model=ReportResponse,

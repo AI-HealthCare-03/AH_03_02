@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Trash2 } from "lucide-react";
 import { TopNav } from "../components/TopNav";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { BtnPrimary } from "../components/BtnPrimary";
@@ -17,16 +19,33 @@ const STRESS_LABEL: Record<string, string> = {
 
 export function LifestyleSurveyHistoryPage() {
   const navigate = useNavigate();
-  const [items, setItems] = useState<LifestyleSurveyResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [error, setError] = useState("");
+  const [confirmingId, setConfirmingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  useEffect(() => {
-    lifestyleSurveyApi.list(50, 0)
-      .then((r) => setItems(r.items))
-      .catch((e) => setError(e instanceof Error ? e.message : "불러오기 실패"))
-      .finally(() => setLoading(false));
-  }, []);
+  const { data, isLoading } = useQuery({
+    queryKey: ["lifestyle-survey-list"],
+    queryFn: () => lifestyleSurveyApi.list(50, 0),
+  });
+  const items: LifestyleSurveyResponse[] = data?.items ?? [];
+
+  async function handleDelete(id: number) {
+    setDeletingId(id);
+    setError("");
+    try {
+      await lifestyleSurveyApi.delete(id);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["lifestyle-survey-list"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] }),
+      ]);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "삭제에 실패했습니다.");
+    } finally {
+      setDeletingId(null);
+      setConfirmingId(null);
+    }
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-bg-alt">
@@ -43,24 +62,24 @@ export function LifestyleSurveyHistoryPage() {
           <div className="rounded-sm bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>
         )}
 
-        {loading && (
+        {isLoading && (
           <div className="flex h-[200px] items-center justify-center text-sm text-text-muted">
             로딩 중...
           </div>
         )}
 
-        {!loading && items.length === 0 && !error && (
+        {!isLoading && items.length === 0 && !error && (
           <div className="flex h-[200px] flex-col items-center justify-center gap-[12px] rounded-md border border-dashed border-border bg-bg text-sm text-text-muted">
             <p>아직 문진 데이터가 없습니다.</p>
             <BtnPrimary label="첫 문진 작성하기" onClick={() => navigate("/lifestyle-survey")} />
           </div>
         )}
 
-        {!loading && items.length > 0 && (
+        {!isLoading && items.length > 0 && (
           <div className="overflow-hidden rounded-md border border-border bg-bg">
             {/* 헤더 */}
-            <div className="grid grid-cols-[120px_90px_100px_100px_1fr] gap-[12px] bg-bg-alt px-[16px] py-[8px]">
-              {["응답일", "흡연", "음주", "운동(일/주)", "가족력·기타"].map((h) => (
+            <div className="grid grid-cols-[120px_90px_100px_100px_1fr_60px] gap-[12px] bg-bg-alt px-[16px] py-[8px]">
+              {["응답일", "흡연", "음주", "운동(일/주)", "가족력·기타", "삭제"].map((h) => (
                 <span key={h} className="text-xs font-bold text-text-secondary">{h}</span>
               ))}
             </div>
@@ -86,7 +105,7 @@ export function LifestyleSurveyHistoryPage() {
               return (
                 <div
                   key={r.id}
-                  className="grid grid-cols-[120px_90px_100px_100px_1fr] items-center gap-[12px] border-t border-border px-[16px] py-[12px]"
+                  className="grid grid-cols-[120px_90px_100px_100px_1fr_60px] items-center gap-[12px] border-t border-border px-[16px] py-[12px]"
                 >
                   <span className={`text-sm ${idx === 0 ? "font-bold text-text-primary" : "text-text-primary"}`}>
                     {r.surveyed_date}
@@ -113,12 +132,53 @@ export function LifestyleSurveyHistoryPage() {
                     {r.stress_level ? ` · 스트레스 ${STRESS_LABEL[r.stress_level] ?? r.stress_level}` : ""}
                     {r.is_pregnant ? " · 임신" : ""}
                   </span>
+                  <button
+                    className="flex items-center justify-center text-danger hover:bg-danger/10 rounded-sm p-1"
+                    onClick={() => setConfirmingId(r.id)}
+                    aria-label="설문 삭제"
+                    title="삭제"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               );
             })}
           </div>
         )}
       </main>
+
+      {/* 삭제 확인 모달 */}
+      {confirmingId !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setConfirmingId(null)}
+        >
+          <div
+            className="w-full max-w-[420px] rounded-md border border-border bg-bg p-[24px] shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-bold text-text-primary">설문 삭제</h3>
+            <p className="mt-[8px] text-sm leading-[1.6] text-text-secondary">
+              이 설문 응답을 삭제하시겠습니까? 영구 삭제되어 복구할 수 없습니다.
+            </p>
+            <div className="mt-[20px] flex justify-end gap-[8px]">
+              <button
+                onClick={() => setConfirmingId(null)}
+                className="rounded-md border border-border px-[14px] py-[8px] text-sm text-text-primary hover:bg-bg-alt"
+              >
+                취소
+              </button>
+              <button
+                onClick={() => handleDelete(confirmingId)}
+                disabled={deletingId !== null}
+                className="rounded-md bg-danger px-[14px] py-[8px] text-sm font-bold text-bg hover:bg-danger/90 disabled:opacity-50"
+              >
+                {deletingId === confirmingId ? "삭제 중..." : "삭제"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

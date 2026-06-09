@@ -66,3 +66,7 @@ class LifestyleSurveyService:
         if survey is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="설문을 찾을 수 없습니다.")
         return LifestyleSurveyResponse.model_validate(survey)
+
+    async def delete_survey(self, survey_id: int, user_id: int) -> bool:
+        """본인 소유 설문 1건 삭제. 없으면 False."""
+        return await self._repo.delete_by_id(survey_id, user_id)
