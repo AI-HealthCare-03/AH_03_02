@@ -100,4 +100,8 @@ def test_report_response_keys() -> None:
         "ai_guide",
         "recommended_tests",
         "model1_summary",
+        # Phase A: 임상·생활습관 상세표 + 리포트 메타 (기본값 []/None)
+        "clinical_items",
+        "lifestyle_items",
+        "report_meta",
     }
