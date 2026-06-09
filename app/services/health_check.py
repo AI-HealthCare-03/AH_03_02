@@ -1,15 +1,39 @@
+import datetime
+
 from app.core.logger import setup_logger
 from app.dtos.health_check import (
+    ClinicalItem,
     HealthCheckCreateRequest,
     HealthCheckListResponse,
     HealthCheckResponse,
+    LifestyleItem,
+    ReportMeta,
     ReportResponse,
 )
 from app.models.health_check import AppGroup, CkdStage, HealthCheck
+from app.models.lifestyle_survey import LifestyleSurvey, SmokingStatus
 from app.models.safety_event import SafetyEvent, SafetyEventType
-from app.models.users import Gender
+from app.models.users import Gender, User
 from app.repositories.health_check_repository import HealthCheckRepository
 from app.services import ckd_publisher
+from app.services.clinical_reference import (
+    M1_CAT_ORDER,
+    M1_CATEGORY,
+    M1_DESC,
+    M1_DISEASE,
+    M1_LABEL,
+    m1_direction,
+    m1_format,
+    m1_group_message,
+    m1_group_title,
+    m1_normal_range,
+    m1_status,
+    m2_improve_action,
+    m2_in_normal,
+    m2_label,
+    m2_normal_range,
+    m2_status,
+)
 
 logger = setup_logger("health_check_service")
 
@@ -377,6 +401,249 @@ class HealthCheckService:
         base += " 본 결과는 의료 진단이 아닌 선별(스크리닝) 참고 정보입니다."
         return base
 
+    # ── A2: 임상·생활습관 상세표 + 리포트 메타 빌더 ──────────────────────────
+
+    @staticmethod
+    def _build_clinical_items(hc: HealthCheck, ls: LifestyleSurvey | None, gender: int) -> list[ClinicalItem]:
+        """모델1 임상 항목 상세표 구성.
+
+        판단:
+        - pulse_pressure = sbp - dbp (sbp·dbp는 항상 존재)
+        - ldl_cholesterol: Friedewald 공식 (total - hdl - trig/5). 세 값 모두 존재 AND trig < 400 일 때만 포함.
+        - smoking_current: ls 없으면 생략 (검진 데이터에 흡연 컬럼 없음).
+        - waist_height_ratio: waist_circumference AND height 모두 있어야 계산.
+        - 값이 None인 항목은 모두 생략.
+        - 정렬: M1_CAT_ORDER(카테고리) 순, 카테고리 내부는 아래 _M1_FEAT_ORDER 고정 순서.
+        """
+        # 카테고리 내부 항목 순서
+        m1_feat_order: dict[str, int] = {
+            "sbp": 0,
+            "dbp": 1,
+            "fasting_glucose": 2,
+            "pulse_pressure": 3,
+            "total_cholesterol": 4,
+            "ldl_cholesterol": 5,
+            "hdl_cholesterol": 6,
+            "triglycerides": 7,
+            "creatinine": 8,
+            "waist_cm": 9,
+            "bmi": 10,
+            "waist_height_ratio": 11,
+            "smoking_current": 12,
+        }
+
+        # 원시 값 수집
+        raw: dict[str, float | None] = {
+            "sbp": float(hc.systolic_bp),
+            "dbp": float(hc.diastolic_bp),
+            "pulse_pressure": float(hc.systolic_bp - hc.diastolic_bp),
+            "fasting_glucose": hc.fasting_glucose,
+            "total_cholesterol": hc.total_cholesterol,
+            "hdl_cholesterol": hc.hdl_cholesterol,
+            "triglycerides": hc.triglycerides,
+            "creatinine": hc.creatinine,
+            "bmi": hc.bmi,
+            "waist_cm": hc.waist_circumference,
+        }
+
+        # waist_height_ratio: 허리둘레·신장 모두 있을 때만 계산
+        if hc.waist_circumference is not None and hc.height and hc.height > 0:
+            raw["waist_height_ratio"] = round(hc.waist_circumference / hc.height, 4)
+        else:
+            raw["waist_height_ratio"] = None
+
+        # Friedewald LDL: total / hdl / trig 세 값 존재 + trig < 400 조건
+        tc = hc.total_cholesterol
+        hdl = hc.hdl_cholesterol
+        trig = hc.triglycerides
+        if tc is not None and hdl is not None and trig is not None and trig < 400:
+            raw["ldl_cholesterol"] = round(tc - hdl - trig / 5.0, 1)
+        else:
+            raw["ldl_cholesterol"] = None
+
+        # 흡연: SmokingStatus enum → 0/1/2 (NEVER=0, PAST=1, CURRENT=2)
+        if ls is not None:
+            smoke_map = {SmokingStatus.NEVER: 0, SmokingStatus.PAST: 1, SmokingStatus.CURRENT: 2}
+            raw["smoking_current"] = float(smoke_map.get(ls.smoking_status, 0))
+        else:
+            raw["smoking_current"] = None
+
+        items: list[ClinicalItem] = []
+        for feature, val in raw.items():
+            if val is None:
+                continue
+            status_label, status_level = m1_status(feature, val, gender)
+            dis_low, dis_high = M1_DISEASE.get(feature, ("", ""))
+            items.append(
+                ClinicalItem(
+                    feature=feature,
+                    label=M1_LABEL.get(feature, feature),
+                    desc=M1_DESC.get(feature, ""),
+                    category=M1_CATEGORY.get(feature, "기타"),
+                    normal_range=m1_normal_range(feature, gender),
+                    value_text=m1_format(feature, val),
+                    status=status_label,
+                    status_level=status_level,
+                    direction=m1_direction(feature, val, gender),
+                    disease_low=dis_low,
+                    disease_high=dis_high,
+                )
+            )
+
+        # M1_CAT_ORDER → 카테고리 내부 _M1_FEAT_ORDER 순 정렬
+        cat_idx = {cat: i for i, cat in enumerate(M1_CAT_ORDER)}
+        items.sort(key=lambda ci: (cat_idx.get(ci.category, 99), m1_feat_order.get(ci.feature, 99)))
+        return items
+
+    @staticmethod
+    def _build_lifestyle_items(hc: HealthCheck, ls: LifestyleSurvey | None, gender: int) -> list[LifestyleItem]:
+        """모델2 생활습관 항목 상세표 구성.
+
+        판단:
+        - 혈액/신체 지표(bmi, waist_cm, hdl, ldl, trig)는 HealthCheck에서 가져옴.
+        - 활동 지표(sitting_hours, walking_days, moderate_days, vigorous_days, smoking_current)는 ls에서 가져옴.
+        - ls 없으면 활동 지표 전체 생략.
+        - ldl_cholesterol: Friedewald 조건 동일 (trig < 400).
+        - 그룹 분류: m2_in_normal 정상범위 내 → 'maintain', 벗어남 → 'improve'.
+          (노트북은 SHAP 부호도 고려하는 엣지 케이스가 있으나, 상세표 목적상 정상범위 기준 단순화 — 의도적 단순화.)
+        - value_text: 운동/좌식은 소수점 1자리, 흡연은 텍스트.
+        """
+        # 모델2 항목별 원시 값 수집
+        raw: dict[str, float | None] = {
+            "bmi": hc.bmi,
+            "waist_cm": hc.waist_circumference,
+            "hdl_cholesterol": hc.hdl_cholesterol,
+            "triglycerides": hc.triglycerides,
+        }
+
+        # LDL Friedewald (모델2에서도 동일 조건)
+        tc = hc.total_cholesterol
+        hdl = hc.hdl_cholesterol
+        trig = hc.triglycerides
+        if tc is not None and hdl is not None and trig is not None and trig < 400:
+            raw["ldl_cholesterol"] = round(tc - hdl - trig / 5.0, 1)
+        else:
+            raw["ldl_cholesterol"] = None
+
+        # 생활습관 설문 의존 항목
+        if ls is not None:
+            raw["sitting_hours"] = ls.sitting_hours_per_day  # float | None
+            raw["walking_days"] = float(ls.exercise_days_per_week)  # 걷기 = 일반 운동일수
+            raw["moderate_days"] = float(ls.moderate_exercise_days)
+            raw["vigorous_days"] = float(ls.vigorous_exercise_days)
+            smoke_map = {SmokingStatus.NEVER: 0, SmokingStatus.PAST: 1, SmokingStatus.CURRENT: 2}
+            raw["smoking_current"] = float(smoke_map.get(ls.smoking_status, 0))
+        # else: 위 항목들은 raw에 없음 → 아래 루프에서 자동 생략
+
+        items: list[LifestyleItem] = []
+        # 모델2 항목 순서 유지
+        m2_features = [
+            "bmi",
+            "waist_cm",
+            "hdl_cholesterol",
+            "ldl_cholesterol",
+            "triglycerides",
+            "sitting_hours",
+            "walking_days",
+            "moderate_days",
+            "vigorous_days",
+            "smoking_current",
+        ]
+        for feature in m2_features:
+            val = raw.get(feature)
+            if val is None:
+                continue
+            status_label, status_level = m2_status(feature, val, gender)
+            nr = m2_normal_range(feature, gender)
+            # value_text: 흡연은 텍스트, 나머지는 소수점 1자리
+            if feature == "smoking_current":
+                vtext = {0: "비흡연", 1: "과거 흡연", 2: "현재 흡연"}.get(int(val), str(int(val)))
+            else:
+                vtext = f"{val:.1f}"
+            in_normal = m2_in_normal(feature, val, gender)
+            group = "maintain" if in_normal else "improve"
+            action = "" if in_normal else m2_improve_action(feature)
+            items.append(
+                LifestyleItem(
+                    feature=feature,
+                    label=m2_label(feature),
+                    normal_range=nr,
+                    value_text=vtext,
+                    status=status_label,
+                    status_level=status_level,
+                    group=group,
+                    action=action,
+                )
+            )
+        return items
+
+    @staticmethod
+    def _build_report_meta(hc: HealthCheck, user: User, ls: LifestyleSurvey | None) -> ReportMeta:
+        """리포트 메타 구성.
+
+        판단:
+        - grade: G1→높음, G2→주의, G3→주의, G4→낮음. (G2 내 '더 높은' 서브타입 구분은 진단 로직 필요 — 단순화.)
+        - age: User.birthday DateField에서 오늘 날짜로 만 나이 계산.
+        - gender: Gender.MALE→"남성", Gender.FEMALE→"여성".
+        - conditions: ls.htn_diagnosed / dm_diagnosed / dyslipidemia_diagnosed / ckd_diagnosed.
+        - family_history: ls.family_history_diabetes / hypertension / heart_disease.
+        - peer_top_pct / peer_relative: hc.shap_model2 dict에서 조회 (None 안전).
+        - score: ckd_risk_score * 100, 소수점 1자리.
+        """
+        group = hc.app_group  # AppGroup enum or None
+        group_str = group.value if group is not None else None
+
+        grade_map = {"G1": "높음", "G2": "주의", "G3": "주의", "G4": "낮음"}
+        grade = grade_map.get(group_str or "", "낮음")
+
+        score = round(hc.ckd_risk_score * 100, 1) if hc.ckd_risk_score is not None else None
+
+        # 만 나이 계산 (birthday DateField)
+        age: int | None = None
+        if user.birthday is not None:
+            today = datetime.date.today()
+            bd = user.birthday
+            age = today.year - bd.year - ((today.month, today.day) < (bd.month, bd.day))
+
+        gender_str = "남성" if user.gender == Gender.MALE else "여성"
+
+        conditions: list[str] = []
+        family_hist: list[str] = []
+        if ls is not None:
+            if ls.htn_diagnosed:
+                conditions.append("고혈압")
+            if ls.dm_diagnosed:
+                conditions.append("당뇨")
+            if ls.dyslipidemia_diagnosed:
+                conditions.append("이상지질혈증")
+            if ls.ckd_diagnosed:
+                conditions.append("CKD")
+            if ls.family_history_hypertension:
+                family_hist.append("고혈압")
+            if ls.family_history_diabetes:
+                family_hist.append("당뇨")
+            if ls.family_history_heart_disease:
+                family_hist.append("심장질환")
+
+        # shap_model2에서 또래 비교 정보 추출 (없으면 None)
+        shap2 = hc.shap_model2 or {}
+        peer_top_pct = shap2.get("peer_top_pct") if isinstance(shap2, dict) else None
+        peer_relative = shap2.get("peer_relative") if isinstance(shap2, dict) else None
+
+        return ReportMeta(
+            group=group_str,
+            group_title=m1_group_title(group_str or ""),
+            grade=grade,
+            score=score,
+            group_message=m1_group_message(group_str or ""),
+            age=age,
+            gender=gender_str,
+            conditions=conditions,
+            family_history=family_hist,
+            peer_top_pct=peer_top_pct,
+            peer_relative=peer_relative,
+        )
+
     async def get_report(
         self,
         *,
@@ -387,14 +654,26 @@ class HealthCheckService:
 
         user_id 소유권 필터로 타인 검진 접근 차단.
         ai_guide는 ai_worker가 예측 시 선생성·저장한 캐시를 읽는다(미생성 시 빈 문자열).
+        A2 추가: clinical_items, lifestyle_items, report_meta 빌드 (기존 필드 불변).
         """
         hc = await HealthCheck.filter(id=health_check_id, user_id=user_id).first()
         if hc is None:
             return None
 
+        # 사용자 정보 및 최신 생활습관 설문 로드
+        user = await User.get(id=user_id)
+        ls = await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date").first()
+
+        # gender int 변환: MALE=1, FEMALE=0
+        gender_int = 1 if user.gender == Gender.MALE else 0
+
         shap_list = hc.shap_model1 or []
         recommended = self._recommend_tests(hc.app_group, hc.egfr_estimated)
         summary = self._model1_summary(hc.app_group, hc.egfr_estimated, shap_list)
+
+        clinical_items = self._build_clinical_items(hc, ls, gender_int)
+        lifestyle_items = self._build_lifestyle_items(hc, ls, gender_int)
+        report_meta = self._build_report_meta(hc, user, ls)
 
         return ReportResponse(
             health_check_id=hc.id,
@@ -403,4 +682,7 @@ class HealthCheckService:
             ai_guide=hc.ai_guide or "",  # ai_worker가 선생성·저장 → 읽기만
             recommended_tests=recommended,
             model1_summary=summary,
+            clinical_items=clinical_items,
+            lifestyle_items=lifestyle_items,
+            report_meta=report_meta,
         )

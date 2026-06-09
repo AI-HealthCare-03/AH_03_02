@@ -91,6 +91,51 @@ class LifestyleShap(BaseModel):
     peer_relative: str | None = None
 
 
+class ClinicalItem(BaseModel):
+    """모델1 임상 검진 항목 상세 (리포트 임상 상세표)."""
+
+    feature: str
+    label: str
+    desc: str
+    category: str
+    normal_range: str
+    value_text: str
+    status: str  # 상태 라벨 (정상/주의/위험/낮음/높음/복부비만 …)
+    status_level: str  # good/info/caution/warnLight/danger
+    direction: str  # low/high/normal  (정상범위 대비 — 프론트가 ▽/🔺 렌더)
+    disease_low: str  # 미달 시 의심 원인
+    disease_high: str  # 초과 시 위험
+
+
+class LifestyleItem(BaseModel):
+    """모델2 생활습관 항목 상세 (리포트 생활습관 상세표)."""
+
+    feature: str
+    label: str
+    normal_range: str
+    value_text: str
+    status: str
+    status_level: str
+    group: str  # improve | maintain
+    action: str = ""  # 개선 시 행동 제안 (improve 항목)
+
+
+class ReportMeta(BaseModel):
+    """리포트 메타 (그룹·점수·인구통계·기저질환·또래비교)."""
+
+    group: str | None  # app_group (A~D) ← 서비스 내부 G1~G4 코드 그대로
+    group_title: str  # 신장 집중 관리군 …
+    grade: str  # 높음/주의/낮음
+    score: float | None  # CKD 위험도 선별 점수 (0~100, = ckd_risk_score*100)
+    group_message: str
+    age: int | None
+    gender: str | None  # "남성"/"여성"
+    conditions: list[str]  # 진단 기저질환 (고혈압/당뇨/이상지질혈증/CKD)
+    family_history: list[str]  # 가족력 (고혈압/당뇨/심장질환)
+    peer_top_pct: int | None
+    peer_relative: str | None
+
+
 class ReportResponse(BaseSerializerModel):
     health_check_id: int
     shap_model1: list[ShapItem]
@@ -98,3 +143,7 @@ class ReportResponse(BaseSerializerModel):
     ai_guide: str
     recommended_tests: list[str] = []  # 모델1(app_group) 기반 권장 검사
     model1_summary: str = ""  # 모델1 종합 한 줄 요약
+    # ── A2: 임상·생활습관 상세표 + 리포트 메타 (순수 추가, 기존 필드 불변) ──
+    clinical_items: list[ClinicalItem] = []
+    lifestyle_items: list[LifestyleItem] = []
+    report_meta: ReportMeta | None = None
