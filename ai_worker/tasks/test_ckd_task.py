@@ -1,7 +1,27 @@
+import asyncio
+
 import pytest
 
 from ai_worker.schemas.ckd import CkdJob
 from ai_worker.tasks import ckd_task
+
+
+@pytest.fixture(autouse=True)
+async def _isolate_guide_tasks(monkeypatch):  # noqa: ANN001
+    """가이드 detached 태스크 격리:
+    기본 _run_rag/update_guide를 무해하게 stub하고 _GUIDE_TASKS를 테스트 간 정리한다.
+    개별 테스트는 자체 monkeypatch로 재정의할 수 있다(나중 setattr 우선)."""
+    monkeypatch.setattr(ckd_task, "_run_rag", lambda question, ctx: "")
+
+    async def _noop_update_guide(health_check_id, ai_guide):  # noqa: ANN001
+        return None
+
+    monkeypatch.setattr(ckd_task.db, "update_guide", _noop_update_guide)
+    ckd_task._GUIDE_TASKS.clear()
+    yield
+    for t in list(ckd_task._GUIDE_TASKS):
+        t.cancel()
+    ckd_task._GUIDE_TASKS.clear()
 
 
 @pytest.mark.asyncio
@@ -230,3 +250,56 @@ async def test_handle_ckd_job_passes_shap_to_update(monkeypatch) -> None:  # noq
     u = captured["update_kwargs"]
     assert u["shap_model1"] == _shap_m1, "shap_model1이 update_prediction에 올바르게 전달되지 않음"
     assert u["shap_model2"] == _shap_m2, "shap_model2이 update_prediction에 올바르게 전달되지 않음"
+
+
+@pytest.mark.asyncio
+async def test_handle_ckd_job_spawns_guide(monkeypatch) -> None:  # noqa: ANN001
+    """SHAP 저장 후 가이드 선생성 태스크가 떠 update_guide를 호출하고,
+    user_ctx(eGFR·weight)와 질문이 _run_rag에 전달되는지 검증."""
+    captured: dict = {}
+
+    def fake_load():
+        return ("PRED1", "PRED2", {"impute": {}}, 0.06)
+
+    def fake_run_inference(
+        data, ref_date, predictor, threshold, stats, egfr_override=None, *, predictor2=None, explain=False
+    ):  # noqa: ANN001
+        return {
+            "ckd_risk_score": 0.1,
+            "app_group": "G2",
+            "ckd_stage": "G3A",
+            "egfr_estimated": 58.0,
+            "shap_model1": [{"feature": "수축기혈압", "value": 138.0, "shap": 0.05}],
+            "shap_model2": {"items": [{"feature": "흡연", "value": 2.0, "shap": 0.03}], "lifestyle_score": 0.07},
+        }
+
+    async def fake_update_prediction(health_check_id, ckd_risk_score, app_group, shap_model1=None, shap_model2=None):  # noqa: ANN001
+        pass
+
+    async def fake_update_guide(health_check_id, ai_guide):  # noqa: ANN001
+        captured["guide"] = {"health_check_id": health_check_id, "ai_guide": ai_guide}
+
+    def fake_run_rag(question, ctx):  # noqa: ANN001
+        captured["rag"] = {"question": question, "ctx": ctx}
+        return "AI 가이드 본문"
+
+    monkeypatch.setattr(ckd_task, "_load", fake_load)
+    monkeypatch.setattr(ckd_task.pipeline, "run_inference", fake_run_inference)
+    monkeypatch.setattr(ckd_task.db, "update_prediction", fake_update_prediction)
+    monkeypatch.setattr(ckd_task.db, "update_guide", fake_update_guide)
+    monkeypatch.setattr(ckd_task, "_run_rag", fake_run_rag)
+
+    job = CkdJob(
+        health_check_id=42,
+        egfr=58.0,
+        checked_date="2024-06-01",
+        payload={"gender": "MALE", "age": 58, "weight": 70.0},
+    )
+    await ckd_task.handle_ckd_job(job)
+    await asyncio.gather(*ckd_task._GUIDE_TASKS)  # 떼어진 가이드 태스크 완료 대기
+
+    assert "guide" in captured, "update_guide 미호출 (가이드 태스크 미실행)"
+    assert captured["guide"]["health_check_id"] == 42
+    assert captured["guide"]["ai_guide"] == "AI 가이드 본문"
+    assert captured["rag"]["ctx"] == {"eGFR": 58.0, "weight": 70.0}
+    assert "수축기혈압" in captured["rag"]["question"]

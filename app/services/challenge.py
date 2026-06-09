@@ -23,10 +23,12 @@ from app.dtos.challenge import (
     WeeklyEmotionResponse,
 )
 from app.models.challenge import (
+    Challenge,
     ChallengeCategory,
     ChallengeTrack,
     CheckinEmotion,
     CheckinEmotionLog,
+    UserChallenge,
     UserChallengeStatus,
 )
 from app.models.health_check import AppGroup
@@ -290,6 +292,20 @@ class ChallengeService:
             cur += timedelta(days=1)
         return WeeklyEmotionResponse(days=days)
 
+    async def _rollback_today_checkin(self, uc: UserChallenge, challenge: Challenge, today: date) -> int:
+        """오늘 체크인 1건 롤백: 당일 지급 포인트 회수 + 카운트(total·streak·last_date) 롤백.
+
+        cancel_checkin·abandon이 공유한다. 호출 측의 in_transaction 안에서 실행하며,
+        status 변경(ACTIVE 복귀 / ABANDONED)은 호출 측 책임. 반환값=회수된 포인트(양수, 0이면 없음).
+
+        last_checkin_date는 날짜별 체크인 로그가 없어 근사값 — streak이 남으면 어제, 없으면 None.
+        """
+        points_revoked = await self._points.revoke_checkin(user_id=uc.user_id, challenge_id=challenge.id, today=today)
+        uc.total_checkins = max(0, uc.total_checkins - 1)
+        uc.streak_count = max(0, uc.streak_count - 1)
+        uc.last_checkin_date = today - timedelta(days=1) if uc.streak_count > 0 else None
+        return points_revoked
+
     async def cancel_checkin(self, user_id: int, user_challenge_id: int, today: date) -> CancelCheckinResponse:
         """오늘 체크인을 완전 롤백.
 
@@ -313,19 +329,7 @@ class ChallengeService:
         challenge = await uc.challenge
 
         async with in_transaction():
-            # 포인트 회수 (트랜잭션 안에서)
-            points_revoked = await self._points.revoke_checkin(user_id=user_id, challenge_id=challenge.id, today=today)
-
-            # 카운트 롤백
-            uc.total_checkins = max(0, uc.total_checkins - 1)
-            uc.streak_count = max(0, uc.streak_count - 1)
-
-            # last_checkin_date 롤백: 날짜별 체크인 로그 없음 → 근사값
-            # streak이 남아있으면 어제, 없으면 None
-            if uc.streak_count > 0:
-                uc.last_checkin_date = today - timedelta(days=1)
-            else:
-                uc.last_checkin_date = None
+            points_revoked = await self._rollback_today_checkin(uc, challenge, today)
 
             # COMPLETED였으면 ACTIVE로 복귀
             if uc.status == UserChallengeStatus.COMPLETED:
@@ -343,12 +347,13 @@ class ChallengeService:
             message="오늘 체크인이 취소되었습니다.",
         )
 
-    async def abandon(self, user_id: int, user_challenge_id: int) -> AbandonChallengeResponse:
+    async def abandon(self, user_id: int, user_challenge_id: int, today: date) -> AbandonChallengeResponse:
         """챌린지 참여 해제 (ABANDONED).
 
-        - 레코드 삭제 아님 — 이력 유지
-        - 체크인 기록·포인트는 그대로 둠
+        - 레코드 삭제 아님 — 이력 유지 (과거 정당한 체크인 보상은 보존)
+        - 오늘 체크인이 있으면 '당일 지급분만' 회수 + 카운트 롤백 (cancel_checkin과 동일 범위)
         - 이미 ABANDONED이면 409
+        - in_transaction으로 원자성 보장
         """
         uc = await self._user_repo.get_by_id(user_challenge_id, user_id)
         if uc is None:
@@ -360,11 +365,19 @@ class ChallengeService:
                 detail="이미 포기한 챌린지입니다.",
             )
 
-        uc.status = UserChallengeStatus.ABANDONED
-        await self._user_repo.save(uc)
+        points_revoked = 0
+        async with in_transaction():
+            # 오늘 체크인했다면 당일 지급분만 회수 + 카운트 롤백 (과거분은 보존)
+            if uc.last_checkin_date == today:
+                challenge = await uc.challenge
+                points_revoked = await self._rollback_today_checkin(uc, challenge, today)
+
+            uc.status = UserChallengeStatus.ABANDONED
+            await self._user_repo.save(uc)
 
         return AbandonChallengeResponse(
             id=uc.id,
             status=uc.status,
+            points_revoked=points_revoked,
             message="챌린지 참여를 해제했습니다.",
         )

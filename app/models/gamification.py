@@ -24,6 +24,23 @@ class ItemCode(StrEnum):
     SKIN_M_RED = "SKIN_M_RED"
     SKIN_M_PURPLE = "SKIN_M_PURPLE"
     SKIN_L_GOLD = "SKIN_L_GOLD"
+    # 동물 스킨 — 장착 시 EggWidget이 해당 종의 해당 stage 일러스트로 override
+    # 진화 게이팅: 사용자 누적 최고 단계 >= 스킨 단계여야 구매 가능
+    SKIN_TURTLE_1 = "SKIN_TURTLE_1"
+    SKIN_PENGUIN_1 = "SKIN_PENGUIN_1"
+    SKIN_SQUIRREL_1 = "SKIN_SQUIRREL_1"
+    SKIN_RABBIT_1 = "SKIN_RABBIT_1"
+    SKIN_PANDA_1 = "SKIN_PANDA_1"
+    SKIN_TURTLE_2 = "SKIN_TURTLE_2"
+    SKIN_PENGUIN_2 = "SKIN_PENGUIN_2"
+    SKIN_SQUIRREL_2 = "SKIN_SQUIRREL_2"
+    SKIN_RABBIT_2 = "SKIN_RABBIT_2"
+    SKIN_PANDA_2 = "SKIN_PANDA_2"
+    SKIN_TURTLE_3 = "SKIN_TURTLE_3"
+    SKIN_PENGUIN_3 = "SKIN_PENGUIN_3"
+    SKIN_SQUIRREL_3 = "SKIN_SQUIRREL_3"
+    SKIN_RABBIT_3 = "SKIN_RABBIT_3"
+    SKIN_PANDA_3 = "SKIN_PANDA_3"
 
 
 class CharacterSpecies(StrEnum):

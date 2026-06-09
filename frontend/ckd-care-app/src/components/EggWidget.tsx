@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { gamificationApi, PROFICIENCY_LABEL, type MascotResponse } from "../api/gamification";
+import { ANIMAL_SKIN_TO_SPECIES, ANIMAL_SKIN_TO_STAGE, gamificationApi, PROFICIENCY_LABEL, type MascotResponse } from "../api/gamification";
 import { BackgroundImage } from "./BackgroundImage";
 import { CharacterImage } from "./CharacterImage";
 
@@ -24,8 +24,8 @@ function progressColor(progress: number, isCharge: boolean): string {
 
 function nextThreshold(progress: number): { name: string; remaining: number } | null {
   if (progress < HATCH_AT) return { name: "부화", remaining: HATCH_AT - progress };
-  if (progress < EVOLVE_2) return { name: "2단계", remaining: EVOLVE_2 - progress };
-  if (progress < GOAL_CHECKINS) return { name: "완전체", remaining: GOAL_CHECKINS - progress };
+  if (progress < EVOLVE_2) return { name: "다음 진화", remaining: EVOLVE_2 - progress };
+  if (progress < GOAL_CHECKINS) return { name: "다음 진화", remaining: GOAL_CHECKINS - progress };
   return null;
 }
 
@@ -60,7 +60,13 @@ export function EggWidget() {
   const egg = data.current_egg;
   const charge = data.charge_mode;
   const isCharge = charge.is_active;
+
+  // 동물 스킨 장착 시 표시 species/stage override (실제 진행 데이터는 유지)
+  const skinSpecies = data.skin_active ? ANIMAL_SKIN_TO_SPECIES[data.skin_active] ?? null : null;
+  const skinStage = data.skin_active ? ANIMAL_SKIN_TO_STAGE[data.skin_active] ?? null : null;
+  const displaySpecies = skinSpecies ?? egg.species;
   const stageIdx = Math.max(0, Math.min(egg.current_stage, 3));
+  const displayStage = skinStage ?? stageIdx;
   const label = STAGE_LABEL[stageIdx];
   const progress = egg.progress_checkins;
   const percentToGoal = Math.round((progress / GOAL_CHECKINS) * 100);
@@ -83,7 +89,7 @@ export function EggWidget() {
         <BackgroundImage proficiency={proficiency} />
         {/* 캐릭터 (배경 위) */}
         <div className="relative z-10">
-          <CharacterImage species={egg.species} stage={stageIdx} size={140} emojiClass="text-6xl" />
+          <CharacterImage species={displaySpecies} stage={displayStage} size={140} emojiClass="text-6xl" />
         </div>
         {isComplete && (
           <span className="absolute top-2 right-2 z-20 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700 shadow">

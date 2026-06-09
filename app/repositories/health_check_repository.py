@@ -1,6 +1,6 @@
 from datetime import date
 
-from app.models.health_check import AppGroup, CkdStage, HealthCheck
+from app.models.health_check import AppGroup, CkdStage, DialysisType, HealthCheck
 
 
 class HealthCheckRepository:
@@ -22,6 +22,7 @@ class HealthCheckRepository:
         egfr_estimated: float | None = None,
         ckd_stage: CkdStage | None = None,
         app_group: AppGroup | None = None,
+        dialysis_type: DialysisType | None = None,
     ) -> HealthCheck:
         return await HealthCheck.create(
             user_id=user_id,
@@ -40,6 +41,7 @@ class HealthCheckRepository:
             egfr_estimated=egfr_estimated,
             ckd_stage=ckd_stage,
             app_group=app_group,
+            dialysis_type=dialysis_type,
         )
 
     async def get_by_user(
@@ -57,6 +59,11 @@ class HealthCheckRepository:
     async def get_by_id(self, health_check_id: int, user_id: int) -> HealthCheck | None:
         """단건 조회 — user_id 조건으로 타인 검진 접근 차단."""
         return await HealthCheck.get_or_none(id=health_check_id, user_id=user_id)
+
+    async def delete_by_id(self, health_check_id: int, user_id: int) -> bool:
+        """단건 삭제 — user_id 조건으로 타인 소유분 보호. 영향 행 수 > 0 이면 True."""
+        deleted = await HealthCheck.filter(id=health_check_id, user_id=user_id).delete()
+        return deleted > 0
 
     async def update_prediction(
         self,

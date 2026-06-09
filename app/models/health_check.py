@@ -21,6 +21,15 @@ class AppGroup(StrEnum):
     G4 = "G4"  # 정상 → Track B (일반)
 
 
+class DialysisType(StrEnum):
+    """투석 종류 (RAG 트랙 필터용). null=미진단."""
+
+    NONE = "none"  # 진단받았으나 투석 안 함(비투석)
+    HEMODIALYSIS = "hemodialysis"  # 혈액투석
+    PERITONEAL = "peritoneal"  # 복막투석
+    TRANSPLANT = "transplant"  # 이식
+
+
 class HealthCheck(models.Model):
     id = fields.BigIntField(primary_key=True)
     user = fields.ForeignKeyField("models.User", related_name="health_checks")
@@ -52,6 +61,10 @@ class HealthCheck(models.Model):
     # SHAP 리포트 (ai_worker 예측 job이 비동기로 채움)
     shap_model1 = fields.JSONField(null=True, description="모델1 위험변수 SHAP Top-N")
     shap_model2 = fields.JSONField(null=True, description="모델2 생활습관 SHAP + 또래비교")
+    # AI 행동 가이드 (ai_worker가 예측 직후 비동기 선생성·저장 — 리포트는 읽기만)
+    ai_guide = fields.TextField(null=True, description="RAG 기반 AI 행동 가이드(선생성 캐시)")
+    # 투석 종류 — RAG 챗봇 트랙 필터용(투석/비투석 식이 권고 분기). null=미진단.
+    dialysis_type = fields.CharEnumField(enum_type=DialysisType, null=True, description="투석 종류 (null=미진단)")
 
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)

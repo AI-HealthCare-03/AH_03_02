@@ -4,7 +4,7 @@ from typing import Annotated
 from pydantic import BaseModel, Field
 
 from app.dtos.base import BaseSerializerModel
-from app.models.health_check import AppGroup, CkdStage
+from app.models.health_check import AppGroup, CkdStage, DialysisType
 
 
 class HealthCheckCreateRequest(BaseModel):
@@ -28,6 +28,10 @@ class HealthCheckCreateRequest(BaseModel):
     weight: Annotated[float, Field(ge=20.0, le=300.0, description="체중 (kg)")]
     height: Annotated[float, Field(ge=100.0, le=250.0, description="신장 (cm)")]
     waist_circumference: Annotated[float | None, Field(None, ge=40.0, le=200.0, description="허리둘레 (cm)")]
+    dialysis_type: Annotated[
+        DialysisType | None,
+        Field(None, description="투석 종류 (진단자만; 미진단은 null/생략)"),
+    ]
 
 
 class HealthCheckResponse(BaseSerializerModel):
@@ -57,6 +61,7 @@ class HealthCheckResponse(BaseSerializerModel):
     ckd_risk_score: float | None
     ckd_stage: CkdStage | None
     app_group: AppGroup | None
+    dialysis_type: DialysisType | None = None
 
     # 세이프티 가드 메시지 (위험 수치 감지 시)
     safety_warning: str | None = None

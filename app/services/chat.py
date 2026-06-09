@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import uuid
+from collections.abc import AsyncGenerator
 
 from fastapi import HTTPException
 from starlette import status
@@ -14,6 +15,11 @@ from app.dtos.chat import ChatMessageResponse
 from app.models.chat import ChatRole
 from app.models.health_check import HealthCheck
 from app.repositories.chat_repository import ChatRepository
+
+
+def _sse(event: dict) -> str:
+    """dict → SSE 'data: {json}\\n\\n' 프레임."""
+    return f"data: {json.dumps(event, ensure_ascii=False)}\n\n"
 
 
 class ChatService:
@@ -89,3 +95,54 @@ class ChatService:
         await self._repo.add(user_id=user_id, role=ChatRole.USER, content=question)
         saved = await self._repo.add(user_id=user_id, role=ChatRole.ASSISTANT, content=answer)
         return ChatMessageResponse(answer=answer, created_at=saved.created_at)
+
+    async def ask_stream(self, user_id: int, question: str) -> AsyncGenerator[str, None]:
+        """RAG worker에 스트리밍 잡 발행 → rag_resp 청크를 SSE(data: ...) 로 점진 yield.
+
+        token 누적 / reset 비움 / done 시 USER·ASSISTANT 메시지 저장 후 종료 / error·타임아웃 처리.
+        기존 ask()와 달리 SSE 스트림을 반환한다. _build_user_context는 읽기 전용 재사용.
+        """
+        redis = get_redis()
+        user_context = await self._build_user_context(user_id)
+        job_id = uuid.uuid4().hex
+        await redis.xadd(
+            config.RAG_JOBS_STREAM,
+            {
+                "job_id": job_id,
+                "question": question,
+                "user_context": json.dumps(user_context),
+                "stream": "1",
+            },
+        )
+        resp_key = f"{config.RAG_RESP_PREFIX}:{job_id}"
+        last_id = "0"
+        full = ""
+        try:
+            while True:
+                res = await redis.xread({resp_key: last_id}, count=50, block=config.RAG_TIMEOUT_SEC * 1000)
+                if not res:
+                    yield _sse({"type": "error", "error": "답변 생성이 지연되고 있습니다."})
+                    return
+                for _stream, entries in res:
+                    for entry_id, fields in entries:
+                        last_id = entry_id
+                        ev = json.loads(fields["data"])
+                        etype = ev.get("type")
+                        if etype == "token":
+                            full += ev.get("text", "")
+                            yield _sse(ev)
+                        elif etype == "reset":
+                            full = ""
+                            yield _sse(ev)
+                        elif etype == "done":
+                            full = ev.get("answer") or full
+                            # 성공 시에만 USER·ASSISTANT 저장 (기존 ask 고아방지 정책과 동일)
+                            await self._repo.add(user_id=user_id, role=ChatRole.USER, content=question)
+                            await self._repo.add(user_id=user_id, role=ChatRole.ASSISTANT, content=full)
+                            yield _sse(ev)
+                            return
+                        elif etype == "error":
+                            yield _sse(ev)
+                            return
+        finally:
+            await redis.delete(resp_key)

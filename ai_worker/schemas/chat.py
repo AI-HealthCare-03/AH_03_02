@@ -9,6 +9,7 @@ class ChatJob(BaseModel):
     job_id: str
     question: str
     user_context: dict = Field(default_factory=dict)
+    stream: bool = False
 
 
 class ChatResult(BaseModel):

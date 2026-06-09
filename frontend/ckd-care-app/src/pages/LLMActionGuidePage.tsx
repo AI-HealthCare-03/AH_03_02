@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { ClipboardCheck, FileText } from "lucide-react";
 import { TopNav } from "../components/TopNav";
 import { ScreenLabel } from "../components/ScreenLabel";
@@ -273,6 +274,8 @@ function PeerGauge({
   );
 }
 
+const GUIDE_TIMEOUT_MS = 45000; // 가이드 선생성 대기 상한(~25s 생성 + 여유)
+
 // ===== 메인 페이지 =====
 export function LLMActionGuidePage() {
   // 1단계: 최신 검진 ID 조회
@@ -297,14 +300,30 @@ export function LLMActionGuidePage() {
     queryKey: ["shap-report", latestId],
     queryFn: () => healthCheckApi.getReport(latestId!),
     enabled: latestId !== null,
-    // shap_model1이 빈 배열이면 5초 폴링 — 데이터 도착 시 중단
+    // shap 미준비 또는 ai_guide 미생성(캡 이전) 동안 5초 폴링
     refetchInterval: (q) => {
       const d = q.state.data;
       if (!d) return false;
-      const pending = d.shap_model1.length === 0 && d.shap_model2 === null;
-      return pending ? 5000 : false;
+      const shapPending = d.shap_model1.length === 0 && d.shap_model2 === null;
+      const guidePending = (d.ai_guide ?? "").trim().length === 0 && !guideTimedOut;
+      return shapPending || guidePending ? 5000 : false;
     },
   });
+
+  const [guideTimedOut, setGuideTimedOut] = useState(false);
+
+  // shap 준비 후 ai_guide가 빈 채로 GUIDE_TIMEOUT_MS 경과하면 실패 표시로 전환
+  useEffect(() => {
+    if (report === undefined) return;
+    const shapReady = !(report.shap_model1.length === 0 && report.shap_model2 === null);
+    const guideReady = (report.ai_guide ?? "").trim().length > 0;
+    if (!shapReady || guideReady) {
+      setGuideTimedOut(false);
+      return;
+    }
+    const t = setTimeout(() => setGuideTimedOut(true), GUIDE_TIMEOUT_MS);
+    return () => clearTimeout(t);
+  }, [report]);
 
   // ===== 상태 분기 =====
   const isLoading = listLoading || (latestId !== null && reportLoading);
@@ -329,6 +348,7 @@ export function LLMActionGuidePage() {
   // ===== AI 가이드 텍스트 =====
   const aiGuide = report?.ai_guide ?? "";
   const hasGuide = aiGuide.trim().length > 0;
+  const guidePending = !isComputing && !hasGuide && !guideTimedOut;
 
   return (
     <div className="flex min-h-screen flex-col bg-bg-alt">
@@ -472,9 +492,18 @@ export function LLMActionGuidePage() {
               </p>
             )}
 
-            {!isLoading && !isComputing && !hasGuide && (
+            {!isLoading && guidePending && (
+              <>
+                <SkeletonCard />
+                <p className="text-sm text-text-secondary">
+                  AI 가이드를 생성하고 있습니다… (최대 1분 소요)
+                </p>
+              </>
+            )}
+
+            {!isLoading && !isComputing && !hasGuide && guideTimedOut && (
               <p className="text-sm text-text-secondary">
-                가이드를 생성하지 못했습니다. 다시 시도해주세요.
+                가이드를 준비하지 못했습니다. 다시 시도해주세요.
               </p>
             )}
 

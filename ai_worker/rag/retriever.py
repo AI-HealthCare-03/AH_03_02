@@ -10,12 +10,17 @@ point id 는 인덱싱 `qdrant_uploader.point_id` 와 동일하게 16-hex → in
 
 from __future__ import annotations
 
+import logging
+import time
+
 from langchain_core.documents import Document
 from qdrant_client import QdrantClient
 from qdrant_client.models import FieldCondition, Filter, MatchAny, MatchValue
 
 from . import config as cfg
 from . import embedder
+
+logger = logging.getLogger("ai_worker.rag")
 
 _client: QdrantClient | None = None
 
@@ -50,7 +55,12 @@ def retrieve(
     client·query_vector 주입 가능 (테스트는 mock client + 벡터 주입으로 키·네트워크 불요).
     """
     client = client or get_client()
-    qv = query_vector if query_vector is not None else embedder.embed_query(query)
+    if query_vector is not None:
+        qv = query_vector
+    else:
+        _t = time.perf_counter()
+        qv = embedder.embed_query(query)
+        logger.info("[RAG-TIMING]   retrieve.embed         elapsed=%.3fs", time.perf_counter() - _t)
 
     must_conditions: list = [FieldCondition(key="age_group", match=MatchValue(value=age_group))]
     if track:
@@ -58,12 +68,14 @@ def retrieve(
             FieldCondition(key="track", match=MatchAny(any=[track, "common"]))
         )
     flt = Filter(must=must_conditions)
+    _t = time.perf_counter()
     hits = client.query_points(
         collection_name=cfg.COLLECTION_CHILD,
         query=qv,
         limit=top_k,
         query_filter=flt,
     ).points
+    logger.info("[RAG-TIMING]   retrieve.qdrant_child  elapsed=%.3fs", time.perf_counter() - _t)
 
     documents: list[Document] = []
     parent_ids: list[str] = []  # 순서 보존 + 중복 제거
@@ -88,10 +100,12 @@ def retrieve(
 
     parent_context = ""
     if parent_ids:
+        _t = time.perf_counter()
         parents = client.retrieve(
             collection_name=cfg.COLLECTION_PARENT,
             ids=[_parent_point_id(pid) for pid in parent_ids],
         )
+        logger.info("[RAG-TIMING]   retrieve.qdrant_parent elapsed=%.3fs", time.perf_counter() - _t)
         parent_context = "\n\n".join((pt.payload or {}).get("text", "") for pt in parents)
 
     top_score = hits[0].score if hits else 0.0

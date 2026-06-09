@@ -1,6 +1,6 @@
-const BASE = "/api/v1";
+export const BASE = "/api/v1";
 
-function getToken(): string | null {
+export function getToken(): string | null {
   return localStorage.getItem("access_token") ?? sessionStorage.getItem("access_token");
 }
 

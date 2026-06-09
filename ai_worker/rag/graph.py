@@ -11,12 +11,33 @@ guard → retrieve → grade ─(부족)→ rewrite → retrieve(≤2)
 
 from __future__ import annotations
 
+import logging
+import time
+
 from langgraph.graph import END, START, StateGraph
 
 from . import nodes
 from .state import RAGState
 
+logger = logging.getLogger("ai_worker.rag")
+
 _graph = None
+
+
+def _timed(name: str, fn):
+    """노드 실행 시간을 [RAG-TIMING] 로그로 남기는 래퍼 (병목 계측용).
+
+    반환값을 그대로 통과시켜 그래프 동작은 불변. 같은 노드가 여러 번 호출되면
+    (rewrite/generate 루프) 호출마다 1줄씩 찍혀 호출 횟수도 함께 드러난다.
+    """
+
+    def wrapper(state):
+        t0 = time.perf_counter()
+        result = fn(state)
+        logger.info("[RAG-TIMING] node=%-18s elapsed=%.3fs", name, time.perf_counter() - t0)
+        return result
+
+    return wrapper
 
 
 def build_graph():
@@ -38,7 +59,7 @@ def build_graph():
         ("referral_notice", nodes.referral_notice_node),
         ("scope_notice", nodes.scope_notice_node),
     ]:
-        b.add_node(name, fn)
+        b.add_node(name, _timed(name, fn))
 
     b.add_edge(START, "guard")
     # guard: 차단 메시지가 있으면 즉시 END (검색 건너뜀)
@@ -90,9 +111,9 @@ def get_graph():
     return _graph
 
 
-def run(question: str, user_context: dict | None = None) -> str:
-    """단일 질문 실행 → 최종 답변 문자열 (차단 시 가드 응답)."""
-    init = {
+def _init_state(question: str, user_context: dict | None, token_sink=None) -> dict:  # noqa: ANN001
+    """그래프 초기 상태 딕셔너리 생성 헬퍼 (run·run_stream 공통)."""
+    return {
         "messages": [{"role": "user", "content": question}],
         "documents": [],
         "parent_context": "",
@@ -106,8 +127,23 @@ def run(question: str, user_context: dict | None = None) -> str:
         "blocked": None,
         "domain": "",
         "user_context": user_context or {},
+        "token_sink": token_sink,
     }
-    final = get_graph().invoke(init)
+
+
+def run(question: str, user_context: dict | None = None) -> str:
+    """단일 질문 실행 → 최종 답변 문자열 (차단 시 가드 응답)."""
+    t0 = time.perf_counter()
+    final = get_graph().invoke(_init_state(question, user_context))
+    logger.info("[RAG-TIMING] TOTAL graph.invoke elapsed=%.3fs", time.perf_counter() - t0)
+    return final.get("blocked") or final.get("generation", "")
+
+
+def run_stream(question: str, user_context: dict | None, sink) -> str:  # noqa: ANN001
+    """스트리밍용 실행 — generate가 sink로 토큰 방출. 최종 답변 문자열 반환(차단 시 가드 응답)."""
+    t0 = time.perf_counter()
+    final = get_graph().invoke(_init_state(question, user_context, sink))
+    logger.info("[RAG-TIMING] TOTAL graph.invoke(stream) elapsed=%.3fs", time.perf_counter() - t0)
     return final.get("blocked") or final.get("generation", "")
 
 

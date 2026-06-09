@@ -41,6 +41,11 @@ jobs:
       - name: Run Ruff Format Check
         run: uv run ruff format . --check
 
+      - name: Check migration number collisions
+        # 병렬 브랜치가 같은 마이그 번호(N)를 생성해 머지 시 충돌하는 것을 PR 단계에서 차단.
+        # 기존 25·26은 grandfather. 해결=최신 develop rebase 후 aerich migrate 재생성.
+        run: bash scripts/check_migration_numbers.sh
+
   test:
     runs-on: ubuntu-latest
     services:

@@ -72,3 +72,20 @@ async def test_update_prediction_with_shap(monkeypatch) -> None:  # noqa: ANN001
     assert args[4] == 7
     assert json.loads(args[2])[0]["feature"] == "중성지방"
     assert json.loads(args[3])["peer_top_pct"] == 22
+
+
+@pytest.mark.asyncio
+async def test_update_guide(monkeypatch) -> None:  # noqa: ANN001
+    """ai_guide를 health_checks.ai_guide에 UPDATE."""
+    conn = _FakeConn()
+
+    async def fake_pool():
+        return _FakePool(conn)
+
+    monkeypatch.setattr(db, "get_pool", fake_pool)
+    await db.update_guide(health_check_id=5, ai_guide="가이드 텍스트")
+
+    query, args = conn.calls[0]
+    assert "UPDATE health_checks" in query
+    assert "ai_guide = $1" in query
+    assert args == ("가이드 텍스트", 5)

@@ -9,7 +9,7 @@ from app.models.health_check import AppGroup, CkdStage, HealthCheck
 from app.models.safety_event import SafetyEvent, SafetyEventType
 from app.models.users import Gender
 from app.repositories.health_check_repository import HealthCheckRepository
-from app.services import ckd_publisher, report_guide
+from app.services import ckd_publisher
 
 logger = setup_logger("health_check_service")
 
@@ -165,6 +165,7 @@ class HealthCheckService:
             egfr_estimated=egfr,
             ckd_stage=ckd_stage,
             app_group=app_group,
+            dialysis_type=dto.dialysis_type,
         )
 
         safety_warning = self._check_safety_warning(dto.systolic_bp, dto.diastolic_bp, dto.fasting_glucose, egfr)
@@ -255,6 +256,10 @@ class HealthCheckService:
         if hc is None:
             return None
         return HealthCheckResponse.model_validate(hc)
+
+    async def delete_health_check(self, health_check_id: int, user_id: int) -> bool:
+        """본인 소유 검진 삭제. 없으면 False."""
+        return await self._repo.delete_by_id(health_check_id, user_id)
 
     # ── 모델1 리포트 헬퍼 (순수 함수, app_group 기반) ─────────────────────────
 
@@ -378,27 +383,14 @@ class HealthCheckService:
         health_check_id: int,
         user_id: int,
     ) -> ReportResponse | None:
-        """SHAP 리포트 조회 + RAG 기반 AI 행동 가이드 생성.
+        """SHAP 리포트 조회.
 
         user_id 소유권 필터로 타인 검진 접근 차단.
-        RAG 가이드 생성 실패·타임아웃 시 ai_guide="" 로 리포트는 정상 반환.
+        ai_guide는 ai_worker가 예측 시 선생성·저장한 캐시를 읽는다(미생성 시 빈 문자열).
         """
         hc = await HealthCheck.filter(id=health_check_id, user_id=user_id).first()
         if hc is None:
             return None
-
-        # eGFR·체중을 user_context로 전달 → RAG가 영양 권장량 개인화 환산에 활용
-        user_ctx: dict = {}
-        if hc.egfr_estimated is not None:
-            user_ctx["eGFR"] = hc.egfr_estimated
-        if hc.weight is not None:
-            user_ctx["weight"] = hc.weight
-
-        guide = await report_guide.generate_guide(
-            hc.shap_model1 or [],
-            hc.shap_model2,
-            user_ctx,
-        )
 
         shap_list = hc.shap_model1 or []
         recommended = self._recommend_tests(hc.app_group, hc.egfr_estimated)
@@ -407,8 +399,8 @@ class HealthCheckService:
         return ReportResponse(
             health_check_id=hc.id,
             shap_model1=shap_list,
-            shap_model2=hc.shap_model2,  # dict 또는 None → LifestyleShap 검증
-            ai_guide=guide,
+            shap_model2=hc.shap_model2,
+            ai_guide=hc.ai_guide or "",  # ai_worker가 선생성·저장 → 읽기만
             recommended_tests=recommended,
             model1_summary=summary,
         )

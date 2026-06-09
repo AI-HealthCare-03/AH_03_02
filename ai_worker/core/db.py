@@ -59,3 +59,14 @@ async def update_prediction(
             shap2_json,
             health_check_id,
         )
+
+
+async def update_guide(health_check_id: int, ai_guide: str) -> None:
+    """RAG 선생성 AI 가이드를 health_checks.ai_guide에 저장."""
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        await conn.execute(
+            "UPDATE health_checks SET ai_guide = $1 WHERE id = $2",
+            ai_guide,
+            health_check_id,
+        )

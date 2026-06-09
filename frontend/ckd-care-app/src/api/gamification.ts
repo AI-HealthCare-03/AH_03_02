@@ -7,9 +7,40 @@ export type ItemCode =
   | "SKIN_S_GREEN"
   | "SKIN_M_RED"
   | "SKIN_M_PURPLE"
-  | "SKIN_L_GOLD";
+  | "SKIN_L_GOLD"
+  | "SKIN_TURTLE_1"
+  | "SKIN_PENGUIN_1"
+  | "SKIN_SQUIRREL_1"
+  | "SKIN_RABBIT_1"
+  | "SKIN_PANDA_1"
+  | "SKIN_TURTLE_2"
+  | "SKIN_PENGUIN_2"
+  | "SKIN_SQUIRREL_2"
+  | "SKIN_RABBIT_2"
+  | "SKIN_PANDA_2"
+  | "SKIN_TURTLE_3"
+  | "SKIN_PENGUIN_3"
+  | "SKIN_SQUIRREL_3"
+  | "SKIN_RABBIT_3"
+  | "SKIN_PANDA_3";
 
 export type CharacterSpecies = "TURTLE" | "PENGUIN" | "SQUIRREL" | "RABBIT" | "PANDA";
+
+// 동물 스킨 → 표시 종 매핑. 장착 시 EggWidget이 해당 종 일러스트로 override
+export const ANIMAL_SKIN_TO_SPECIES: Partial<Record<ItemCode, CharacterSpecies>> = {
+  SKIN_TURTLE_1: "TURTLE", SKIN_TURTLE_2: "TURTLE", SKIN_TURTLE_3: "TURTLE",
+  SKIN_PENGUIN_1: "PENGUIN", SKIN_PENGUIN_2: "PENGUIN", SKIN_PENGUIN_3: "PENGUIN",
+  SKIN_SQUIRREL_1: "SQUIRREL", SKIN_SQUIRREL_2: "SQUIRREL", SKIN_SQUIRREL_3: "SQUIRREL",
+  SKIN_RABBIT_1: "RABBIT", SKIN_RABBIT_2: "RABBIT", SKIN_RABBIT_3: "RABBIT",
+  SKIN_PANDA_1: "PANDA", SKIN_PANDA_2: "PANDA", SKIN_PANDA_3: "PANDA",
+};
+
+// 동물 스킨 → 표시 stage (1·2·3). 장착 시 EggWidget이 이 stage 일러스트 사용
+export const ANIMAL_SKIN_TO_STAGE: Partial<Record<ItemCode, 1 | 2 | 3>> = {
+  SKIN_TURTLE_1: 1, SKIN_PENGUIN_1: 1, SKIN_SQUIRREL_1: 1, SKIN_RABBIT_1: 1, SKIN_PANDA_1: 1,
+  SKIN_TURTLE_2: 2, SKIN_PENGUIN_2: 2, SKIN_SQUIRREL_2: 2, SKIN_RABBIT_2: 2, SKIN_PANDA_2: 2,
+  SKIN_TURTLE_3: 3, SKIN_PENGUIN_3: 3, SKIN_SQUIRREL_3: 3, SKIN_RABBIT_3: 3, SKIN_PANDA_3: 3,
+};
 
 export const SPECIES_EMOJI: Record<CharacterSpecies, string> = {
   TURTLE: "🐢",
@@ -93,6 +124,7 @@ export interface MascotResponse {
   legendary_unlocked: boolean;
   skin_active: ItemCode | null;
   proficiency: number; // 1=입문, 2=초보, 3=중급, 4=숙련 — EggWidget 배경 결정
+  max_stage_ever: number; // 누적 최고 진화 단계 (0~3) — 동물 스킨 잠금 판단
 }
 
 // 숙련도 배경 SVG 경로 (PNG 우선, 없으면 SVG fallback)
@@ -164,6 +196,21 @@ export const SKIN_LABEL: Record<Exclude<ItemCode, "PROTECT" | "MINI_BOOSTER">, {
   SKIN_M_RED: { name: "레드 스킨 (중)", color: "bg-red-200" },
   SKIN_M_PURPLE: { name: "퍼플 스킨 (중)", color: "bg-purple-200" },
   SKIN_L_GOLD: { name: "골드 스킨 (대)", color: "bg-yellow-200" },
+  SKIN_TURTLE_1: { name: "거북이 (1단계)", color: "bg-emerald-100" },
+  SKIN_PENGUIN_1: { name: "펭귄 (1단계)", color: "bg-sky-100" },
+  SKIN_SQUIRREL_1: { name: "다람쥐 (1단계)", color: "bg-orange-100" },
+  SKIN_RABBIT_1: { name: "토끼 (1단계)", color: "bg-pink-100" },
+  SKIN_PANDA_1: { name: "판다 (1단계)", color: "bg-slate-200" },
+  SKIN_TURTLE_2: { name: "거북이 (2단계)", color: "bg-emerald-200" },
+  SKIN_PENGUIN_2: { name: "펭귄 (2단계)", color: "bg-sky-200" },
+  SKIN_SQUIRREL_2: { name: "다람쥐 (2단계)", color: "bg-orange-200" },
+  SKIN_RABBIT_2: { name: "토끼 (2단계)", color: "bg-pink-200" },
+  SKIN_PANDA_2: { name: "판다 (2단계)", color: "bg-slate-300" },
+  SKIN_TURTLE_3: { name: "거북이 (완전체)", color: "bg-emerald-300" },
+  SKIN_PENGUIN_3: { name: "펭귄 (완전체)", color: "bg-sky-300" },
+  SKIN_SQUIRREL_3: { name: "다람쥐 (완전체)", color: "bg-orange-300" },
+  SKIN_RABBIT_3: { name: "토끼 (완전체)", color: "bg-pink-300" },
+  SKIN_PANDA_3: { name: "판다 (완전체)", color: "bg-slate-400" },
 };
 
 export interface AttendanceResponse {
