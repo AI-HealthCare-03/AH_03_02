@@ -1,10 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { ClipboardCheck, FileText } from "lucide-react";
+import { ClipboardCheck, FileText, ChevronDown, ChevronUp } from "lucide-react";
 import { TopNav } from "../components/TopNav";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { BtnSecondary } from "../components/BtnSecondary";
-import { healthCheckApi, ShapItem1, LifestyleShapItem, PeerDistribution } from "../api/healthCheck";
+import {
+  healthCheckApi,
+  ShapItem1,
+  LifestyleShapItem,
+  PeerDistribution,
+  ClinicalItem,
+  ReportMeta,
+} from "../api/healthCheck";
 
 // ===== ShapBar 컴포넌트 =====
 // value를 number | string 모두 수용하도록 확장
@@ -112,6 +119,212 @@ function ComputingBanner() {
       <div className="h-[20px] w-[20px] shrink-0 animate-spin rounded-full border-2 border-accent border-t-transparent" />
       <p className="text-sm text-text-secondary">
         AI가 위험 변수를 분석 중입니다. 최대 35초 내외 소요됩니다…
+      </p>
+    </div>
+  );
+}
+
+// ===== status_level 색상 헬퍼 =====
+function statusLevelStyle(level: ClinicalItem["status_level"]): {
+  bg: string;
+  text: string;
+} {
+  switch (level) {
+    case "good":      return { bg: "#dcfce7", text: "#16A34A" };
+    case "info":      return { bg: "#dbeafe", text: "#2563EB" };
+    case "caution":   return { bg: "#fef9c3", text: "#CA8A04" };
+    case "warnLight": return { bg: "#ffedd5", text: "#EA580C" };
+    case "danger":    return { bg: "#fee2e2", text: "#DC2626" };
+  }
+}
+
+// ===== 임상 상세 분석표 =====
+const CATEGORY_ORDER = ["혈압·혈당", "지질", "간·혈액", "신체", "기타"] as const;
+
+function ClinicalDetailTable({ items }: { items: ClinicalItem[] }) {
+  // 열린 행 인덱스 집합 (원래 items 배열 인덱스 기준)
+  const [openRows, setOpenRows] = useState<Set<number>>(new Set());
+
+  const toggleRow = (idx: number) => {
+    setOpenRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) {
+        next.delete(idx);
+      } else {
+        next.add(idx);
+      }
+      return next;
+    });
+  };
+
+  // 카테고리별로 그룹화 (원래 배열 인덱스 보존)
+  type IndexedItem = { item: ClinicalItem; idx: number };
+  const grouped: Record<string, IndexedItem[]> = {};
+  items.forEach((item, idx) => {
+    if (!grouped[item.category]) grouped[item.category] = [];
+    grouped[item.category].push({ item, idx });
+  });
+
+  // CATEGORY_ORDER 기준 + 비어있는 카테고리 제외
+  const orderedCategories = CATEGORY_ORDER.filter((cat) => grouped[cat]?.length);
+
+  if (items.length === 0) return null;
+
+  return (
+    <div className="flex flex-col gap-0 rounded-md border border-border bg-bg overflow-hidden">
+      {/* 헤더 */}
+      <div className="flex items-center justify-between border-b border-border px-[14px] py-[10px]">
+        <p className="text-sm font-bold text-text-primary">임상 상세 분석표</p>
+        <p className="text-xs text-text-muted">항목을 누르면 설명·관련 질병이 펼쳐집니다.</p>
+      </div>
+
+      {/* 컬럼 헤더 */}
+      <div className="grid grid-cols-[2fr_1.5fr_2fr_1.5fr_24px] gap-x-[8px] border-b border-border bg-[#f8fafc] px-[14px] py-[6px]">
+        <span className="text-xs font-semibold text-text-muted">항목</span>
+        <span className="text-xs font-semibold text-text-muted">정상범위</span>
+        <span className="text-xs font-semibold text-text-muted">현재값</span>
+        <span className="text-xs font-semibold text-text-muted">상태</span>
+        <span />
+      </div>
+
+      {orderedCategories.map((cat) => (
+        <div key={cat}>
+          {/* 카테고리 헤더 행 */}
+          <div className="bg-[#f1f5f9] px-[14px] py-[5px]">
+            <span className="text-xs font-semibold text-text-muted">〔 {cat} 〕</span>
+          </div>
+
+          {grouped[cat].map(({ item, idx }) => {
+            const isOpen = openRows.has(idx);
+            const { bg, text: textColor } = statusLevelStyle(item.status_level);
+            return (
+              <div key={item.feature} className="border-b border-border last:border-b-0">
+                {/* 클릭 가능한 데이터 행 */}
+                <button
+                  type="button"
+                  onClick={() => toggleRow(idx)}
+                  className="grid w-full grid-cols-[2fr_1.5fr_2fr_1.5fr_24px] items-center gap-x-[8px] px-[14px] py-[10px] text-left transition-colors hover:bg-[#f8fafc] active:bg-[#f1f5f9]"
+                >
+                  {/* 항목 */}
+                  <span className="text-sm font-medium text-text-primary">{item.label}</span>
+
+                  {/* 정상범위 */}
+                  <span className="text-xs text-text-muted">{item.normal_range}</span>
+
+                  {/* 현재값 + 방향 삼각형 */}
+                  <span className="flex items-center gap-[3px] text-sm text-text-secondary">
+                    {item.value_text}
+                    {item.direction === "high" && (
+                      <span style={{ color: "#DC2626", fontSize: "11px" }}>▲</span>
+                    )}
+                    {item.direction === "low" && (
+                      <span style={{ color: "#2563EB", fontSize: "11px" }}>▼</span>
+                    )}
+                  </span>
+
+                  {/* 상태 뱃지 */}
+                  <span
+                    className="inline-block rounded-full px-[7px] py-[2px] text-xs font-semibold"
+                    style={{ backgroundColor: bg, color: textColor }}
+                  >
+                    {item.status}
+                  </span>
+
+                  {/* 펼침 표시기 */}
+                  <span className="text-text-muted">
+                    {isOpen ? (
+                      <ChevronUp className="h-[14px] w-[14px]" />
+                    ) : (
+                      <ChevronDown className="h-[14px] w-[14px]" />
+                    )}
+                  </span>
+                </button>
+
+                {/* 펼침 패널 */}
+                {isOpen && (
+                  <div className="border-t border-border bg-[#f8fafc] px-[14px] py-[10px]">
+                    <p className="mb-[6px] text-sm leading-[1.7] text-text-secondary">
+                      {item.desc}
+                    </p>
+                    <div className="flex flex-col gap-[3px]">
+                      {item.disease_low && item.disease_low !== "—" && (
+                        <p className="text-xs text-text-muted">
+                          <span className="font-semibold text-[#2563EB]">미달 시:</span>{" "}
+                          {item.disease_low}
+                        </p>
+                      )}
+                      {item.disease_high && item.disease_high !== "—" && (
+                        <p className="text-xs text-text-muted">
+                          <span className="font-semibold text-[#DC2626]">초과 시:</span>{" "}
+                          {item.disease_high}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ===== 리포트 메타 카드 =====
+function gradeStyle(grade: string): { bg: string; text: string } {
+  if (grade === "높음") return { bg: "#fee2e2", text: "#DC2626" };
+  if (grade === "주의") return { bg: "#fef9c3", text: "#CA8A04" };
+  return { bg: "#dcfce7", text: "#16A34A" };
+}
+
+function ReportMetaCard({ meta }: { meta: ReportMeta | null | undefined }) {
+  if (!meta) return null;
+
+  const grade = gradeStyle(meta.grade);
+  const conditionsText = meta.conditions.length > 0 ? meta.conditions.join(" · ") : "없음";
+  const familyText = meta.family_history.length > 0 ? meta.family_history.join(" · ") : "없음";
+
+  return (
+    <div className="flex flex-col gap-[10px] rounded-md border border-border bg-bg p-[14px]">
+      {/* 제목 행: 그룹 제목 + 등급 뱃지 */}
+      <div className="flex flex-wrap items-center gap-[8px]">
+        <p className="text-base font-bold text-text-primary">{meta.group_title}</p>
+        <span
+          className="rounded-full px-[8px] py-[2px] text-xs font-bold"
+          style={{ backgroundColor: grade.bg, color: grade.text }}
+        >
+          등급: {meta.grade}
+        </span>
+        {meta.score !== null && (
+          <span className="text-xs text-text-muted">
+            CKD 위험도 선별 점수 {meta.score} / 100
+          </span>
+        )}
+      </div>
+
+      {/* 배경 요인 */}
+      <div className="flex flex-col gap-[3px]">
+        <p className="text-xs font-semibold text-text-muted">배경 요인</p>
+        <p className="text-sm text-text-secondary">
+          나이 {meta.age !== null ? `${meta.age}세` : "—"} · 성별{" "}
+          {meta.gender ?? "—"} · 기저질환 {conditionsText} · 가족력 {familyText}
+        </p>
+      </div>
+
+      {/* 그룹 메시지 */}
+      {meta.group_message && (
+        <p
+          className="text-sm leading-[1.7] text-text-secondary"
+          style={{ whiteSpace: "pre-line" }}
+        >
+          {meta.group_message}
+        </p>
+      )}
+
+      {/* 면책 보조 문구 */}
+      <p className="text-[11px] leading-[1.5] text-text-muted">
+        ※ 나이·성별·가족력은 바꿀 수 없지만, 다른 요인 관리로 위험을 줄일 수 있습니다.
       </p>
     </div>
   );
@@ -341,6 +554,10 @@ export function LLMActionGuidePage() {
   const model1Summary: string = report?.model1_summary ?? "";
   const recommendedTests: string[] = report?.recommended_tests ?? [];
 
+  // ===== 임상 상세 분석 + 리포트 메타 (Phase A 추가) =====
+  const clinicalItems: ClinicalItem[] = report?.clinical_items ?? [];
+  const reportMeta: ReportMeta | null = report?.report_meta ?? null;
+
   // ===== 모델2 생활습관 =====
   const model2 = report?.shap_model2 ?? null;
   const lifestyleItems: LifestyleShapItem[] = model2?.items ?? [];
@@ -376,7 +593,13 @@ export function LLMActionGuidePage() {
             모델1 위험 변수 (SHAP Top-N)
           </h2>
 
-          {/* 종합 요약 카드 (상단) */}
+          {/* 리포트 메타 카드 (최상단) */}
+          {!isLoading && !isComputing && (
+            <ReportMetaCard meta={reportMeta} />
+          )}
+          {isLoading && <SkeletonCard />}
+
+          {/* 종합 요약 카드 */}
           {!isLoading && <Model1SummaryCard summary={model1Summary} />}
 
           {isLoading && (
@@ -406,6 +629,12 @@ export function LLMActionGuidePage() {
                 color={shapColor(item.shap)}
               />
             ))}
+
+          {/* 임상 상세 분석표 */}
+          {!isLoading && !isComputing && clinicalItems.length > 0 && (
+            <ClinicalDetailTable items={clinicalItems} />
+          )}
+          {isLoading && <SkeletonCard />}
 
           {/* 권장 검사 리스트 (하단) */}
           {!isLoading && <RecommendedTests tests={recommendedTests} />}

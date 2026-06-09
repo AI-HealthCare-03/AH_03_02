@@ -74,6 +74,47 @@ export interface LifestyleShap {
   peer_distribution?: PeerDistribution | null;
 }
 
+// ===== 임상 상세 분석 타입 (Phase A 백엔드 추가분) =====
+
+export interface ClinicalItem {
+  feature: string;
+  label: string;
+  desc: string;
+  category: string;
+  normal_range: string;
+  value_text: string;
+  status: string;
+  status_level: "good" | "info" | "caution" | "warnLight" | "danger";
+  direction: "low" | "high" | "normal";
+  disease_low: string;
+  disease_high: string;
+}
+
+export interface LifestyleItem {
+  feature: string;
+  label: string;
+  normal_range: string;
+  value_text: string;
+  status: string;
+  status_level: "good" | "info" | "caution" | "warnLight" | "danger";
+  group: "improve" | "maintain";
+  action: string;
+}
+
+export interface ReportMeta {
+  group: string | null;
+  group_title: string;
+  grade: string;
+  score: number | null;
+  group_message: string;
+  age: number | null;
+  gender: string | null;
+  conditions: string[];
+  family_history: string[];
+  peer_top_pct: number | null;
+  peer_relative: string | null;
+}
+
 export interface ReportResponse {
   health_check_id: number;
   shap_model1: ShapItem1[];
@@ -81,6 +122,9 @@ export interface ReportResponse {
   ai_guide: string;
   recommended_tests?: string[];
   model1_summary?: string;
+  clinical_items?: ClinicalItem[];
+  lifestyle_items?: LifestyleItem[];
+  report_meta?: ReportMeta | null;
 }
 
 // ===== API =====
