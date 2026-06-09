@@ -592,6 +592,8 @@ class HealthCheckService:
         """
         group = hc.app_group  # AppGroup enum or None
         group_str = group.value if group is not None else None
+        # app AppGroup(G1~G4) ↔ 노트북 참조 그룹(A~D): G1=A·G2=B·G3=C·G4=D
+        letter = {"G1": "A", "G2": "B", "G3": "C", "G4": "D"}.get(group_str or "", "")
 
         grade_map = {"G1": "높음", "G2": "주의", "G3": "주의", "G4": "낮음"}
         grade = grade_map.get(group_str or "", "낮음")
@@ -632,10 +634,10 @@ class HealthCheckService:
 
         return ReportMeta(
             group=group_str,
-            group_title=m1_group_title(group_str or ""),
+            group_title=m1_group_title(letter),
             grade=grade,
             score=score,
-            group_message=m1_group_message(group_str or ""),
+            group_message=m1_group_message(letter),
             age=age,
             gender=gender_str,
             conditions=conditions,
