@@ -165,6 +165,7 @@ class HealthCheckService:
             egfr_estimated=egfr,
             ckd_stage=ckd_stage,
             app_group=app_group,
+            dialysis_type=dto.dialysis_type,
         )
 
         safety_warning = self._check_safety_warning(dto.systolic_bp, dto.diastolic_bp, dto.fasting_glucose, egfr)
