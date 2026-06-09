@@ -10,9 +10,6 @@ import {
   ReferenceArea,
   ReferenceLine,
   CartesianGrid,
-  BarChart,
-  Bar,
-  LabelList,
 } from "recharts";
 import { TopNav } from "../components/TopNav";
 import { ScreenLabel } from "../components/ScreenLabel";
@@ -27,7 +24,7 @@ import {
   ReportMeta,
 } from "../api/healthCheck";
 
-// ===== ShapImpactBars: Recharts 가로 BarChart 2패널 =====
+// ===== ShapImpactBars: 좌우 2패널 가로막대 차트 =====
 // shap > 0 → 위험 상승(빨강, 왼쪽), shap < 0 → 위험 하강(초록, 오른쪽)
 function ShapImpactBars({
   items,
@@ -38,7 +35,7 @@ function ShapImpactBars({
   raiseTitle: string;
   lowerTitle: string;
 }) {
-  // 전체 |shap| 합계 — 퍼센트 계산용 (양쪽 패널 모두 포함)
+  // 전체 |shap| 합계 — 퍼센트 계산용 (필터된 항목 기준)
   const totalAbsShap = items.reduce((s, it) => s + Math.abs(it.shap), 0);
 
   // shap 부호로 분리 후 |shap| 내림차순 정렬
@@ -49,7 +46,11 @@ function ShapImpactBars({
     .filter((it) => it.shap < 0)
     .sort((a, b) => Math.abs(b.shap) - Math.abs(a.shap));
 
-  // 퍼센트 포맷 (1 decimal, 전체 합 기준)
+  // 패널 내 최대 |shap| — 바 너비 비율 계산용
+  const raiseMax = raiseItems.reduce((m, it) => Math.max(m, Math.abs(it.shap)), 0);
+  const lowerMax = lowerItems.reduce((m, it) => Math.max(m, Math.abs(it.shap)), 0);
+
+  // 퍼센트 포맷 (1 decimal, 필터된 전체 합 기준)
   const pct = (shap: number) =>
     totalAbsShap > 0
       ? ((Math.abs(shap) / totalAbsShap) * 100).toFixed(1)
@@ -59,91 +60,69 @@ function ShapImpactBars({
   const fmtValue = (v: number): string =>
     Number.isInteger(v) ? String(v) : v.toFixed(1);
 
-  // Recharts 패널 렌더러 — panelMax 불필요 (domain="dataMax" 자동 스케일)
   const renderPanel = (
     panelItems: typeof raiseItems,
+    panelMax: number,
     color: string,
     title: string,
-  ) => {
-    // Recharts data 배열: 이미 |shap| 내림차순으로 정렬됨 → 위에서 큰 막대
-    const data = panelItems.map((it) => ({
-      label: it.label,
-      absShap: Math.abs(it.shap),
-      valueText: fmtValue(it.value),
-      pctText: pct(it.shap) + "%",
-    }));
+  ) => (
+    <div className="flex flex-1 flex-col gap-[10px]">
+      {/* 패널 제목 */}
+      <p className="text-xs font-bold uppercase tracking-wide" style={{ color }}>
+        {title}
+      </p>
 
-    // 아이템 수에 비례한 차트 높이 (행당 38px + 여백 8px)
-    const h = panelItems.length * 38 + 8;
-
-    return (
-      <div className="flex flex-1 flex-col gap-[10px]">
-        {/* 패널 제목 */}
-        <p className="text-xs font-bold uppercase tracking-wide" style={{ color }}>
-          {title}
-        </p>
-
-        {panelItems.length === 0 ? (
-          <p className="text-xs text-text-muted">해당 항목 없음</p>
-        ) : (
-          <ResponsiveContainer width="100%" height={h}>
-            <BarChart
-              layout="vertical"
-              data={data}
-              margin={{ top: 4, right: 44, bottom: 4, left: 4 }}
-            >
-              {/* X축 숨김 — 막대 길이로만 비율 표현 */}
-              <XAxis type="number" hide domain={[0, "dataMax"]} />
-              {/* Y축: 한국어 레이블 (width=132으로 장문 레이블 수용) */}
-              <YAxis
-                type="category"
-                dataKey="label"
-                width={132}
-                tick={{ fontSize: 11, fill: "#555" }}
-                tickLine={false}
-                axisLine={false}
-                interval={0}
-              />
-              <Bar
-                dataKey="absShap"
-                fill={color}
-                radius={[0, 4, 4, 0]}
-                barSize={16}
-                isAnimationActive={false}
-              >
-                {/* 측정값: 막대 안쪽 왼편, 흰색 */}
-                <LabelList
-                  dataKey="valueText"
-                  position="insideLeft"
-                  fill="#fff"
-                  fontSize={10}
-                  fontWeight={500}
-                />
-                {/* 비중%: 막대 오른쪽 바깥, 패널 색상 */}
-                <LabelList
-                  dataKey="pctText"
-                  position="right"
-                  fill={color}
-                  fontSize={11}
-                  fontWeight={600}
-                />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        )}
-      </div>
-    );
-  };
+      {panelItems.length === 0 ? (
+        <p className="text-xs text-text-muted">해당 항목 없음</p>
+      ) : (
+        panelItems.map((it, i) => {
+          const absShap = Math.abs(it.shap);
+          const barWidthPct =
+            panelMax > 0 ? (absShap / panelMax) * 100 : 0;
+          return (
+            <div key={it.label} className="flex flex-col gap-[4px]">
+              {/* 순위 + 레이블 */}
+              <p className="text-xs text-text-secondary leading-snug">
+                {i + 1}. {it.label}
+              </p>
+              {/* 바 트랙 + 퍼센트 */}
+              <div className="flex items-center gap-[6px]">
+                <div className="relative h-[18px] flex-1 rounded-sm bg-[#f0f0f0]">
+                  <div
+                    className="absolute left-0 top-0 h-full rounded-sm flex items-center pl-[4px] transition-all duration-300"
+                    style={{
+                      width: `${Math.max(barWidthPct, 8)}%`,
+                      backgroundColor: color,
+                    }}
+                  >
+                    <span className="text-[10px] font-medium text-white truncate">
+                      {fmtValue(it.value)}
+                    </span>
+                  </div>
+                </div>
+                <span
+                  className="w-[38px] text-right text-[11px] font-semibold shrink-0"
+                  style={{ color }}
+                >
+                  {pct(it.shap)}%
+                </span>
+              </div>
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
 
   return (
     <div className="flex flex-col gap-[12px] rounded-lg border border-border bg-bg p-[16px] shadow-sm">
       <p className="text-sm font-bold text-text-primary">SHAP 영향 요인 분석</p>
       <div className="flex flex-col gap-[16px] md:flex-row md:gap-[20px]">
-        {renderPanel(raiseItems, "#e74c3c", raiseTitle)}
-        {/* 구분선 — md 이상 세로선, 모바일 가로선 */}
+        {renderPanel(raiseItems, raiseMax, "#e74c3c", raiseTitle)}
+        {/* 구분선 — 중간 divider (md 이상에서만 세로선) */}
         <div className="hidden md:block w-px bg-border self-stretch" />
         <div className="block md:hidden h-px w-full bg-border" />
-        {renderPanel(lowerItems, "#27ae60", lowerTitle)}
+        {renderPanel(lowerItems, lowerMax, "#27ae60", lowerTitle)}
       </div>
       <p className="text-[10px] text-text-muted">
         ※ 막대 끝 숫자는 측정값, 우측 %는 전체 영향 중 해당 항목 비중입니다.
