@@ -378,10 +378,10 @@ class HealthCheckService:
         health_check_id: int,
         user_id: int,
     ) -> ReportResponse | None:
-        """SHAP 리포트 조회 + RAG 기반 AI 행동 가이드 생성.
+        """SHAP 리포트 조회.
 
         user_id 소유권 필터로 타인 검진 접근 차단.
-        RAG 가이드 생성 실패·타임아웃 시 ai_guide="" 로 리포트는 정상 반환.
+        ai_guide는 ai_worker가 예측 시 선생성·저장한 캐시를 읽는다(미생성 시 빈 문자열).
         """
         hc = await HealthCheck.filter(id=health_check_id, user_id=user_id).first()
         if hc is None:
