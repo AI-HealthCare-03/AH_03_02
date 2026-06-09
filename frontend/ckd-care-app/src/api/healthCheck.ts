@@ -1,5 +1,7 @@
 import { api } from "./client";
 
+export type DialysisType = "none" | "hemodialysis" | "peritoneal" | "transplant";
+
 export interface HealthCheckCreateRequest {
   checked_date: string;
   systolic_bp: number;
@@ -12,6 +14,7 @@ export interface HealthCheckCreateRequest {
   weight: number;
   height: number;
   waist_circumference?: number | null;
+  dialysis_type?: DialysisType | null;
 }
 
 export interface HealthCheckResponse {
@@ -33,6 +36,7 @@ export interface HealthCheckResponse {
   ckd_risk_score: number | null;
   ckd_stage: string | null;
   safety_warning: string | null;
+  dialysis_type: DialysisType | null;
   created_at: string;
 }
 
