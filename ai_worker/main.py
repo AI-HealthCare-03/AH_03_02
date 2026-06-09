@@ -13,11 +13,13 @@ from redis.exceptions import ResponseError
 
 from ai_worker.core import config
 from ai_worker.core.logger import setup_logger
-from ai_worker.core.redis_client import get_redis
+from ai_worker.core.redis_client import get_redis, get_sync_redis
+from ai_worker.rag import graph as rag
 from ai_worker.schemas.chat import ChatJob
 from ai_worker.schemas.ckd import CkdJob
 from ai_worker.tasks.ckd_task import handle_ckd_job
 from ai_worker.tasks.rag_task import handle_chat_job
+from ai_worker.tasks.token_streamer import TokenStreamer
 
 logger = setup_logger("ai_worker")
 _CONSUMER = "worker-1"
@@ -105,12 +107,23 @@ async def consume_once(redis) -> int:
                 job_id=fields["job_id"],
                 question=fields["question"],
                 user_context=json.loads(fields.get("user_context", "{}")),
+                stream=(fields.get("stream") in ("1", "true", "True")),
             )
-            result = await handle_chat_job(job)
-            await redis.xadd(
-                f"{config.RAG_RESP_PREFIX}:{job.job_id}",
-                {"data": result.model_dump_json()},
-            )
+            resp_key = f"{config.RAG_RESP_PREFIX}:{job.job_id}"
+            if job.stream:
+                sink = TokenStreamer(get_sync_redis(), resp_key)
+                try:
+                    answer = await asyncio.to_thread(rag.run_stream, job.question, job.user_context, sink)
+                    await redis.xadd(
+                        resp_key, {"data": json.dumps({"type": "done", "answer": answer}, ensure_ascii=False)}
+                    )
+                except Exception as e:  # noqa: BLE001 — 실패도 클라이언트에 전달
+                    await redis.xadd(
+                        resp_key, {"data": json.dumps({"type": "error", "error": str(e)}, ensure_ascii=False)}
+                    )
+            else:
+                result = await handle_chat_job(job)
+                await redis.xadd(resp_key, {"data": result.model_dump_json()})
             await redis.xack(config.RAG_JOBS_STREAM, config.RAG_JOBS_GROUP, msg_id)
             handled += 1
     return handled

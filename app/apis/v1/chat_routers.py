@@ -2,6 +2,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import ORJSONResponse as Response
+from fastapi.responses import StreamingResponse
 
 from app.core.rate_limit import limiter
 from app.dependencies.security import get_request_user
@@ -27,3 +28,18 @@ async def create_message(
 ) -> Response:
     result = await service.ask(user_id=user.id, question=body.question)
     return Response(result.model_dump(), status_code=status.HTTP_200_OK)
+
+
+@chat_router.post("/messages/stream", summary="RAG 챗봇 질문 (SSE 토큰 스트리밍)")
+@limiter.limit("10/minute")
+async def create_message_stream(
+    request: Request,
+    body: ChatMessageCreateRequest,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[ChatService, Depends(ChatService)],
+) -> StreamingResponse:
+    return StreamingResponse(
+        service.ask_stream(user_id=user.id, question=body.question),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )

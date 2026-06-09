@@ -2,7 +2,7 @@ import { Bot, Send, User as UserIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { TopNav } from "../components/TopNav";
 import { ScreenLabel } from "../components/ScreenLabel";
-import { chatApi } from "../api/chat";
+import { askStream } from "../api/chat";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -39,20 +39,82 @@ export function RAGChatbotPage() {
     }
     setError(null);
     setInput("");
+
+    // 사용자 메시지 추가
     const userMsg: ChatMessage = {
       role: "user",
       content: trimmed,
       created_at: new Date().toISOString(),
     };
-    setMessages((prev) => [...prev, userMsg]);
-    setLoading(true);
-    try {
-      const res = await chatApi.ask(trimmed);
-      setMessages((prev) => [
+
+    // 어시스턴트 플레이스홀더 메시지를 미리 삽입하고 인덱스를 기억한다
+    let assistantIndex = -1;
+    setMessages((prev) => {
+      assistantIndex = prev.length + 1; // user 다음 인덱스
+      return [
         ...prev,
-        { role: "assistant", content: res.answer, created_at: res.created_at },
-      ]);
+        userMsg,
+        { role: "assistant", content: "", created_at: new Date().toISOString() },
+      ];
+    });
+
+    setLoading(true);
+
+    // 인덱스 기반 업데이트 헬퍼 (stale closure 방지를 위해 함수형 업데이트 사용)
+    function updateAssistant(updater: (prev: string) => string) {
+      setMessages((prev) => {
+        // assistantIndex 가 아직 -1이면 배열 마지막 assistant 를 대상으로 한다
+        const idx = assistantIndex >= 0 ? assistantIndex : prev.length - 1;
+        if (idx < 0 || idx >= prev.length) return prev;
+        const updated = [...prev];
+        updated[idx] = { ...updated[idx], content: updater(updated[idx].content) };
+        return updated;
+      });
+    }
+
+    try {
+      await askStream(trimmed, {
+        // 첫 토큰이 도착하면 로딩(타이핑 인디케이터)을 숨긴다
+        onToken: (text) => {
+          setLoading(false);
+          updateAssistant((prev) => prev + text);
+        },
+        onReset: () => {
+          // 재생성 시작 — 진행 중인 어시스턴트 메시지를 초기화
+          updateAssistant(() => "");
+        },
+        onDone: (answer) => {
+          // 최종본(음식 비유·면책 문구 포함)으로 교체 — append 가 아닌 replace
+          setLoading(false);
+          setMessages((prev) => {
+            const idx = assistantIndex >= 0 ? assistantIndex : prev.length - 1;
+            if (idx < 0 || idx >= prev.length) return prev;
+            const updated = [...prev];
+            updated[idx] = {
+              ...updated[idx],
+              content: answer,
+              created_at: new Date().toISOString(),
+            };
+            return updated;
+          });
+        },
+        onError: (msg) => {
+          setLoading(false);
+          setError(msg);
+          // 빈 플레이스홀더 어시스턴트 메시지 제거
+          setMessages((prev) => {
+            const idx = assistantIndex >= 0 ? assistantIndex : prev.length - 1;
+            if (idx < 0 || idx >= prev.length) return prev;
+            // 내용이 비어 있는 플레이스홀더만 제거
+            if (prev[idx].content === "") {
+              return prev.filter((_, i) => i !== idx);
+            }
+            return prev;
+          });
+        },
+      });
     } catch (e) {
+      setLoading(false);
       const msg = e instanceof Error ? e.message : "답변 생성 중 오류가 발생했습니다.";
       setError(msg);
     } finally {
@@ -121,6 +183,7 @@ export function RAGChatbotPage() {
               <MessageBubble key={i} message={m} />
             ))}
 
+            {/* 타이핑 인디케이터: 첫 토큰 수신 전까지만 표시 */}
             {loading && (
               <div className="flex gap-[8px]">
                 <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-accent">

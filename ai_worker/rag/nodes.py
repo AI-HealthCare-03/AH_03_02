@@ -62,8 +62,17 @@ def generate_node(state: RAGState) -> dict:
     msgs = prompt_builder.build_generation_messages(
         _q(state), state.get("parent_context", ""), state["documents"], state.get("user_context")
     )
-    r = llm_client.get_gen_llm().invoke(msgs)
-    return {"generation": r.content}
+    sink = state.get("token_sink")
+    if sink is None:
+        r = llm_client.get_gen_llm().invoke(msgs)
+        return {"generation": r.content}
+    sink.begin_generation()
+    parts: list[str] = []
+    for chunk in llm_client.get_gen_llm().stream(msgs):
+        text = chunk.content or ""
+        parts.append(text)
+        sink.token(text)
+    return {"generation": "".join(parts)}
 
 
 def hallucination_node(state: RAGState) -> dict:
@@ -134,8 +143,17 @@ def fallback_generate_node(state: RAGState) -> dict:
     """가이드라인 근거 없이 LLM 일반지식 답변 (FALLBACK_SYSTEM_PROMPT 제약·max_tokens 제한)."""
     msgs = prompt_builder.build_fallback_messages(_q(state))
     llm = llm_client.get_gen_llm().bind(max_tokens=cfg.FALLBACK_MAX_TOKENS)
-    r = llm.invoke(msgs)
-    return {"generation": r.content}
+    sink = state.get("token_sink")
+    if sink is None:
+        r = llm.invoke(msgs)
+        return {"generation": r.content}
+    sink.begin_generation()
+    parts: list[str] = []
+    for chunk in llm.stream(msgs):
+        text = chunk.content or ""
+        parts.append(text)
+        sink.token(text)
+    return {"generation": "".join(parts)}
 
 
 def fallback_post_guard_node(state: RAGState) -> dict:
