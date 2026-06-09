@@ -4,6 +4,7 @@ generate 노드가 호출: begin_generation()(2번째+면 reset) / token(text).
 sync redis로 rag_resp:{job_id} 스트림에 token·reset 이벤트를 publish.
 마커는 MarkerSuppressor로 억제.
 """
+
 from __future__ import annotations
 
 import json

@@ -114,9 +114,13 @@ async def consume_once(redis) -> int:
                 sink = TokenStreamer(get_sync_redis(), resp_key)
                 try:
                     answer = await asyncio.to_thread(rag.run_stream, job.question, job.user_context, sink)
-                    await redis.xadd(resp_key, {"data": json.dumps({"type": "done", "answer": answer}, ensure_ascii=False)})
+                    await redis.xadd(
+                        resp_key, {"data": json.dumps({"type": "done", "answer": answer}, ensure_ascii=False)}
+                    )
                 except Exception as e:  # noqa: BLE001 — 실패도 클라이언트에 전달
-                    await redis.xadd(resp_key, {"data": json.dumps({"type": "error", "error": str(e)}, ensure_ascii=False)})
+                    await redis.xadd(
+                        resp_key, {"data": json.dumps({"type": "error", "error": str(e)}, ensure_ascii=False)}
+                    )
             else:
                 result = await handle_chat_job(job)
                 await redis.xadd(resp_key, {"data": result.model_dump_json()})
