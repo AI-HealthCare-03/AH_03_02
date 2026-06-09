@@ -16,7 +16,6 @@ from app.models.chat import ChatRole
 from app.models.health_check import HealthCheck
 from app.repositories.chat_repository import ChatRepository
 
-
 _DIALYSIS_TO_TRACK: dict[str, str] = {
     "none": "non_dialysis",
     "hemodialysis": "hemodialysis",
