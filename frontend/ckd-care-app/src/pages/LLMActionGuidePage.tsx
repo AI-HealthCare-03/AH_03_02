@@ -14,57 +14,311 @@ import {
   ReportMeta,
 } from "../api/healthCheck";
 
-// ===== ShapBar 컴포넌트 =====
-// value를 number | string 모두 수용하도록 확장
-function ShapBar({
-  rank,
-  label,
-  value,
-  shap: _shap,
-  note,
-  barWidth,
-  color,
+// ===== ShapImpactBars: 좌우 2패널 가로막대 차트 =====
+// shap > 0 → 위험 상승(빨강, 왼쪽), shap < 0 → 위험 하강(초록, 오른쪽)
+function ShapImpactBars({
+  items,
+  raiseTitle,
+  lowerTitle,
 }: {
-  rank: number;
-  label: string;
-  value: number | string;
-  shap: number | string;
-  note?: string;
-  barWidth: number;
-  color: string;
+  items: { label: string; value: number; shap: number }[];
+  raiseTitle: string;
+  lowerTitle: string;
 }) {
+  // 전체 |shap| 합계 — 퍼센트 계산용
+  const totalAbsShap = items.reduce((s, it) => s + Math.abs(it.shap), 0);
+
+  // shap 부호로 분리 후 |shap| 내림차순 정렬
+  const raiseItems = items
+    .filter((it) => it.shap > 0)
+    .sort((a, b) => Math.abs(b.shap) - Math.abs(a.shap));
+  const lowerItems = items
+    .filter((it) => it.shap < 0)
+    .sort((a, b) => Math.abs(b.shap) - Math.abs(a.shap));
+
+  // 패널 내 최대 |shap| — 바 너비 비율 계산용
+  const raiseMax = raiseItems.reduce((m, it) => Math.max(m, Math.abs(it.shap)), 0);
+  const lowerMax = lowerItems.reduce((m, it) => Math.max(m, Math.abs(it.shap)), 0);
+
+  // 퍼센트 포맷 (1 decimal, 전체 합 기준)
+  const pct = (shap: number) =>
+    totalAbsShap > 0
+      ? ((Math.abs(shap) / totalAbsShap) * 100).toFixed(1)
+      : "0.0";
+
+  const renderPanel = (
+    panelItems: typeof raiseItems,
+    panelMax: number,
+    color: string,
+    title: string,
+  ) => (
+    <div className="flex flex-1 flex-col gap-[10px]">
+      {/* 패널 제목 */}
+      <p className="text-sm font-bold" style={{ color }}>
+        {title}
+      </p>
+
+      {panelItems.length === 0 ? (
+        <p className="text-xs text-text-muted">해당 항목 없음</p>
+      ) : (
+        panelItems.map((it, i) => {
+          const absShap = Math.abs(it.shap);
+          const barWidthPct =
+            panelMax > 0 ? (absShap / panelMax) * 100 : 0;
+          return (
+            <div key={it.label} className="flex flex-col gap-[4px]">
+              {/* 순위 + 레이블 */}
+              <p className="text-xs text-text-secondary leading-snug">
+                {i + 1}. {it.label}
+              </p>
+              {/* 바 트랙 + 퍼센트 */}
+              <div className="flex items-center gap-[6px]">
+                <div className="relative h-[18px] flex-1 rounded-sm bg-[#f0f0f0]">
+                  <div
+                    className="absolute left-0 top-0 h-full rounded-sm flex items-center pl-[4px] transition-all duration-300"
+                    style={{
+                      width: `${Math.max(barWidthPct, 8)}%`,
+                      backgroundColor: color,
+                    }}
+                  >
+                    <span className="text-[10px] font-medium text-white truncate">
+                      {typeof it.value === "number"
+                        ? it.value.toLocaleString()
+                        : it.value}
+                    </span>
+                  </div>
+                </div>
+                <span
+                  className="w-[38px] text-right text-[11px] font-semibold shrink-0"
+                  style={{ color }}
+                >
+                  {pct(it.shap)}%
+                </span>
+              </div>
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+
   return (
-    <div className="flex w-full flex-col gap-[8px] rounded-md border border-border bg-bg p-[16px]">
-      <div className="flex items-center justify-between">
-        <p className="text-md font-bold text-text-primary">
-          {rank}. {label}
-        </p>
-        <p className="text-sm font-semibold" style={{ color }}>
-          {typeof value === "number" ? value.toLocaleString() : value}
-        </p>
+    <div className="flex flex-col gap-[12px] rounded-md border border-border bg-bg p-[14px]">
+      <p className="text-sm font-bold text-text-primary">SHAP 영향 요인 분석</p>
+      <div className="flex flex-col gap-[16px] md:flex-row md:gap-[20px]">
+        {renderPanel(raiseItems, raiseMax, "#e74c3c", raiseTitle)}
+        {/* 구분선 — 중간 divider (md 이상에서만 세로선) */}
+        <div className="hidden md:block w-px bg-border self-stretch" />
+        <div className="block md:hidden h-px w-full bg-border" />
+        {renderPanel(lowerItems, lowerMax, "#27ae60", lowerTitle)}
       </div>
-      <div className="h-[8px] w-full rounded-sm bg-placeholder">
-        <div
-          className="h-full rounded-sm transition-all duration-300"
-          style={{ width: `${barWidth}px`, backgroundColor: color }}
-        />
-      </div>
-      {note && <p className="text-xs text-text-muted">{note}</p>}
+      <p className="text-[10px] text-text-muted">
+        ※ 막대 끝 숫자는 전체 영향 중 해당 항목 비중(%)입니다.
+      </p>
     </div>
   );
 }
 
-// ===== SHAP 크기에 따른 색상 결정 =====
-function shapColor(shap: number): string {
-  const abs = Math.abs(shap);
-  if (abs >= 0.07) return "#DC2626"; // 빨강 — 높은 기여
-  if (abs >= 0.03) return "#D97706"; // 주황 — 중간 기여
-  return "#6B7280"; // 회색 — 낮은 기여
-}
+// ===== PeerDistributionCurve: 스무스 곡선 또래 분포 =====
+function PeerDistributionCurve({
+  distribution,
+  peerTopPct,
+  peerRelative,
+}: {
+  distribution: PeerDistribution;
+  peerTopPct: number | null;
+  peerRelative: string | null;
+}) {
+  const { counts, edges, my_bin } = distribution;
+  if (counts.length === 0 || edges.length < 2) return null;
 
-// |shap| * 3000 으로 barWidth 산정, 최소 20 최대 280
-function shapBarWidth(shap: number): number {
-  return Math.min(280, Math.max(20, Math.abs(shap) * 3000));
+  // ---- 레이아웃 상수 ----
+  const W = 320;
+  const H = 140;
+  const PAD_L = 8;
+  const PAD_R = 8;
+  const PAD_T = 28;  // 제목/라벨용 여백
+  const PAD_B = 30;  // 하단 라벨 여백
+  const CURVE_H = H - PAD_T - PAD_B; // 실제 곡선 영역 높이
+
+  const xMin = edges[0];
+  const xMax = edges[edges.length - 1];
+  const xRange = xMax - xMin;
+
+  // 빈 중심
+  const xc = counts.map((_, i) => (edges[i] + edges[i + 1]) / 2);
+  const maxCount = Math.max(...counts, 1);
+
+  // 좌표 변환
+  const toSvgX = (v: number) =>
+    PAD_L + ((v - xMin) / xRange) * (W - PAD_L - PAD_R);
+  const toSvgY = (c: number) =>
+    PAD_T + CURVE_H - (c / maxCount) * CURVE_H;
+
+  // ---- Catmull-Rom → cubic bezier 변환으로 스무스 커브 생성 ----
+  const pts = xc.map((x, i) => ({ x: toSvgX(x), y: toSvgY(counts[i]) }));
+
+  // 시작점/끝점 추가 (양 ends를 0으로 채워 곡선이 지면에 닿도록)
+  const allPts = [
+    { x: toSvgX(xMin), y: toSvgY(0) },
+    ...pts,
+    { x: toSvgX(xMax), y: toSvgY(0) },
+  ];
+
+  const catmullRomToBezier = (points: { x: number; y: number }[]) => {
+    if (points.length < 2) return "";
+    let d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const p0 = points[Math.max(i - 1, 0)];
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const p3 = points[Math.min(i + 2, points.length - 1)];
+      // Catmull-Rom alpha=0.5 → 제어점
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+      d += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+    }
+    return d;
+  };
+
+  const curvePath = catmullRomToBezier(allPts);
+  // 채우기 경로: 커브 + 바닥선으로 닫기
+  const fillPath =
+    curvePath +
+    ` L ${toSvgX(xMax).toFixed(2)} ${(PAD_T + CURVE_H).toFixed(2)}` +
+    ` L ${toSvgX(xMin).toFixed(2)} ${(PAD_T + CURVE_H).toFixed(2)} Z`;
+
+  // ---- 구간 색상 (3등분) ----
+  const thirdW = (W - PAD_L - PAD_R) / 3;
+  const zones = [
+    { x: PAD_L, color: "#1D9E75", opacity: 0.10, label: "낮음" },
+    { x: PAD_L + thirdW, color: "#EF9F27", opacity: 0.10, label: "보통" },
+    { x: PAD_L + thirdW * 2, color: "#E24B4A", opacity: 0.10, label: "높음" },
+  ];
+
+  // ---- 또래 평균 위치 ----
+  const totalCount = counts.reduce((s, c) => s + c, 0);
+  const weightedMeanX =
+    totalCount > 0
+      ? xc.reduce((s, x, i) => s + x * counts[i], 0) / totalCount
+      : (xMin + xMax) / 2;
+  const peerAvgSvgX = toSvgX(weightedMeanX);
+
+  // ---- 내 위치 ----
+  const myBinClamped = Math.min(Math.max(my_bin, 0), xc.length - 1);
+  const mySvgX = toSvgX(xc[myBinClamped]);
+
+  // ---- 제목 문자열 ----
+  const titleParts: string[] = [];
+  if (peerTopPct !== null) titleParts.push(`상위 ${peerTopPct}%`);
+  if (peerRelative) titleParts.push(peerRelative);
+  const titleStr =
+    "또래 비교" + (titleParts.length > 0 ? ` — ${titleParts.join(" · ")}` : "");
+
+  return (
+    <div className="flex flex-col gap-[6px] rounded-md border border-border bg-bg p-[12px]">
+      {/* 제목 */}
+      <p className="text-sm font-bold text-text-primary">{titleStr}</p>
+
+      {/* SVG 차트 */}
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        width="100%"
+        style={{ display: "block", overflow: "visible" }}
+        aria-label="또래 생활습관 분포 곡선"
+      >
+        {/* 배경 구간 색 */}
+        {zones.map((z, i) => (
+          <rect
+            key={i}
+            x={z.x}
+            y={PAD_T}
+            width={thirdW}
+            height={CURVE_H}
+            fill={z.color}
+            fillOpacity={z.opacity}
+          />
+        ))}
+
+        {/* 구간 라벨 (하단) */}
+        {zones.map((z, i) => (
+          <text
+            key={`lbl-${i}`}
+            x={z.x + thirdW / 2}
+            y={PAD_T + CURVE_H + 13}
+            textAnchor="middle"
+            fontSize="9"
+            fill="#999"
+          >
+            {z.label}
+          </text>
+        ))}
+
+        {/* 곡선 채우기 */}
+        <path d={fillPath} fill="#378ADD" fillOpacity={0.16} />
+
+        {/* 곡선 선 */}
+        <path d={curvePath} fill="none" stroke="#185FA5" strokeWidth="2.5" strokeLinejoin="round" />
+
+        {/* 또래 평균 점선 */}
+        <line
+          x1={peerAvgSvgX}
+          y1={PAD_T}
+          x2={peerAvgSvgX}
+          y2={PAD_T + CURVE_H}
+          stroke="#888"
+          strokeWidth="1.5"
+          strokeDasharray="4 3"
+        />
+        <text
+          x={peerAvgSvgX}
+          y={PAD_T - 4}
+          textAnchor="middle"
+          fontSize="8"
+          fill="#888"
+        >
+          또래 평균
+        </text>
+
+        {/* 내 위치 실선 */}
+        <line
+          x1={mySvgX}
+          y1={PAD_T}
+          x2={mySvgX}
+          y2={PAD_T + CURVE_H}
+          stroke="#e74c3c"
+          strokeWidth="2.5"
+        />
+        <text
+          x={mySvgX}
+          y={PAD_T - 4}
+          textAnchor="middle"
+          fontSize="9"
+          fontWeight="bold"
+          fill="#e74c3c"
+        >
+          나
+        </text>
+      </svg>
+
+      {/* 하단 방향 캡션 */}
+      <div className="flex justify-between">
+        <span className="text-[10px] text-text-muted">← 위험 요인 적음</span>
+        <span className="text-[10px] text-text-muted">위험 요인 많음 →</span>
+      </div>
+
+      {/* 설명 캡션 */}
+      <p className="text-[11px] leading-[1.5] text-text-muted">
+        같은 나이대와 비교해 생활습관이 건강에 주는 부담 정도입니다.
+        오른쪽일수록 또래보다 관리가 필요한 요인이 많음을 의미합니다.
+      </p>
+      <p className="text-[11px] leading-[1.5] text-text-muted">
+        ※ 질환이 있다는 의미가 아니며, 의학적 진단·발병 확률이 아닙니다.
+      </p>
+    </div>
+  );
 }
 
 // ===== 모델1 종합 요약 카드 =====
@@ -514,111 +768,6 @@ function ReportMetaCard({ meta }: { meta: ReportMeta | null | undefined }) {
   );
 }
 
-// ===== 연령대 분포 히스토그램 =====
-function PeerDistributionChart({
-  distribution,
-  peerTopPct,
-  peerRelative,
-}: {
-  distribution: PeerDistribution;
-  peerTopPct: number | null;
-  peerRelative: string | null;
-}) {
-  const { counts, edges, my_bin } = distribution;
-  const maxCount = Math.max(...counts, 1);
-
-  // 등급별 색상
-  const levelColor =
-    peerRelative === "상"
-      ? "#16A34A"
-      : peerRelative === "중"
-      ? "#D97706"
-      : "#DC2626";
-
-  // x축 라벨: 첫 · 중간 · 마지막 edge만 표기
-  const midIdx = Math.floor(edges.length / 2);
-  const labelIndices = new Set([0, midIdx, edges.length - 1]);
-
-  return (
-    <div className="flex flex-col gap-[8px] rounded-md border border-border bg-bg p-[12px]">
-      {/* 제목 + 등급 뱃지 */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm font-bold text-text-primary">같은 연령대 분포</p>
-        <div className="flex items-center gap-[6px]">
-          {peerTopPct !== null && (
-            <span className="text-xs text-text-muted">상위 {peerTopPct}%</span>
-          )}
-          {peerRelative && (
-            <span
-              className="rounded-full px-[8px] py-[2px] text-xs font-bold text-white"
-              style={{ backgroundColor: levelColor }}
-            >
-              {peerRelative}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* 히스토그램 막대 */}
-      <div className="flex h-[72px] items-end gap-[2px]">
-        {counts.map((count, i) => {
-          const heightPct = (count / maxCount) * 100;
-          const isMyBin = i === my_bin;
-          return (
-            <div
-              key={i}
-              className="flex-1 rounded-t-sm transition-all duration-300"
-              style={{
-                height: `${Math.max(heightPct, 4)}%`,
-                backgroundColor: isMyBin ? "#D97706" : "#D1D5DB",
-              }}
-              title={`${count}명${isMyBin ? " ← 내 위치" : ""}`}
-            />
-          );
-        })}
-      </div>
-
-      {/* x축 라벨 */}
-      <div className="relative flex">
-        {edges.map((edge, i) =>
-          labelIndices.has(i) ? (
-            <span
-              key={i}
-              className="absolute text-[10px] text-text-muted"
-              style={{
-                left: `${(i / (edges.length - 1)) * 100}%`,
-                transform:
-                  i === 0
-                    ? "translateX(0)"
-                    : i === edges.length - 1
-                    ? "translateX(-100%)"
-                    : "translateX(-50%)",
-              }}
-            >
-              {edge.toFixed(1)}
-            </span>
-          ) : null
-        )}
-      </div>
-
-      {/* 범례 + 캡션 */}
-      <div className="mt-[14px] flex items-center gap-[8px]">
-        <div className="flex items-center gap-[4px]">
-          <div className="h-[10px] w-[10px] rounded-sm bg-[#D97706]" />
-          <span className="text-[10px] text-text-muted">내 위치</span>
-        </div>
-        <div className="flex items-center gap-[4px]">
-          <div className="h-[10px] w-[10px] rounded-sm bg-[#D1D5DB]" />
-          <span className="text-[10px] text-text-muted">또래</span>
-        </div>
-        <span className="ml-auto text-[10px] text-text-muted">
-          낮음 ← 생활습관 위험도 → 높음
-        </span>
-      </div>
-    </div>
-  );
-}
-
 // ===== 또래 비교 게이지 (peer_distribution 없을 때 폴백) =====
 function PeerGauge({
   peerTopPct,
@@ -803,19 +952,18 @@ export function LLMActionGuidePage() {
             </p>
           )}
 
-          {!isLoading &&
-            model1Items.map((item, idx) => (
-              <ShapBar
-                key={item.feature}
-                rank={idx + 1}
-                label={item.feature}
-                value={item.value}
-                shap={item.shap}
-                note={item.note}
-                barWidth={shapBarWidth(item.shap)}
-                color={shapColor(item.shap)}
-              />
-            ))}
+          {/* 모델1 SHAP 2단 가로막대 차트 */}
+          {!isLoading && model1Items.length > 0 && (
+            <ShapImpactBars
+              items={model1Items.map((it) => ({
+                label: it.feature,
+                value: it.value,
+                shap: it.shap,
+              }))}
+              raiseTitle="위험을 높이는 요인"
+              lowerTitle="위험을 낮추는 요인"
+            />
+          )}
 
           {/* 임상 상세 분석표 */}
           {!isLoading && !isComputing && clinicalItems.length > 0 && (
@@ -857,9 +1005,9 @@ export function LLMActionGuidePage() {
                 </p>
               </div>
 
-              {/* 또래 비교: 분포 그래프 우선, 없으면 게이지 폴백 */}
+              {/* 또래 비교: 스무스 분포곡선 우선, 없으면 게이지 폴백 */}
               {model2.peer_distribution ? (
-                <PeerDistributionChart
+                <PeerDistributionCurve
                   distribution={model2.peer_distribution}
                   peerTopPct={model2.peer_top_pct}
                   peerRelative={model2.peer_relative}
@@ -871,19 +1019,18 @@ export function LLMActionGuidePage() {
                 />
               )}
 
-              {/* 생활습관 SHAP 항목 */}
-              {lifestyleShapItems.map((item, idx) => (
-                <ShapBar
-                  key={item.feature}
-                  rank={idx + 1}
-                  label={item.feature}
-                  value={item.value}
-                  shap={item.shap}
-                  note={`SHAP ${item.shap >= 0 ? "+" : ""}${item.shap.toFixed(3)}`}
-                  barWidth={shapBarWidth(item.shap)}
-                  color={shapColor(item.shap)}
+              {/* 모델2 생활습관 SHAP 2단 가로막대 차트 */}
+              {lifestyleShapItems.length > 0 && (
+                <ShapImpactBars
+                  items={lifestyleShapItems.map((it) => ({
+                    label: it.feature,
+                    value: it.value,
+                    shap: it.shap,
+                  }))}
+                  raiseTitle="개선이 필요한 항목"
+                  lowerTitle="잘 관리되고 있는 항목"
                 />
-              ))}
+              )}
 
               {/* Phase C: 생활습관 핵심 요약 카드 */}
               {lifestyleItems.length > 0 && (
