@@ -115,7 +115,7 @@ function ShapImpactBars({
         {renderPanel(lowerItems, lowerMax, "#27ae60", lowerTitle)}
       </div>
       <p className="text-[10px] text-text-muted">
-        ※ 막대 끝 숫자는 측정값, 우측 %는 앱 수집 항목 기준 전체 영향 중 해당 항목 비중입니다.
+        ※ 막대 끝 숫자는 측정값, 우측 %는 전체 영향 중 해당 항목 비중입니다.
       </p>
     </div>
   );
@@ -957,15 +957,7 @@ export function LLMActionGuidePage() {
   const hasGuide = aiGuide.trim().length > 0;
   const guidePending = !isComputing && !hasGuide && !guideTimedOut;
 
-  // ===== SHAP 필터링: 앱 수집 항목만 표시 (상세표 whitelist 기준) =====
-  // 모델1: clinicalItems label 기준 필터
-  const filteredModel1Shap = model1Items.filter((s) =>
-    clinicalItems.some((c) => c.label === s.feature),
-  );
-  // 모델2: lifestyleItems label 기준 필터
-  const filteredLifestyleShap = lifestyleShapItems.filter((s) =>
-    lifestyleItems.some((l) => l.label === s.feature),
-  );
+  // SHAP은 모델이 쓰는 전체 변수의 기여도를 보여준다(임상 상세표=앱 측정값과 별개 뷰).
 
   return (
     <div className="flex min-h-screen flex-col bg-bg-alt">
@@ -1015,10 +1007,10 @@ export function LLMActionGuidePage() {
               <p className="text-sm text-text-muted">위험 변수 데이터가 없습니다.</p>
             )}
 
-            {/* 모델1 SHAP 2단 가로막대 차트 — 앱 수집 항목만 표시 */}
-            {!isLoading && filteredModel1Shap.length > 0 && (
+            {/* 모델1 SHAP 2단 가로막대 차트 — 모델이 쓰는 전체 변수 기여도 */}
+            {!isLoading && model1Items.length > 0 && (
               <ShapImpactBars
-                items={filteredModel1Shap.map((it) => ({
+                items={model1Items.map((it) => ({
                   label: it.feature,
                   value: it.value,
                   shap: it.shap,
@@ -1072,10 +1064,10 @@ export function LLMActionGuidePage() {
                   </p>
                 </div>
 
-                {/* 모델2 생활습관 SHAP 2단 가로막대 차트 — 앱 수집 항목만 표시 */}
-                {filteredLifestyleShap.length > 0 && (
+                {/* 모델2 생활습관 SHAP 2단 가로막대 차트 — 모델이 쓰는 전체 변수 기여도 */}
+                {lifestyleShapItems.length > 0 && (
                   <ShapImpactBars
-                    items={filteredLifestyleShap.map((it) => ({
+                    items={lifestyleShapItems.map((it) => ({
                       label: it.feature,
                       value: it.value,
                       shap: it.shap,
