@@ -40,6 +40,8 @@ class AuthService:
         self.jwt_service = JwtService()
 
     async def signup(self, data: SignUpRequest) -> User:
+        from app.models.user_consent import ConsentType, UserConsent
+
         # 이메일 중복 체크
         await self.check_email_exists(data.email)
 
@@ -49,7 +51,19 @@ class AuthService:
         # 휴대폰 번호 중복 체크
         await self.check_phone_number_exists(normalized_phone_number)
 
-        # 유저 생성
+        # 필수 약관 동의 검증 — 신규 클라이언트가 consents를 보낸 경우에만 강제
+        # (consents가 빈 리스트면 구 클라이언트로 간주, 검증 생략 → 백워드 호환)
+        if data.consents:
+            required = {ConsentType.TERMS_OF_SERVICE, ConsentType.PRIVACY_INFO, ConsentType.SENSITIVE_HEALTH}
+            agreed_types = {c.consent_type for c in data.consents if c.agreed}
+            missing = required - agreed_types
+            if missing:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="필수 약관(서비스 이용약관·개인정보 수집·민감의료정보)에 모두 동의해야 가입할 수 있습니다.",
+                )
+
+        # 유저 생성 + 동의 기록 (한 트랜잭션)
         async with in_transaction():
             user = await self.user_repo.create_user(
                 email=data.email,
@@ -59,6 +73,14 @@ class AuthService:
                 gender=data.gender,
                 birthday=data.birth_date,
             )
+
+            for c in data.consents:
+                await UserConsent.create(
+                    user_id=user.id,
+                    consent_type=c.consent_type,
+                    version=c.version,
+                    agreed=c.agreed,
+                )
 
             return user
 
