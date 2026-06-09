@@ -1,6 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { ClipboardCheck, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  ReferenceArea,
+  ReferenceLine,
+  CartesianGrid,
+} from "recharts";
 import { TopNav } from "../components/TopNav";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { BtnSecondary } from "../components/BtnSecondary";
@@ -121,8 +131,164 @@ function ShapImpactBars({
   );
 }
 
-// ===== PeerDistributionCurve: 스무스 곡선 또래 분포 =====
+// ===== PeerDistributionCurve: Recharts AreaChart 또래 분포 =====
 // distribution이 null/undefined일 때는 peerTopPct 기반 합성 종형 곡선으로 폴백
+
+// ---- Recharts 내장 차트 렌더러 (실데이터·합성 공통) ----
+// data: [{x, y}], domain, myX, peerAvgX, zoneEdges [e1, e2]
+function PeerDistributionChart({
+  data,
+  xMin,
+  xMax,
+  myX,
+  peerAvgX,
+}: {
+  data: { x: number; y: number }[];
+  xMin: number;
+  xMax: number;
+  myX: number;
+  peerAvgX: number;
+}) {
+  // 도메인을 3등분하는 두 경계
+  const span = xMax - xMin;
+  const z1 = xMin + span / 3;
+  const z2 = xMin + (span * 2) / 3;
+
+  // X축 3등분 중앙 틱 — 각 존의 중간값
+  const lowCenter  = xMin + span / 6;
+  const midCenter  = xMin + span / 2;
+  const highCenter = xMin + span * 5 / 6;
+
+  // textAnchor 헬퍼: 플롯 왼쪽 12% → start, 오른쪽 12% → end, 나머지 → middle
+  const anchorFor = (xVal: number): "start" | "middle" | "end" => {
+    const pct = (xVal - xMin) / span;
+    if (pct < 0.12) return "start";
+    if (pct > 0.88) return "end";
+    return "middle";
+  };
+
+  // "나" 커스텀 라벨: 1행(맨 위), 빨강 볼드 + 작은 도트
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const myLabel = (props: any) => {
+    const { viewBox } = props;
+    if (!viewBox) return null;
+    const { x, y, width: _w, height: _h } = viewBox;
+    const anchor = anchorFor(myX);
+    // x 클램프: 텍스트가 차트 좌우 경계 밖으로 나가지 않도록
+    const rawX = x as number;
+    return (
+      <g>
+        {/* 상단 도트 */}
+        <circle cx={rawX} cy={(y as number) + 2} r={3.5} fill="#e74c3c" />
+        {/* "나" 텍스트 — 도트 바로 위 (y - 6) */}
+        <text
+          x={rawX}
+          y={(y as number) - 6}
+          textAnchor={anchor}
+          fontSize={11}
+          fontWeight="bold"
+          fill="#e74c3c"
+        >
+          나
+        </text>
+      </g>
+    );
+  };
+
+  // "또래 평균" 커스텀 라벨: 2행(16px 아래), 회색
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const peerAvgLabel = (props: any) => {
+    const { viewBox } = props;
+    if (!viewBox) return null;
+    const { x, y } = viewBox;
+    const anchor = anchorFor(peerAvgX);
+    const rawX = x as number;
+    return (
+      <text
+        x={rawX}
+        y={(y as number) + 10}
+        textAnchor={anchor}
+        fontSize={10}
+        fill="#888"
+      >
+        또래 평균
+      </text>
+    );
+  };
+
+  return (
+    <ResponsiveContainer width="100%" height={180}>
+      <AreaChart
+        data={data}
+        margin={{ top: 32, right: 12, bottom: 8, left: 12 }}
+      >
+        {/* 그라데이션 정의 */}
+        <defs>
+          <linearGradient id="peerFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#378ADD" stopOpacity={0.35} />
+            <stop offset="100%" stopColor="#378ADD" stopOpacity={0.02} />
+          </linearGradient>
+        </defs>
+
+        {/* 매우 연한 수평 그리드 */}
+        <CartesianGrid vertical={false} stroke="#f0f0f0" />
+
+        {/* X축: 3등분 중앙 틱 → 낮음/보통/높음 */}
+        <XAxis
+          dataKey="x"
+          type="number"
+          domain={[xMin, xMax]}
+          ticks={[lowCenter, midCenter, highCenter]}
+          tickFormatter={(v: number) => {
+            if (Math.abs(v - lowCenter) < span * 0.01) return "낮음";
+            if (Math.abs(v - midCenter) < span * 0.01) return "보통";
+            return "높음";
+          }}
+          tickLine={false}
+          axisLine={{ stroke: "#d0d7de" }}
+          tick={{ fontSize: 10, fill: "#999" }}
+        />
+
+        {/* Y축 숨김 */}
+        <YAxis hide />
+
+        {/* 존 배경 밴드 (Area 아래 먼저 렌더) */}
+        <ReferenceArea x1={xMin} x2={z1} fill="#1D9E75" fillOpacity={0.08} strokeOpacity={0} />
+        <ReferenceArea x1={z1}  x2={z2} fill="#EF9F27" fillOpacity={0.08} strokeOpacity={0} />
+        <ReferenceArea x1={z2}  x2={xMax} fill="#E24B4A" fillOpacity={0.08} strokeOpacity={0} />
+
+        {/* 분포 곡선 Area */}
+        <Area
+          type="monotone"
+          dataKey="y"
+          stroke="#185FA5"
+          strokeWidth={2.5}
+          fill="url(#peerFill)"
+          dot={false}
+          isAnimationActive={false}
+        />
+
+        {/* 또래 평균 점선 — 2행 라벨 (16px 낮춰 스태거) */}
+        <ReferenceLine
+          x={peerAvgX}
+          stroke="#888"
+          strokeWidth={1.5}
+          strokeDasharray="4 3"
+          label={peerAvgLabel}
+        />
+
+        {/* 나 수직선 — 1행 라벨 (맨 위, 빨강) */}
+        <ReferenceLine
+          x={myX}
+          stroke="#e74c3c"
+          strokeWidth={2.5}
+          label={myLabel}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
 function PeerDistributionCurve({
   distribution,
   peerTopPct,
@@ -132,64 +298,6 @@ function PeerDistributionCurve({
   peerTopPct: number | null;
   peerRelative: string | null;
 }) {
-  // ---- 레이아웃 상수 ----
-  const W = 320;
-  const H = 158;         // 높이 증가: 상단 스태거 라벨 + 하단 존 라벨 여유
-  const PAD_L = 8;
-  const PAD_R = 8;
-  const PAD_T = 42;      // 상단 여백 증가: "나"(1행) + "또래 평균"(2행) 스태거 수용
-  const PAD_B = 32;      // 하단 라벨 여백
-  const CURVE_H = H - PAD_T - PAD_B; // 실제 곡선 영역 높이
-
-  // ---- 라벨 수직 위치 (겹침 방지 스태거) ----
-  // "나" 라벨: 상단 1행 (곡선 위 여백 상단부)
-  const MY_LBL_Y = PAD_T - 26;
-  // "또래 평균" 라벨: 2행 (14px 아래로 스태거)
-  const PEER_LBL_Y = PAD_T - 12;
-
-  // ---- 라벨 x 클램프 헬퍼 (텍스트가 viewBox 밖으로 나가지 않도록) ----
-  // approxHalfW: 텍스트 절반 너비 추정값 (fontSize × 글자수 × 0.55 / 2)
-  const clampLabelX = (x: number, approxHalfW: number): number =>
-    Math.min(Math.max(x, PAD_L + approxHalfW), W - PAD_R - approxHalfW);
-
-  // 합성 종형 곡선 포인트 생성 헬퍼 (x∈[0,100], 정규분포 형태)
-  // mu: 벨 피크 위치(0~100), sigma: 너비
-  const makeSyntheticBell = (mu: number, sigma: number, nPts = 20) => {
-    const pts: { x: number; y: number }[] = [];
-    for (let i = 0; i <= nPts; i++) {
-      const xVal = (i / nPts) * 100; // 0~100 범위
-      const yVal = Math.exp(-0.5 * Math.pow((xVal - mu) / sigma, 2));
-      pts.push({ x: xVal, y: yVal });
-    }
-    return pts;
-  };
-
-  // Catmull-Rom → cubic bezier 변환 (실데이터/합성 공통)
-  const catmullRomToBezier = (points: { x: number; y: number }[]) => {
-    if (points.length < 2) return "";
-    let d = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
-    for (let i = 0; i < points.length - 1; i++) {
-      const p0 = points[Math.max(i - 1, 0)];
-      const p1 = points[i];
-      const p2 = points[i + 1];
-      const p3 = points[Math.min(i + 2, points.length - 1)];
-      const cp1x = p1.x + (p2.x - p0.x) / 6;
-      const cp1y = p1.y + (p2.y - p0.y) / 6;
-      const cp2x = p2.x - (p3.x - p1.x) / 6;
-      const cp2y = p2.y - (p3.y - p1.y) / 6;
-      d += ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)}, ${cp2x.toFixed(2)} ${cp2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
-    }
-    return d;
-  };
-
-  // ---- 구간 색상 (3등분) ----
-  const thirdW = (W - PAD_L - PAD_R) / 3;
-  const zones = [
-    { x: PAD_L, color: "#1D9E75", opacity: 0.10, label: "낮음" },
-    { x: PAD_L + thirdW, color: "#EF9F27", opacity: 0.10, label: "보통" },
-    { x: PAD_L + thirdW * 2, color: "#E24B4A", opacity: 0.10, label: "높음" },
-  ];
-
   // ---- 제목 문자열 ----
   const titleParts: string[] = [];
   if (peerTopPct !== null) titleParts.push(`상위 ${peerTopPct}%`);
@@ -197,82 +305,14 @@ function PeerDistributionCurve({
   const titleStr =
     "또래 비교" + (titleParts.length > 0 ? ` — ${titleParts.join(" · ")}` : "");
 
-  // ---- 공통 SVG 내부 요소 렌더 헬퍼 ----
-  // 존 배경 + 곡선 + 두 수직선 + 스태거 라벨 + 베이스라인 + 존 라벨
-  const renderSvgContent = (
-    fillPath: string,
-    curvePath: string,
-    peerAvgSvgX: number,
-    mySvgX: number,
-  ) => {
-    // "나" 라벨 x: 클램프 (약 7px 반너비 — fontSize9 × 1글자)
-    const myLblX = clampLabelX(mySvgX, 7);
-    // "또래 평균" 라벨 x: 클램프 (약 22px 반너비 — fontSize8 × 4글자)
-    const peerLblX = clampLabelX(peerAvgSvgX, 22);
-
-    const baselineY = PAD_T + CURVE_H;
-
-    return (
-      <>
-        {/* 존 배경 밴드 */}
-        {zones.map((z, i) => (
-          <rect key={i} x={z.x} y={PAD_T} width={thirdW} height={CURVE_H} fill={z.color} fillOpacity={z.opacity} />
-        ))}
-
-        {/* 곡선 면 + 선 */}
-        <path d={fillPath} fill="#378ADD" fillOpacity={0.16} />
-        <path d={curvePath} fill="none" stroke="#185FA5" strokeWidth="2.5" strokeLinejoin="round" />
-
-        {/* x축 베이스라인 */}
-        <line
-          x1={PAD_L} y1={baselineY}
-          x2={W - PAD_R} y2={baselineY}
-          stroke="#d0d7de" strokeWidth="1"
-        />
-
-        {/* 또래 평균 수직 점선 */}
-        <line
-          x1={peerAvgSvgX} y1={PAD_T}
-          x2={peerAvgSvgX} y2={baselineY}
-          stroke="#888" strokeWidth="1.5" strokeDasharray="4 3"
-        />
-        {/* 또래 평균 라벨 — 2행(스태거 하단) */}
-        <text
-          x={peerLblX} y={PEER_LBL_Y}
-          textAnchor="middle" fontSize="8" fill="#888"
-        >
-          또래 평균
-        </text>
-
-        {/* 나 수직선 */}
-        <line
-          x1={mySvgX} y1={PAD_T}
-          x2={mySvgX} y2={baselineY}
-          stroke="#e74c3c" strokeWidth="2.5"
-        />
-        {/* 나 마커 도트 (라인 상단) */}
-        <circle cx={mySvgX} cy={PAD_T} r="3.5" fill="#e74c3c" />
-        {/* 나 라벨 — 1행(스태거 상단), 빨강+볼드 */}
-        <text
-          x={myLblX} y={MY_LBL_Y}
-          textAnchor="middle" fontSize="9" fontWeight="bold" fill="#e74c3c"
-        >
-          나
-        </text>
-
-        {/* 존 라벨 (베이스라인 아래, 충분한 간격) */}
-        {zones.map((z, i) => (
-          <text
-            key={`lbl-${i}`}
-            x={z.x + thirdW / 2} y={baselineY + 16}
-            textAnchor="middle" fontSize="9" fill="#999"
-          >
-            {z.label}
-          </text>
-        ))}
-      </>
-    );
-  };
+  // ---- 3점 이동평균 스무딩 (실데이터 노이즈 제거) ----
+  // s[i] = (c[i-1] + 2*c[i] + c[i+1]) / 4, 엣지 클램프
+  const smoothCounts = (c: number[]): number[] =>
+    c.map((v, i) => {
+      const prev = c[Math.max(i - 1, 0)];
+      const next = c[Math.min(i + 1, c.length - 1)];
+      return (prev + 2 * v + next) / 4;
+    });
 
   // ============================================================
   // 실데이터 분기
@@ -282,50 +322,45 @@ function PeerDistributionCurve({
 
     const xMin = edges[0];
     const xMax = edges[edges.length - 1];
-    const xRange = xMax - xMin;
 
+    // 빈 중앙값
     const xc = counts.map((_, i) => (edges[i] + edges[i + 1]) / 2);
-    const maxCount = Math.max(...counts, 1);
 
-    const toSvgX = (v: number) =>
-      PAD_L + ((v - xMin) / xRange) * (W - PAD_L - PAD_R);
-    const toSvgY = (c: number) =>
-      PAD_T + CURVE_H - (c / maxCount) * CURVE_H;
+    // 스무딩 적용
+    const smoothed = smoothCounts(counts);
+    const maxSmoothed = Math.max(...smoothed, 1);
 
-    const pts = xc.map((x, i) => ({ x: toSvgX(x), y: toSvgY(counts[i]) }));
-    const allPts = [
-      { x: toSvgX(xMin), y: toSvgY(0) },
-      ...pts,
-      { x: toSvgX(xMax), y: toSvgY(0) },
+    // 정규화 (0~1)
+    const normalized = smoothed.map((v) => v / maxSmoothed);
+
+    // Recharts 데이터: 앞뒤 0 앵커로 Area가 베이스라인까지 닫힘
+    const data = [
+      { x: xMin, y: 0 },
+      ...xc.map((x, i) => ({ x, y: normalized[i] })),
+      { x: xMax, y: 0 },
     ];
 
-    const curvePath = catmullRomToBezier(allPts);
-    const fillPath =
-      curvePath +
-      ` L ${toSvgX(xMax).toFixed(2)} ${(PAD_T + CURVE_H).toFixed(2)}` +
-      ` L ${toSvgX(xMin).toFixed(2)} ${(PAD_T + CURVE_H).toFixed(2)} Z`;
-
+    // 또래 평균 = count 가중 평균
     const totalCount = counts.reduce((s, c) => s + c, 0);
-    const weightedMeanX =
+    const peerAvgX =
       totalCount > 0
         ? xc.reduce((s, x, i) => s + x * counts[i], 0) / totalCount
         : (xMin + xMax) / 2;
-    const peerAvgSvgX = toSvgX(weightedMeanX);
 
+    // 내 위치 = my_bin 클램프
     const myBinClamped = Math.min(Math.max(my_bin, 0), xc.length - 1);
-    const mySvgX = toSvgX(xc[myBinClamped]);
+    const myX = xc[myBinClamped];
 
     return (
       <div className="flex flex-col gap-[6px] rounded-lg border border-border bg-bg p-[14px] shadow-sm">
         <p className="text-sm font-bold text-text-primary">{titleStr}</p>
-        <svg
-          viewBox={`0 0 ${W} ${H}`}
-          width="100%"
-          style={{ display: "block", overflow: "hidden" }}
-          aria-label="또래 생활습관 분포 곡선"
-        >
-          {renderSvgContent(fillPath, curvePath, peerAvgSvgX, mySvgX)}
-        </svg>
+        <PeerDistributionChart
+          data={data}
+          xMin={xMin}
+          xMax={xMax}
+          myX={myX}
+          peerAvgX={peerAvgX}
+        />
         <div className="flex justify-between">
           <span className="text-[10px] text-text-muted">← 위험 요인 적음</span>
           <span className="text-[10px] text-text-muted">위험 요인 많음 →</span>
@@ -344,7 +379,6 @@ function PeerDistributionCurve({
   // ============================================================
   // 합성 종형 곡선 폴백 (distribution 없을 때)
   // peerTopPct가 높을수록(예: 상위 90%) → 오른쪽(위험 많음) 쪽에 "나" 마커
-  // mySvgX 위치 = 100 - peerTopPct (상위 10% → x=90, 상위 80% → x=20)
   // ============================================================
   if (peerTopPct === null) {
     return (
@@ -352,46 +386,36 @@ function PeerDistributionCurve({
     );
   }
 
-  // 합성 벨 곡선: 피크는 x=40 (살짝 왼쪽 쏠린 종형), sigma=22
+  // 합성 벨 곡선: 피크 x=40, sigma=22, x∈[0,100]
   const SYNTH_MU = 40;
   const SYNTH_SIGMA = 22;
-  const syntheticPts = makeSyntheticBell(SYNTH_MU, SYNTH_SIGMA);
-
-  // SVG 좌표 변환 (x: 0~100 → SVG, y: 0~1 → SVG)
-  const toSvgXSynth = (v: number) => PAD_L + (v / 100) * (W - PAD_L - PAD_R);
-  const toSvgYSynth = (c: number) => PAD_T + CURVE_H - c * CURVE_H;
-
-  const svgPts = syntheticPts.map((p) => ({ x: toSvgXSynth(p.x), y: toSvgYSynth(p.y) }));
-  const allSvgPts = [
-    { x: toSvgXSynth(0), y: toSvgYSynth(0) },
-    ...svgPts,
-    { x: toSvgXSynth(100), y: toSvgYSynth(0) },
-  ];
-
-  const curvePath = catmullRomToBezier(allSvgPts);
-  const fillPath =
-    curvePath +
-    ` L ${toSvgXSynth(100).toFixed(2)} ${(PAD_T + CURVE_H).toFixed(2)}` +
-    ` L ${toSvgXSynth(0).toFixed(2)} ${(PAD_T + CURVE_H).toFixed(2)} Z`;
+  const N_PTS = 40; // 더 촘촘한 포인트로 매끄러운 벨
+  const synthData: { x: number; y: number }[] = [];
+  // 앞 앵커
+  synthData.push({ x: 0, y: 0 });
+  for (let i = 1; i < N_PTS; i++) {
+    const xVal = (i / N_PTS) * 100;
+    const yVal = Math.exp(-0.5 * Math.pow((xVal - SYNTH_MU) / SYNTH_SIGMA, 2));
+    synthData.push({ x: xVal, y: yVal });
+  }
+  // 뒤 앵커
+  synthData.push({ x: 100, y: 0 });
 
   // 또래 평균 = 벨 피크(SYNTH_MU)
-  const peerAvgSvgX = toSvgXSynth(SYNTH_MU);
-
+  const peerAvgX = SYNTH_MU;
   // 내 위치: 상위 peerTopPct% → x = 100 - peerTopPct (클수록 오른쪽)
   const myX = Math.min(Math.max(100 - peerTopPct, 0), 100);
-  const mySvgX = toSvgXSynth(myX);
 
   return (
     <div className="flex flex-col gap-[6px] rounded-lg border border-border bg-bg p-[14px] shadow-sm">
       <p className="text-sm font-bold text-text-primary">{titleStr}</p>
-      <svg
-        viewBox={`0 0 ${W} ${H}`}
-        width="100%"
-        style={{ display: "block", overflow: "hidden" }}
-        aria-label="또래 생활습관 분포 곡선 (개략)"
-      >
-        {renderSvgContent(fillPath, curvePath, peerAvgSvgX, mySvgX)}
-      </svg>
+      <PeerDistributionChart
+        data={synthData}
+        xMin={0}
+        xMax={100}
+        myX={myX}
+        peerAvgX={peerAvgX}
+      />
       <div className="flex justify-between">
         <span className="text-[10px] text-text-muted">← 위험 요인 적음</span>
         <span className="text-[10px] text-text-muted">위험 요인 많음 →</span>
