@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Coins, History, ShieldCheck, Zap, Palette } from "lucide-react";
+import { Coins, History, ShieldCheck, Zap, Palette, PawPrint } from "lucide-react";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 import { gamificationApi, pointsApi, type InventoryResponse, type ItemCode } from "../api/gamification";
@@ -42,6 +42,13 @@ const ITEMS: { [category: string]: ShopItem[] } = {
     { code: "SKIN_M_PURPLE", name: "퍼플 스킨 (중)", price: 700, description: "보라 + 이펙트", maxQty: 1, icon: Palette },
   ],
   스킨대: [{ code: "SKIN_L_GOLD", name: "골드 스킨 (대)", price: 1200, description: "시즌 한정", maxQty: 1, icon: Palette }],
+  "동물 스킨 (1단계)": [
+    { code: "SKIN_TURTLE_1", name: "거북이 (1단계)", price: 400, description: "느긋한 거북이로 변신. 장착 시 알이 거북이 1단계로 표시.", maxQty: 1, icon: PawPrint },
+    { code: "SKIN_PENGUIN_1", name: "펭귄 (1단계)", price: 400, description: "귀여운 펭귄으로 변신. 장착 시 알이 펭귄 1단계로 표시.", maxQty: 1, icon: PawPrint },
+    { code: "SKIN_SQUIRREL_1", name: "다람쥐 (1단계)", price: 400, description: "활발한 다람쥐로 변신. 장착 시 알이 다람쥐 1단계로 표시.", maxQty: 1, icon: PawPrint },
+    { code: "SKIN_RABBIT_1", name: "토끼 (1단계)", price: 400, description: "발랄한 토끼로 변신. 장착 시 알이 토끼 1단계로 표시.", maxQty: 1, icon: PawPrint },
+    { code: "SKIN_PANDA_1", name: "판다 (1단계)", price: 400, description: "느긋한 판다로 변신. 장착 시 알이 판다 1단계로 표시.", maxQty: 1, icon: PawPrint },
+  ],
 };
 
 export function ShopPage() {

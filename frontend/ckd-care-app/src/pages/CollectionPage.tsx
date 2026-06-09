@@ -3,6 +3,7 @@ import { Sparkles, Palette, Edit2, Check, X } from "lucide-react";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 import {
+  ANIMAL_SKIN_TO_SPECIES,
   gamificationApi,
   SKIN_LABEL,
   SPECIES_LABEL,
@@ -19,6 +20,11 @@ const SKIN_ITEM_CODES: ItemCode[] = [
   "SKIN_M_RED",
   "SKIN_M_PURPLE",
   "SKIN_L_GOLD",
+  "SKIN_TURTLE_1",
+  "SKIN_PENGUIN_1",
+  "SKIN_SQUIRREL_1",
+  "SKIN_RABBIT_1",
+  "SKIN_PANDA_1",
 ];
 
 export function CollectionPage() {
@@ -253,14 +259,19 @@ function SkinCard({
   active: boolean;
   onEquip: () => void;
 }) {
+  const animalSpecies = code ? ANIMAL_SKIN_TO_SPECIES[code] : null;
   return (
     <div
       className={`flex flex-col items-center gap-[8px] rounded-md border-2 p-[12px] ${
         active ? "border-accent bg-accent/5" : "border-border bg-bg"
       }`}
     >
-      <div className={`flex h-[60px] w-[60px] items-center justify-center rounded-full ${color}`}>
-        <Sparkles size={24} className="text-text-secondary" />
+      <div className={`flex h-[60px] w-[60px] items-center justify-center overflow-hidden rounded-full ${color}`}>
+        {animalSpecies ? (
+          <CharacterImage species={animalSpecies} stage={1} size={52} emojiClass="text-3xl" />
+        ) : (
+          <Sparkles size={24} className="text-text-secondary" />
+        )}
       </div>
       <p className="text-xs font-bold text-text-primary text-center">{label}</p>
       {active ? (

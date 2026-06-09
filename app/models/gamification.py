@@ -24,6 +24,12 @@ class ItemCode(StrEnum):
     SKIN_M_RED = "SKIN_M_RED"
     SKIN_M_PURPLE = "SKIN_M_PURPLE"
     SKIN_L_GOLD = "SKIN_L_GOLD"
+    # 1단계 동물 스킨 — 장착 시 EggWidget이 해당 종의 stage-1 일러스트로 override
+    SKIN_TURTLE_1 = "SKIN_TURTLE_1"
+    SKIN_PENGUIN_1 = "SKIN_PENGUIN_1"
+    SKIN_SQUIRREL_1 = "SKIN_SQUIRREL_1"
+    SKIN_RABBIT_1 = "SKIN_RABBIT_1"
+    SKIN_PANDA_1 = "SKIN_PANDA_1"
 
 
 class CharacterSpecies(StrEnum):

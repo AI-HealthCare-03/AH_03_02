@@ -22,6 +22,12 @@ ITEM_PRICE: dict[ItemCode, int] = {
     ItemCode.SKIN_M_RED: 700,
     ItemCode.SKIN_M_PURPLE: 700,
     ItemCode.SKIN_L_GOLD: 1200,
+    # 1단계 동물 스킨 — 색상 소(300)·중(700) 사이 포지셔닝
+    ItemCode.SKIN_TURTLE_1: 400,
+    ItemCode.SKIN_PENGUIN_1: 400,
+    ItemCode.SKIN_SQUIRREL_1: 400,
+    ItemCode.SKIN_RABBIT_1: 400,
+    ItemCode.SKIN_PANDA_1: 400,
 }
 
 # 보유 한도 (없으면 무제한)
@@ -35,6 +41,11 @@ ITEM_MAX_QUANTITY: dict[ItemCode, int] = {
     ItemCode.SKIN_M_RED: 1,
     ItemCode.SKIN_M_PURPLE: 1,
     ItemCode.SKIN_L_GOLD: 1,
+    ItemCode.SKIN_TURTLE_1: 1,
+    ItemCode.SKIN_PENGUIN_1: 1,
+    ItemCode.SKIN_SQUIRREL_1: 1,
+    ItemCode.SKIN_RABBIT_1: 1,
+    ItemCode.SKIN_PANDA_1: 1,
 }
 
 

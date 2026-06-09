@@ -7,9 +7,23 @@ export type ItemCode =
   | "SKIN_S_GREEN"
   | "SKIN_M_RED"
   | "SKIN_M_PURPLE"
-  | "SKIN_L_GOLD";
+  | "SKIN_L_GOLD"
+  | "SKIN_TURTLE_1"
+  | "SKIN_PENGUIN_1"
+  | "SKIN_SQUIRREL_1"
+  | "SKIN_RABBIT_1"
+  | "SKIN_PANDA_1";
 
 export type CharacterSpecies = "TURTLE" | "PENGUIN" | "SQUIRREL" | "RABBIT" | "PANDA";
+
+// 동물 스킨 → 표시 종 매핑. 장착 시 EggWidget이 해당 종의 stage-1 일러스트로 override
+export const ANIMAL_SKIN_TO_SPECIES: Partial<Record<ItemCode, CharacterSpecies>> = {
+  SKIN_TURTLE_1: "TURTLE",
+  SKIN_PENGUIN_1: "PENGUIN",
+  SKIN_SQUIRREL_1: "SQUIRREL",
+  SKIN_RABBIT_1: "RABBIT",
+  SKIN_PANDA_1: "PANDA",
+};
 
 export const SPECIES_EMOJI: Record<CharacterSpecies, string> = {
   TURTLE: "🐢",
@@ -164,6 +178,11 @@ export const SKIN_LABEL: Record<Exclude<ItemCode, "PROTECT" | "MINI_BOOSTER">, {
   SKIN_M_RED: { name: "레드 스킨 (중)", color: "bg-red-200" },
   SKIN_M_PURPLE: { name: "퍼플 스킨 (중)", color: "bg-purple-200" },
   SKIN_L_GOLD: { name: "골드 스킨 (대)", color: "bg-yellow-200" },
+  SKIN_TURTLE_1: { name: "거북이 (1단계)", color: "bg-emerald-100" },
+  SKIN_PENGUIN_1: { name: "펭귄 (1단계)", color: "bg-sky-100" },
+  SKIN_SQUIRREL_1: { name: "다람쥐 (1단계)", color: "bg-orange-100" },
+  SKIN_RABBIT_1: { name: "토끼 (1단계)", color: "bg-pink-100" },
+  SKIN_PANDA_1: { name: "판다 (1단계)", color: "bg-slate-200" },
 };
 
 export interface AttendanceResponse {
