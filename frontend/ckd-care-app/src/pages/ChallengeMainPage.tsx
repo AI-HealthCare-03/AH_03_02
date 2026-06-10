@@ -241,7 +241,7 @@ export function ChallengeMainPage() {
       <CheckinResultModal result={checkinResult} onClose={() => setCheckinResult(null)} />
       <ScreenLabel label="11 · 챌린지 메인 (REQ-CHG-01)" />
       <TopNav />
-      <main className="flex flex-1 flex-col pb-10">
+      <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col pb-10">
         {error && <div className="mx-5 mt-3 rounded-sm bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>}
 
         {/* 헤더 — 날짜·트랙 배지 */}
@@ -261,7 +261,7 @@ export function ChallengeMainPage() {
 
         {/* 캐릭터 창 — 대시보드 연동 (배경 = 챌린지 스테이지) */}
         <div className="px-5 pt-4">
-          <EggWidget />
+          <EggWidget aspectBackground />
         </div>
 
         {/* 진행도 바 */}
