@@ -141,7 +141,7 @@ export function LifestyleSurveyPage() {
           <div className="mt-4 rounded-sm bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>
         )}
 
-        <div className="mt-[24px] grid grid-cols-2 gap-[32px]">
+        <div className="mt-[24px] grid grid-cols-1 md:grid-cols-2 gap-[32px]">
           {/* 좌측 */}
           <div className="flex flex-col gap-[24px]">
             <div className="rounded-md border border-border bg-bg p-[16px]">
@@ -202,7 +202,7 @@ export function LifestyleSurveyPage() {
                   min={0}
                   max={7}
                 />
-                <div className="grid grid-cols-2 gap-[12px]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px]">
                   <StepperInput
                     label="고강도 운동 일수"
                     value={vigorousDays}
@@ -218,7 +218,7 @@ export function LifestyleSurveyPage() {
                     max={300}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-[12px]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px]">
                   <StepperInput
                     label="중강도 운동 일수"
                     value={moderateDays}

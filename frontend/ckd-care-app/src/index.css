@@ -55,6 +55,13 @@ body {
   padding-bottom: 36px;
 }
 
+/* 모바일: 하단 탭바(56px) + 면책 footer(~32px) 가림 방지 */
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 92px;
+  }
+}
+
 /* 체크인 결과 모달 컨페티 애니메이션 */
 @keyframes confetti-fall {
   0% {
