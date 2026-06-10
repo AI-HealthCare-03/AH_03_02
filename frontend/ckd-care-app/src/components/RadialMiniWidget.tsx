@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Droplets, Footprints, UtensilsCrossed, Moon, Brain } from "lucide-react";
+import { Droplets, Footprints, UtensilsCrossed, Moon, Brain, BookOpen, ClipboardList, Activity, HeartPulse } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { challengeApi, type CategoryProgress, type ChallengeCategory } from "../api/challenge";
 
@@ -9,6 +9,10 @@ const CATEGORY_ICON: Record<ChallengeCategory, LucideIcon> = {
   DIET: UtensilsCrossed,
   SLEEP: Moon,
   STRESS: Brain,
+  EDUCATION: BookOpen,
+  RECORD: ClipboardList,
+  MONITORING: Activity,
+  EMOTION: HeartPulse,
 };
 
 const CATEGORY_LABEL: Record<ChallengeCategory, string> = {
@@ -17,6 +21,10 @@ const CATEGORY_LABEL: Record<ChallengeCategory, string> = {
   DIET: "식단",
   SLEEP: "수면",
   STRESS: "스트레스",
+  EDUCATION: "교육·이해",
+  RECORD: "기록 습관",
+  MONITORING: "검사·수치 관리",
+  EMOTION: "정서",
 };
 
 const CATEGORY_COLOR: Record<ChallengeCategory, string> = {
@@ -25,6 +33,10 @@ const CATEGORY_COLOR: Record<ChallengeCategory, string> = {
   DIET: "#16A34A",
   SLEEP: "#7C3AED",
   STRESS: "#DC2626",
+  EDUCATION: "#0F6E56",
+  RECORD: "#534AB7",
+  MONITORING: "#BA7517",
+  EMOTION: "#D85A30",
 };
 
 function RadialMini({ data }: { data: CategoryProgress }) {

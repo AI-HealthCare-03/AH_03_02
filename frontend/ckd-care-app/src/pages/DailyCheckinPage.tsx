@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Droplets, UtensilsCrossed, Footprints, Moon, Brain, Check } from "lucide-react";
+import { Droplets, UtensilsCrossed, Footprints, Moon, Brain, Check, BookOpen, ClipboardList, Activity, HeartPulse } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ScreenLabel } from "../components/ScreenLabel";
@@ -20,6 +20,10 @@ const CATEGORY_ICON: Record<ChallengeCategory, LucideIcon> = {
   DIET: UtensilsCrossed,
   SLEEP: Moon,
   STRESS: Brain,
+  EDUCATION: BookOpen,
+  RECORD: ClipboardList,
+  MONITORING: Activity,
+  EMOTION: HeartPulse,
 };
 
 const CATEGORY_LABEL: Record<ChallengeCategory, string> = {
@@ -28,6 +32,10 @@ const CATEGORY_LABEL: Record<ChallengeCategory, string> = {
   DIET: "식단",
   SLEEP: "수면",
   STRESS: "스트레스",
+  EDUCATION: "교육·이해",
+  RECORD: "기록 습관",
+  MONITORING: "검사·수치 관리",
+  EMOTION: "정서",
 };
 
 function todayStr() {
@@ -50,7 +58,12 @@ export function DailyCheckinPage() {
 
   async function load() {
     try {
-      const [listRes, myRes] = await Promise.all([challengeApi.list(), challengeApi.myList()]);
+      // 내 트랙·스테이지 기준 챌린지 목록 조회 (구버전 list() 제거)
+      const mt = await challengeApi.myTrack();
+      const [listRes, myRes] = await Promise.all([
+        challengeApi.listByTrackStage(mt.track, mt.stage),
+        challengeApi.myList(),
+      ]);
       const map: Record<number, Challenge> = {};
       listRes.items.forEach((c) => (map[c.id] = c));
       setChallengeMap(map);

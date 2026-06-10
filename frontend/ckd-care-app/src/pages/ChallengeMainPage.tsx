@@ -1,68 +1,60 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Droplets, UtensilsCrossed, Footprints, Moon, Brain, Plus } from "lucide-react";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
-import { BtnPrimary } from "../components/BtnPrimary";
-import { Card } from "../components/Card";
-import { challengeApi, type Challenge, type CheckInResponse, type UserChallenge, type ChallengeCategory } from "../api/challenge";
-import type { LucideIcon } from "lucide-react";
 import { CheckinResultModal } from "../components/CheckinResultModal";
+import { EggWidget } from "../components/EggWidget";
+import {
+  challengeApi,
+  type ChallengeTrack, type ChallengeCategory,
+  type MyTrack, type DailyChecklistItem, type Challenge,
+  type UserChallenge, type CheckInResponse,
+} from "../api/challenge";
+import { TRACK_THEME, STAGES } from "../components/challenge/trackTheme";
+import { OnboardView } from "../components/challenge/OnboardView";
+import { TrackSelectView } from "../components/challenge/TrackSelectView";
+import { StageSelectView } from "../components/challenge/StageSelectView";
+import { DailyChecklist } from "../components/challenge/DailyChecklist";
+import { CategoryTabs } from "../components/challenge/CategoryTabs";
+import { OptionalChallengeList, type ChallengeRow } from "../components/challenge/OptionalChallengeList";
 
-const CATEGORY_ICON: Record<ChallengeCategory, LucideIcon> = {
-  HYDRATION: Droplets,
-  EXERCISE: Footprints,
-  DIET: UtensilsCrossed,
-  SLEEP: Moon,
-  STRESS: Brain,
-};
-
-const CATEGORY_LABEL: Record<ChallengeCategory, string> = {
-  HYDRATION: "수분",
-  EXERCISE: "운동",
-  DIET: "식단",
-  SLEEP: "수면",
-  STRESS: "스트레스",
-};
-
-const BORDER_COLOR: Record<ChallengeCategory, string> = {
-  HYDRATION: "border-info",
-  EXERCISE: "border-warning",
-  DIET: "border-success",
-  SLEEP: "border-accent",
-  STRESS: "border-border-strong",
-};
+type View = "onboard" | "track" | "stage" | "main";
+const ONBOARD_KEY = "challenge_onboarded";
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function checkedToday(uc: UserChallenge) {
-  return uc.last_checkin_date === todayStr();
-}
-
 export function ChallengeMainPage() {
   const queryClient = useQueryClient();
-  const [available, setAvailable] = useState<Challenge[]>([]);
-  const [myList, setMyList] = useState<UserChallenge[]>([]);
-  const [challengeMap, setChallengeMap] = useState<Record<number, Challenge>>({});
+  const [view, setView] = useState<View>("main");
+  const [myTrack, setMyTrack] = useState<MyTrack | null>(null);
+  const [checklist, setChecklist] = useState<DailyChecklistItem[]>([]);
+  const [challenges, setChallenges] = useState<Challenge[]>([]);
+  const [myChallenges, setMyChallenges] = useState<UserChallenge[]>([]);
+  const [activeCat, setActiveCat] = useState<ChallengeCategory | null>(null);
   const [loading, setLoading] = useState(true);
-  const [checkingIn, setCheckingIn] = useState<number | null>(null);
-  const [cancelingIn, setCancelingIn] = useState<number | null>(null);
-  const [abandoning, setAbandoning] = useState<number | null>(null);
-  const [joining, setJoining] = useState<number | null>(null);
   const [error, setError] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
+  const [checkBusy, setCheckBusy] = useState<string | null>(null);
+  const [chalBusy, setChalBusy] = useState<number | null>(null);
+  const [trackPick, setTrackPick] = useState<ChallengeTrack | null>(null);
   const [checkinResult, setCheckinResult] = useState<CheckInResponse | null>(null);
 
-  async function load() {
+  async function loadAll() {
     try {
-      const [listRes, myRes] = await Promise.all([challengeApi.list(), challengeApi.myList()]);
-      setAvailable(listRes.items);
-      setMyList(myRes.items);
-      const map: Record<number, Challenge> = {};
-      listRes.items.forEach((c) => (map[c.id] = c));
-      setChallengeMap(map);
+      const mt = await challengeApi.myTrack();
+      setMyTrack(mt);
+      const [cl, list, mine] = await Promise.all([
+        challengeApi.dailyChecklist(),
+        challengeApi.listByTrackStage(mt.track, mt.stage),
+        challengeApi.myList(100, 0),
+      ]);
+      setChecklist(cl.items);
+      setChallenges(list.items);
+      setMyChallenges(mine.items);
+      setActiveCat((prev) => prev ?? mt.categories[0]?.category ?? null);
+      // 캐릭터 창 배경(proficiency)이 스테이지 백필로 갱신됐을 수 있어 mascot 재조회
+      queryClient.invalidateQueries({ queryKey: ["gamification", "mascot"], refetchType: "all" });
     } catch (e) {
       setError(e instanceof Error ? e.message : "데이터를 불러오지 못했습니다.");
     } finally {
@@ -70,260 +62,235 @@ export function ChallengeMainPage() {
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    if (!localStorage.getItem(ONBOARD_KEY)) setView("onboard");
+    loadAll();
+  }, []);
 
-  async function handleCheckin(ucId: number) {
-    setCheckingIn(ucId);
-    setError(""); setSuccessMsg("");
+  function finishOnboard() {
+    localStorage.setItem(ONBOARD_KEY, "1");
+    setView("main");
+  }
+
+  function invalidateDash() {
+    queryClient.invalidateQueries({ queryKey: ["dashboard-summary"], refetchType: "all" });
+    queryClient.invalidateQueries({ queryKey: ["challenges"], refetchType: "all" });
+    queryClient.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
+  }
+
+  // challenge.id → 내 user_challenge 매핑 (ACTIVE 상태만 — ABANDONED/COMPLETED 제외)
+  const ucByChallenge = new Map<number, UserChallenge>();
+  myChallenges
+    .filter((uc) => uc.status === "ACTIVE")
+    .forEach((uc) => ucByChallenge.set(uc.challenge_id, uc));
+
+  const today = todayStr();
+  const rowsAll: ChallengeRow[] = challenges.map((c) => {
+    const uc = ucByChallenge.get(c.id);
+    return {
+      challenge: c,
+      userChallengeId: uc ? uc.id : null,
+      checkedToday: uc ? uc.last_checkin_date === today : false,
+    };
+  });
+  const rows = activeCat ? rowsAll.filter((r) => r.challenge.category === activeCat) : rowsAll;
+
+  // 오늘 전체 진행도 계산 (필수 체크 + 선택 챌린지)
+  const checkedRequired = checklist.filter((i) => i.checked).length;
+  const checkedOptional = rowsAll.filter((r) => r.checkedToday).length;
+  const totalItems = checklist.length + rowsAll.length;
+  const doneItems = checkedRequired + checkedOptional;
+  const pct = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
+
+  async function handleToggleChecklist(itemKey: string) {
+    setCheckBusy(itemKey);
+    setError("");
     try {
-      const res = await challengeApi.checkin(ucId);
-      setCheckinResult(res);  // 보상 모달 표시
-      // 체크인 완료 후 대시보드 위젯 즉시 갱신 — refetchType:"all"로 비활성(다른 페이지) 위젯도 재요청
-      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"], refetchType: "all" });
-      queryClient.invalidateQueries({ queryKey: ["challenges"], refetchType: "all" });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
-      await load();
+      const res = await challengeApi.toggleChecklist(itemKey);
+      setChecklist((prev) => prev.map((i) => (i.item_key === itemKey ? { ...i, checked: res.checked } : i)));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "체크인 실패");
+      setError(e instanceof Error ? e.message : "체크 실패");
     } finally {
-      setCheckingIn(null);
+      setCheckBusy(null);
     }
   }
 
-  async function handleCancelCheckin(ucId: number) {
-    if (!window.confirm("오늘 체크인을 취소할까요?")) return;
-    setCancelingIn(ucId);
-    setError(""); setSuccessMsg("");
+  async function handleToggleChallenge(row: ChallengeRow) {
+    setChalBusy(row.challenge.id);
+    setError("");
     try {
-      await challengeApi.cancelCheckin(ucId);
-      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"], refetchType: "all" });
-      queryClient.invalidateQueries({ queryKey: ["challenges"], refetchType: "all" });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
-      await load();
+      if (row.checkedToday && row.userChallengeId !== null) {
+        // 이미 체크인 된 경우 → 취소
+        await challengeApi.cancelCheckin(row.userChallengeId);
+      } else {
+        // 미참여면 자동 join → 체크인
+        let ucId = row.userChallengeId;
+        if (ucId === null) {
+          try {
+            const uc = await challengeApi.join(row.challenge.id, todayStr());
+            ucId = uc.id;
+          } catch (e) {
+            // 이미 join된 경우(중복 409 등) → 내 목록에서 찾아 재활용
+            const mine = await challengeApi.myList(100, 0);
+            const found = mine.items.find((u) => u.challenge_id === row.challenge.id);
+            if (!found) throw e;
+            ucId = found.id;
+          }
+        }
+        const res = await challengeApi.checkin(ucId);
+        setCheckinResult(res);
+      }
+      invalidateDash();
+      await loadAll();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "체크인 취소 실패");
+      setError(e instanceof Error ? e.message : "처리 실패");
     } finally {
-      setCancelingIn(null);
+      setChalBusy(null);
     }
   }
 
-  async function handleAbandon(ucId: number) {
-    if (!window.confirm("이 챌린지 참여를 해제할까요? 기록은 보관됩니다.")) return;
-    setAbandoning(ucId);
-    setError(""); setSuccessMsg("");
+  function handleSelectTrack(track: ChallengeTrack) {
+    setTrackPick(track);
+    setView("stage");
+  }
+
+  async function handleSelectStage(stage: number) {
+    const track = trackPick ?? myTrack?.track;
+    if (!track) return;
+    setError("");
     try {
-      await challengeApi.abandon(ucId);
-      setSuccessMsg("챌린지 참여가 해제됐습니다.");
-      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"], refetchType: "all" });
-      queryClient.invalidateQueries({ queryKey: ["challenges"], refetchType: "all" });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
-      await load();
+      await challengeApi.updateMyTrack(track, stage);
+      setActiveCat(null);   // 새 트랙 첫 카테고리로 재설정 유도
+      setView("main");
+      await loadAll();  // myTrack·checklist·challenges·myChallenges 전체 재로드로 정합
     } catch (e) {
-      setError(e instanceof Error ? e.message : "참여 해제 실패");
-    } finally {
-      setAbandoning(null);
+      setError(e instanceof Error ? e.message : "트랙 변경 실패");
     }
   }
 
-  async function handleJoin(challengeId: number) {
-    setJoining(challengeId);
-    setError(""); setSuccessMsg("");
-    try {
-      await challengeApi.join(challengeId, todayStr());
-      setSuccessMsg("챌린지에 참여했습니다!");
-      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"], refetchType: "all" });
-      queryClient.invalidateQueries({ queryKey: ["challenges"], refetchType: "all" });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
-      await load();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "참여 실패");
-    } finally {
-      setJoining(null);
-    }
+  // 온보딩 뷰 — 데이터 불필요, 로딩보다 먼저 렌더
+  if (view === "onboard") {
+    return (
+      <div className="flex min-h-screen flex-col bg-bg-alt">
+        <ScreenLabel label="11 · 챌린지 온보딩" />
+        <OnboardView onStart={finishOnboard} />
+      </div>
+    );
   }
 
-  const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<ChallengeCategory | "ALL">("ALL");
-
-  const activeList = myList.filter((uc) => uc.status === "ACTIVE");
-  const doneToday = activeList.filter(checkedToday).length;
-  const pct = activeList.length > 0 ? Math.round((doneToday / activeList.length) * 100) : 0;
-  const joinedIds = new Set(myList.map((uc) => uc.challenge_id));
-
-  function toggleExpand(id: number) {
-    setExpandedId((prev) => (prev === id ? null : id));
+  if (loading) {
+    return (
+      <div className="flex min-h-screen flex-col bg-bg-alt">
+        <ScreenLabel label="11 · 챌린지 메인 (REQ-CHG-01)" />
+        <TopNav />
+        <main className="flex flex-1 items-center justify-center text-text-secondary">로딩 중...</main>
+      </div>
+    );
   }
 
-  if (loading) return (
-    <div className="flex min-h-screen flex-col bg-bg-alt">
-      <ScreenLabel label="11 · 챌린지 메인 (REQ-CHG-01)" />
-      <TopNav />
-      <main className="flex flex-1 items-center justify-center text-text-secondary">로딩 중...</main>
-    </div>
-  );
+  // 로드 실패 시 에러 화면 조기 반환
+  if (error && !myTrack) {
+    return (
+      <div className="flex min-h-screen flex-col bg-bg-alt">
+        <ScreenLabel label="11 · 챌린지" />
+        <TopNav />
+        <main className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
+          <p className="text-sm text-danger">{error}</p>
+          <button
+            onClick={() => { setError(""); setLoading(true); loadAll(); }}
+            className="rounded-md border border-accent px-4 py-2 text-sm text-accent hover:bg-accent hover:text-bg"
+          >
+            다시 시도
+          </button>
+        </main>
+      </div>
+    );
+  }
+
+  // 트랙 선택 뷰
+  if (view === "track" && myTrack) {
+    return (
+      <div className="flex min-h-screen flex-col bg-bg-alt">
+        <ScreenLabel label="11 · 트랙 선택" />
+        <TrackSelectView current={myTrack.track} onSelect={handleSelectTrack} onBack={() => setView("main")} />
+      </div>
+    );
+  }
+  // 스테이지 선택 뷰
+  if (view === "stage" && (trackPick || myTrack)) {
+    const track = trackPick ?? myTrack!.track;
+    return (
+      <div className="flex min-h-screen flex-col bg-bg-alt">
+        <ScreenLabel label="11 · 스테이지 선택" />
+        <StageSelectView track={track} current={myTrack?.stage ?? 1} onSelect={handleSelectStage} onBack={() => setView("track")} />
+      </div>
+    );
+  }
+
+  const theme = myTrack ? TRACK_THEME[myTrack.track] : null;
+  const stageLabel = STAGES.find((s) => s.num === myTrack?.stage)?.key ?? "S1";
+  // 날짜 표시 문자열
+  const dateStr = (() => {
+    const n = new Date();
+    const days = ["일","월","화","수","목","금","토"];
+    return `${n.getFullYear()}년 ${n.getMonth() + 1}월 ${n.getDate()}일 ${days[n.getDay()]}요일`;
+  })();
 
   return (
     <div className="flex min-h-screen flex-col bg-bg-alt">
       <CheckinResultModal result={checkinResult} onClose={() => setCheckinResult(null)} />
       <ScreenLabel label="11 · 챌린지 메인 (REQ-CHG-01)" />
       <TopNav />
-      <main className="flex flex-1 flex-col p-[32px]">
+      <main className="flex flex-1 flex-col pb-10">
+        {error && <div className="mx-5 mt-3 rounded-sm bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>}
 
-        {error && <div className="mb-3 rounded-sm bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>}
-        {successMsg && <div className="mb-3 rounded-sm bg-success/10 px-3 py-2 text-sm text-success">{successMsg}</div>}
+        {/* 헤더 — 날짜·트랙 배지 */}
+        <div className="px-5 pt-5">
+          <div className="text-xs text-text-secondary">{dateStr}</div>
+          <h1 className="mt-1 text-xl font-semibold text-text-primary">오늘의 챌린지</h1>
+          {myTrack && theme && (
+            <button
+              onClick={() => setView("track")}
+              className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-medium ${theme.bgClass} ${theme.textClass}`}
+            >
+              {myTrack.track_label} · {stageLabel} {STAGES.find((s) => s.num === myTrack.stage)?.label.replace(" 단계", "")}
+              <span className="text-[11px]">변경 ›</span>
+            </button>
+          )}
+        </div>
 
-        {/* 헤더 */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-text-primary">오늘의 챌린지</h1>
-            <p className="mt-[4px] text-sm text-text-secondary">진행 중 {activeList.length}개</p>
+        {/* 캐릭터 창 — 대시보드 연동 (배경 = 챌린지 스테이지) */}
+        <div className="px-5 pt-4">
+          <EggWidget />
+        </div>
+
+        {/* 진행도 바 */}
+        <div className="px-5 pb-4 pt-4">
+          <div className="mb-1.5 flex justify-between text-xs text-text-secondary">
+            <span>오늘 진행도</span>
+            <span>{doneItems} / {totalItems} 완료</span>
+          </div>
+          <div className="h-1 overflow-hidden rounded bg-placeholder">
+            <div className="h-full rounded bg-accent transition-all" style={{ width: `${pct}%` }} />
           </div>
         </div>
 
-        {/* 달성률 바 */}
-        {activeList.length > 0 && (
-          <div className="mt-[24px] rounded-md border border-border bg-bg p-[16px]">
-            <div className="flex items-center justify-between">
-              <p className="text-sm font-bold text-text-primary">{doneToday} / {activeList.length} 완료</p>
-              <p className="text-sm font-bold text-accent">{pct}%</p>
-            </div>
-            <div className="mt-[8px] h-[10px] w-full rounded-full bg-placeholder">
-              <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${pct}%` }} />
-            </div>
-          </div>
-        )}
+        {/* 의료 면책 경고 배너 */}
+        <div className="mx-5 mb-4 rounded-md border border-warning/30 bg-warning/10 px-3.5 py-3 text-xs leading-relaxed text-warning">
+          ⚠️ 본 챌린지는 처방 이행을 돕는 보조 도구입니다. 부종·호흡곤란·소변량 급감 등 이상 시 즉시 의료진에게 연락하세요.
+        </div>
 
-        {/* 내 진행 중 챌린지 */}
-        {activeList.length > 0 ? (
-          <div className="mt-[24px] flex flex-col gap-[12px]">
-            {activeList.map((uc) => {
-              const c = challengeMap[uc.challenge_id];
-              if (!c) return null;
-              const Icon = CATEGORY_ICON[c.category];
-              const done = checkedToday(uc);
-              const isAnyBusy = checkingIn !== null || cancelingIn !== null || abandoning !== null;
-              return (
-                <div
-                  key={uc.id}
-                  className={`rounded-md border-l-4 ${BORDER_COLOR[c.category]} border border-border bg-bg`}
-                >
-                  <div className="flex items-center gap-[16px] p-[16px]">
-                    <div className={`flex h-[24px] w-[24px] shrink-0 items-center justify-center rounded-full ${done ? "bg-success" : "border-2 border-border-strong"}`}>
-                      {done && <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7L6 10L11 4" stroke="white" strokeWidth="2" /></svg>}
-                    </div>
-                    <Icon size={20} className="shrink-0 text-text-secondary" />
-                    <div className="flex-1 cursor-pointer" onClick={() => toggleExpand(c.id)}>
-                      <p className="text-sm font-bold text-text-primary">{c.name}</p>
-                      <p className="text-xs text-text-muted">{CATEGORY_LABEL[c.category]} · {uc.total_checkins}/{c.duration_days}일 · 연속 {uc.streak_count}일</p>
-                    </div>
-                    {/* 체크인/완료 취소 버튼 */}
-                    {done ? (
-                      <button
-                        onClick={() => handleCancelCheckin(uc.id)}
-                        disabled={isAnyBusy}
-                        className="min-w-[72px] rounded-md border border-success/50 px-3 py-1.5 text-sm text-success hover:border-danger hover:text-danger hover:bg-danger/10 disabled:opacity-50 transition-colors"
-                        title="클릭하여 체크인 취소"
-                      >
-                        {cancelingIn === uc.id ? "취소 중..." : "완료"}
-                      </button>
-                    ) : (
-                      <BtnPrimary
-                        label="체크인"
-                        disabled={false}
-                        loading={checkingIn === uc.id}
-                        onClick={() => handleCheckin(uc.id)}
-                        className="min-w-[72px]"
-                      />
-                    )}
-                    {/* 참여 해제 버튼 */}
-                    <button
-                      onClick={() => handleAbandon(uc.id)}
-                      disabled={isAnyBusy}
-                      className="rounded-md border border-border px-2 py-1.5 text-xs text-text-muted hover:border-danger hover:text-danger hover:bg-danger/10 disabled:opacity-50 transition-colors"
-                      title="챌린지 참여 해제"
-                    >
-                      {abandoning === uc.id ? "해제 중..." : "해제"}
-                    </button>
-                  </div>
-                  {expandedId === c.id && (
-                    <div className="border-t border-border px-[16px] py-[12px]">
-                      <p className="text-sm text-text-secondary">{c.description}</p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="mt-[24px] rounded-md border border-dashed border-border bg-bg p-[32px] text-center">
-            <p className="text-text-muted">참여 중인 챌린지가 없습니다. 아래에서 챌린지를 골라보세요!</p>
-          </div>
-        )}
+        {/* 필수 일일 체크리스트 */}
+        <DailyChecklist items={checklist} busyKey={checkBusy} onToggle={handleToggleChecklist} />
 
-        {/* 참여 가능한 챌린지 */}
-        {available.filter((c) => !joinedIds.has(c.id)).length > 0 && (
-          <div className="mt-[32px]">
-            <h2 className="mb-[12px] text-lg font-bold text-text-primary">참여 가능한 챌린지</h2>
-
-            {/* 카테고리 탭 */}
-            <div className="mb-[12px] flex gap-[8px] overflow-x-auto pb-[4px]">
-              {(["ALL", "HYDRATION", "EXERCISE", "DIET", "SLEEP", "STRESS"] as const).map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`shrink-0 rounded-full px-[14px] py-[6px] text-sm font-medium transition-colors ${
-                    activeTab === tab
-                      ? "bg-accent text-white"
-                      : "border border-border bg-bg text-text-secondary hover:border-accent hover:text-accent"
-                  }`}
-                >
-                  {tab === "ALL" ? "전체" : CATEGORY_LABEL[tab]}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex flex-col gap-[8px]">
-              {available.filter((c) => !joinedIds.has(c.id) && (activeTab === "ALL" || c.category === activeTab)).map((c) => {
-                const Icon = CATEGORY_ICON[c.category];
-                return (
-                  <div key={c.id} className="rounded-md border border-border bg-bg">
-                    <div className="flex items-center gap-[16px] p-[16px]">
-                      <Icon size={20} className="shrink-0 text-text-secondary" />
-                      <div className="flex-1 cursor-pointer" onClick={() => toggleExpand(c.id)}>
-                        <p className="text-sm font-bold text-text-primary">{c.name}</p>
-                        <p className="text-xs text-text-muted">{CATEGORY_LABEL[c.category]} · {c.duration_days}일</p>
-                      </div>
-                      <button
-                        onClick={() => handleJoin(c.id)}
-                        disabled={joining === c.id}
-                        className="flex items-center gap-1 rounded-md border border-accent px-[12px] py-[6px] text-sm text-accent disabled:opacity-50"
-                      >
-                        <Plus size={14} />
-                        {joining === c.id ? "참여 중..." : "참여"}
-                      </button>
-                    </div>
-                    {expandedId === c.id && (
-                      <div className="border-t border-border px-[16px] py-[12px]">
-                        <p className="text-sm text-text-secondary">{c.description}</p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* 완료한 챌린지 요약 */}
-        {myList.filter((uc) => uc.status === "COMPLETED").length > 0 && (
-          <Card title="완료한 챌린지" className="mt-[24px]">
-            <p className="text-2xl font-bold text-success">
-              {myList.filter((uc) => uc.status === "COMPLETED").length}개
-            </p>
-            <p className="text-xs text-text-muted">지금까지 완료한 챌린지</p>
-          </Card>
-        )}
-
+        {/* 선택 챌린지 — 카테고리 탭 + 목록 */}
+        <div className="px-5 pb-10 pt-2">
+          <div className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-text-secondary">선택 챌린지</div>
+          {myTrack && activeCat && (
+            <CategoryTabs categories={myTrack.categories} active={activeCat} onSelect={setActiveCat} />
+          )}
+          <OptionalChallengeList rows={rows} busyId={chalBusy} onToggle={handleToggleChallenge} />
+        </div>
       </main>
     </div>
   );
