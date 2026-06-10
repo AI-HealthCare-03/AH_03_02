@@ -100,8 +100,58 @@ def test_report_response_keys() -> None:
         "ai_guide",
         "recommended_tests",
         "model1_summary",
-        # Phase A: 임상·생활습관 상세표 + 리포트 메타 (기본값 []/None)
         "clinical_items",
         "lifestyle_items",
         "report_meta",
+        # Phase B: 생활습관 도메인 요약
+        "lifestyle_domain_summary",
     }
+
+
+def test_lifestyle_domain_summary_serialization() -> None:
+    """LifestyleDomainSummary 직렬화."""
+    from app.dtos.health_check import LifestyleDomainSummary
+
+    s = LifestyleDomainSummary(
+        domain="diet",
+        domain_label="식이",
+        improve_count=2,
+        summary="LDL 콜레스테롤·중성지방 관리가 필요합니다",
+    )
+    d = s.model_dump()
+    assert d["domain"] == "diet"
+    assert d["domain_label"] == "식이"
+    assert d["improve_count"] == 2
+    # 직렬화 동일성 검사 (문구 포맷 검증은 test_clinical_reference가 전담)
+    assert d["summary"] == "LDL 콜레스테롤·중성지방 관리가 필요합니다"
+
+
+def test_lifestyle_item_has_domain() -> None:
+    """LifestyleItem.domain — 미전달 시 기본값 빈 문자열, 전달 시 해당 값."""
+    from app.dtos.health_check import LifestyleItem
+
+    # 기본값 검증 — domain 미전달 시 빈 문자열이어야 함
+    it_default = LifestyleItem(
+        feature="ldl_cholesterol",
+        label="LDL 콜레스테롤",
+        normal_range="<130",
+        value_text="150.0",
+        status="높음",
+        status_level="danger",
+        group="improve",
+    )
+    assert it_default.model_dump()["domain"] == ""
+
+    # 명시 전달 시 해당 값 직렬화
+    it_explicit = LifestyleItem(
+        feature="ldl_cholesterol",
+        label="LDL 콜레스테롤",
+        normal_range="<130",
+        value_text="150.0",
+        status="높음",
+        status_level="danger",
+        group="improve",
+        action="포화지방을 줄이세요",
+        domain="diet",
+    )
+    assert it_explicit.model_dump()["domain"] == "diet"
