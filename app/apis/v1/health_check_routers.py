@@ -12,6 +12,7 @@ from app.dtos.health_check import (
     ReportResponse,
 )
 from app.models.users import User
+from app.services import ocr as ocr_service
 from app.services.health_check import HealthCheckService
 
 health_check_router = APIRouter(prefix="/health-checks", tags=["health-checks"])
@@ -162,16 +163,10 @@ async def ocr_extract(
             detail="파일 크기는 최대 10MB까지 지원합니다.",
         )
 
-    # TODO(OCR 3단계): 여기에 Clova API 호출 + 응답 파싱.
-    # 지금은 파일 수신 확인용 stub 응답.
-    return Response(
-        {
-            "engine": "stub",
-            "filename": file.filename,
-            "size_bytes": len(contents),
-            "content_type": file.content_type,
-            "fields": [],
-            "message": "파일을 정상적으로 수신했습니다. (Clova 호출은 다음 단계에서 활성화)",
-        },
-        status_code=status.HTTP_200_OK,
+    # Clova OCR 호출 — 키 미설정·외부 오류·타임아웃은 서비스 안에서 한국어 HTTPException으로 변환
+    result = await ocr_service.extract_text(
+        file_bytes=contents,
+        content_type=file.content_type or "application/octet-stream",
+        filename=file.filename or "checkup",
     )
+    return Response(result, status_code=status.HTTP_200_OK)
