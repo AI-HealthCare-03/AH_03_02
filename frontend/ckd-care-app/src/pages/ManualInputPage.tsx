@@ -167,20 +167,20 @@ export function ManualInputPage() {
           <div className="mb-4 rounded-sm bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>
         )}
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-bold text-text-primary">
             {prefill ? "건강검진 수치 재입력" : "건강검진 수치 입력"}
           </h1>
           <TextInput
             label="검진일"
             placeholder="YYYY-MM-DD"
-            className="w-[200px]"
+            className="w-full sm:w-[200px]"
             value={form.checked_date}
             onChange={set("checked_date")}
           />
         </div>
 
-        <div className="mt-[24px] grid grid-cols-2 gap-[32px]">
+        <div className="mt-[24px] grid grid-cols-1 md:grid-cols-2 gap-[32px]">
           {/* 좌측 */}
           <div className="flex flex-col gap-[24px]">
             <div className="rounded-md border border-border bg-bg p-[16px]">

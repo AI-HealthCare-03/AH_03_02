@@ -36,6 +36,7 @@ from app.models.challenge import (
     UserChallenge,
     UserChallengeStatus,
 )
+from app.models.users import User
 from app.repositories.challenge_repository import (
     ChallengeRepository,
     DailyChecklistLogRepository,
@@ -156,6 +157,8 @@ class ChallengeService:
             )
         # auto_assigned=False인 경우: 사용자가 수동으로 선택한 트랙 유지
 
+        # 챌린지 스테이지 → 캐릭터 창 배경(proficiency) 동기화 (기존 유저 백필 포함)
+        await self._sync_proficiency(user_id, profile.stage)
         return _build_my_track_response(profile)
 
     async def update_my_track(self, user_id: int, dto: UpdateMyTrackRequest) -> MyTrackResponse:
@@ -166,7 +169,18 @@ class ChallengeService:
             stage=dto.stage,
             auto_assigned=False,
         )
+        # 챌린지 스테이지 → 캐릭터 창 배경(proficiency) 동기화
+        await self._sync_proficiency(user_id, dto.stage)
         return _build_my_track_response(profile)
+
+    @staticmethod
+    async def _sync_proficiency(user_id: int, stage: int) -> None:
+        """챌린지 스테이지(1~4)를 user.proficiency에 동기화 — 캐릭터 창 배경(BackgroundImage) 결정용.
+
+        proficiency 갱신 로직이 원래 없어 모든 유저가 1(잔디)에 고정됐던 문제를 해결한다.
+        스테이지는 1~4 범위로 클램프한다.
+        """
+        await User.filter(id=user_id).update(proficiency=max(1, min(stage, 4)))
 
     # ── 챌린지 목록 (트랙·스테이지 기반) ─────────────────────────────────────
 

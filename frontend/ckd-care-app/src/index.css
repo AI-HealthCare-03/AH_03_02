@@ -15,6 +15,18 @@
   --color-text-secondary: #6B7280;
   --color-warning: #D97706;
 
+  /* 챌린지 트랙 구분색 (받은 디자인 ckd-challenge.html 팔레트) */
+  --color-track-dialysis: #1D9E75;
+  --color-track-dialysis-bg: #E1F5EE;
+  --color-track-ckd: #7F77DD;
+  --color-track-ckd-bg: #EEEDFE;
+  --color-track-intensive: #D85A30;
+  --color-track-intensive-bg: #FAECE7;
+  --color-track-daily: #BA7517;
+  --color-track-daily-bg: #FAEEDA;
+  --color-track-wellness: #3F7A1F;
+  --color-track-wellness-bg: #EAF3DE;
+
   --font-size-xs: 12px;
   --font-size-sm: 14px;
   --font-size-md: 16px;
@@ -41,6 +53,13 @@ body {
   color: var(--color-text-primary);
   /* DisclaimerFooter(고정, ~32px) 가림 방지 */
   padding-bottom: 36px;
+}
+
+/* 모바일: 하단 탭바(56px) + 면책 footer(~32px) 가림 방지 */
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 92px;
+  }
 }
 
 /* 체크인 결과 모달 컨페티 애니메이션 */

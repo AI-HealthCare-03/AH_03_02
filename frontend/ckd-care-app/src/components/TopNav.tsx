@@ -35,7 +35,7 @@ export function TopNav({ brand = "CKD CARE" }: TopNavProps) {
         <Link to="/dashboard" className="text-lg font-bold text-text-primary">
           {brand}
         </Link>
-        <div className="flex items-center gap-[4px]">
+        <div className="hidden items-center gap-[4px] md:flex">
           {navItems.map(({ to, icon: Icon, label }) => (
             <Link
               key={to}

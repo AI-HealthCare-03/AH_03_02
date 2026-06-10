@@ -58,6 +58,7 @@ import { AdminChallengesPage } from "./pages/admin/AdminChallengesPage";
 import { AdminLogsPage } from "./pages/admin/AdminLogsPage";
 import { AdminSafetyPage } from "./pages/admin/AdminSafetyPage";
 import { DisclaimerFooter } from "./components/DisclaimerFooter";
+import { BottomTabBar } from "./components/BottomTabBar";
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { token, isLoading } = useAuth();
@@ -126,6 +127,7 @@ createRoot(document.getElementById("root")!).render(
         <AuthProvider>
           <AppRoutes />
           <DisclaimerFooter />
+          <BottomTabBar />
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>

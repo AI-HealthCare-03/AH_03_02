@@ -16,7 +16,7 @@ export function DisclaimerFooter() {
 
   return (
     <footer
-      className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-bg/95 backdrop-blur-sm"
+      className="fixed bottom-[56px] left-0 right-0 z-40 border-t border-border bg-bg/95 backdrop-blur-sm md:bottom-0"
       role="contentinfo"
       aria-label="의료 면책 고지"
     >

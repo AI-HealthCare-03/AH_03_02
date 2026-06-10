@@ -29,7 +29,7 @@ function nextThreshold(progress: number): { name: string; remaining: number } | 
   return null;
 }
 
-export function EggWidget() {
+export function EggWidget({ aspectBackground = false }: { aspectBackground?: boolean } = {}) {
   // 캐릭터·알 진행률 — 캐릭터 5분 TTL (REQ-DASH-004)
   const { data, isLoading: loading } = useQuery<MascotResponse | null>({
     queryKey: ["gamification", "mascot"],
@@ -82,7 +82,9 @@ export function EggWidget() {
     <div className="flex h-full flex-col items-center gap-[10px] rounded-md border border-border bg-bg p-[16px]">
       {/* 캐릭터 아이콘 + 숙련도 배경 (와이드 사각형, 시연 임팩트 강화) */}
       <div
-        className="relative flex h-[200px] w-full items-center justify-center overflow-hidden rounded-xl ring-2 ring-border shadow-sm"
+        className={`relative flex w-full items-center justify-center overflow-hidden rounded-xl ring-2 ring-border shadow-sm ${
+          aspectBackground ? "aspect-[1024/572]" : "h-[200px]"
+        }`}
         title={`숙련도: ${proficiencyLabel}`}
       >
         {/* 배경 (PNG → SVG → 그라데이션 fallback) */}

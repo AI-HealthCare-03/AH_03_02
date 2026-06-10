@@ -317,9 +317,9 @@ export function DashboardPage() {
         )}
 
         {/* 헤더 + 출석체크 CTA */}
-        <div className="flex items-center justify-between gap-[12px]">
-          <div className="flex items-center gap-[12px]">
-            <h1 className="text-2xl font-bold text-text-primary">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-[12px]">
+            <h1 className="text-xl font-bold text-text-primary sm:text-2xl">
               안녕하세요, {user?.name ?? "—"} 님
             </h1>
             {h?.app_group && <Tag label={APP_GROUP_LABEL[h.app_group] ?? h.app_group} />}
@@ -327,7 +327,7 @@ export function DashboardPage() {
           <button
             onClick={handleAttendance}
             disabled={attendanceLoading}
-            className="rounded-md bg-accent px-4 py-2 text-sm font-bold text-bg hover:bg-accent/90 disabled:opacity-50"
+            className="shrink-0 self-start rounded-md bg-accent px-4 py-2 text-sm font-bold text-bg hover:bg-accent/90 disabled:opacity-50 sm:self-auto"
           >
             {attendanceLoading ? "처리 중..." : "오늘의 출석체크"}
           </button>
@@ -367,8 +367,8 @@ export function DashboardPage() {
         </div>
 
         {/* Row1: 계기판 + 헬스 알 */}
-        <div className="mt-[24px] grid grid-cols-3 items-stretch gap-[16px]">
-          <div className="col-span-2 grid grid-cols-2 gap-[16px]">
+        <div className="mt-[24px] grid grid-cols-1 items-stretch gap-[16px] md:grid-cols-3">
+          <div className="grid grid-cols-2 gap-[16px] md:col-span-2">
             <EgfrGauge value={h?.egfr_estimated ?? null} />
             <RiskGauge
               score={h?.ckd_risk_score != null ? h.ckd_risk_score * 100 : null}
@@ -395,8 +395,8 @@ export function DashboardPage() {
         })()}
 
         {/* Row2: eGFR 추세 + 시뮬레이션 */}
-        <div className="mt-[24px] grid grid-cols-3 items-stretch gap-[16px]">
-          <div className="col-span-2 h-full">
+        <div className="mt-[24px] grid grid-cols-1 items-stretch gap-[16px] md:grid-cols-3">
+          <div className="h-full md:col-span-2">
             <EgfrTrendChart trend={trend ?? null} />
           </div>
           <EgfrSimulationWidget />
@@ -408,14 +408,14 @@ export function DashboardPage() {
         </div>
 
         {/* Row2c: 카테고리별 라디알 미니 + 주간 달성 */}
-        <div className="mt-[24px] grid grid-cols-2 gap-[16px]">
+        <div className="mt-[24px] grid grid-cols-1 gap-[16px] sm:grid-cols-2">
           <RadialMiniWidget />
           <WeeklyProgressWidget />
         </div>
 
         {/* Row3: 최신 건강지표 카드 */}
         {h && (
-          <div className="mt-[24px] grid grid-cols-4 gap-[16px]">
+          <div className="mt-[24px] grid grid-cols-2 gap-[16px] sm:grid-cols-4">
             {[
               { label: "혈압", value: `${h.systolic_bp}/${h.diastolic_bp}`, unit: "mmHg" },
               { label: "공복혈당", value: String(h.fasting_glucose), unit: "mg/dL" },

@@ -140,7 +140,7 @@ export function CollectionPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-[16px]">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-[16px]">
               {characters.map((c) => {
                 const speciesName = c.species ? SPECIES_LABEL[c.species] : "알";
                 const isEditing = editingId === c.egg_no;
@@ -214,7 +214,7 @@ export function CollectionPage() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-[12px]">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-[12px]">
               {/* 기본 외형 (스킨 해제) 옵션 */}
               <SkinCard
                 code={null}
