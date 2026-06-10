@@ -140,6 +140,19 @@ export interface ReportResponse {
 
 // ===== API =====
 
+// ===== OCR 응답 타입 =====
+export interface OCRField {
+  text: string;
+  confidence: number; // 0~1
+}
+
+export interface OCRResponse {
+  engine: "clova" | "stub";
+  filename: string;
+  fields: OCRField[];
+  low_confidence_count: number;
+}
+
 export const healthCheckApi = {
   create: (body: HealthCheckCreateRequest) =>
     api.post<HealthCheckResponse>("/health-checks", body),
@@ -149,4 +162,9 @@ export const healthCheckApi = {
     api.get<ReportResponse>(`/health-checks/${id}/report`),
   delete: (id: number) =>
     api.delete<void>(`/health-checks/${id}`),
+  ocrExtract: (file: File) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    return api.postForm<OCRResponse>("/health-checks/ocr", fd);
+  },
 };
