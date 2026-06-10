@@ -26,6 +26,7 @@ rag = [
     "openai>=1.0",
     "qdrant-client>=1.7",
     "langchain>=1.0",
+    "langchain-text-splitters",
     "langchain-openai",
     "langchain-qdrant",
     "langgraph>=0.2",

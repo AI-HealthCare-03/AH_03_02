@@ -20,8 +20,8 @@ CHUNKS_DIR = PKG_ROOT / "chunks"  # chunking.py JSONL 덤프 출력 (.gitignore 
 # doc_type 매핑 (폴더 → 분류) — payload.doc_type 의 단일 정의
 # ─────────────────────────────────────────────
 DOC_TYPE_BY_FOLDER = {
-    "kdigo": "clinical",  # 영문 임상 가이드라인 (KDIGO)
-    "ksn_guideline": "clinical",  # 국문 임상 진료지침 (KSN 당뇨병/고혈압 콩팥병)
+    "kdigo": "clinical",  # KDIGO 공식 국제 가이드라인 (영문)
+    "ksn_guideline": "clinical",  # 국내 임상 진료지침 (KSN 신장학회) + 영문 임상연구
     "knsn": "nutrition",  # 국문 영양·환자교육 (KSN 영양 + 질병관리청 바로알기)
     "lifestyle": "lifestyle",  # 생활습관 (운동·금연·절주·수면·스트레스)
 }
@@ -57,8 +57,15 @@ KO_LANG_THRESHOLD = 0.10  # 한글/(한글+라틴) ≥ 이 값이면 ko, 아니�
 # ─────────────────────────────────────────────
 # 인덱싱 제외 (파일명 부분문자열 매칭)
 #   소아청소년편 = 타겟(40세+) 밖 / CKRT = 중환자 지속신대체요법 시술
+#   신장학용어집 = 용어 정의만 있어 RAG 오검색 유발
 # ─────────────────────────────────────────────
-SKIP_FILE_SUBSTRINGS = ["소아청소년", "CKRT"]
+SKIP_FILE_SUBSTRINGS = [
+    "소아청소년",  # 타겟(40세+) 밖
+    "CKRT",  # 중환자 지속신대체요법 시술
+    "신장학용어집",  # 용어 정의만 → RAG 오검색 유발
+    "콩팥병 만화",  # 이미지 PDF — OCR 미처리 (0 chunk)
+    "꼭 알아두어야 할 복지정보",  # 이미지 PDF — OCR 미처리 (0 chunk)
+]
 # 자료 개수는 하드코딩하지 않는다 (2026-06-02) — chunking.collect_pdfs 가 PDF_GLOBS 각각이
 # 최소 1건 매치하는지(빈 폴더·glob 오타로 인한 조용한 누락 방지)만 검증하고, 실제 개수는
 # 동적으로 센다. 자료가 늘어나는 운영을 위해 EXPECTED_RAW_PDF/EXPECTED_INDEXED_PDF 폐지.
@@ -111,6 +118,32 @@ AGE_GROUP_DEFAULT = "adult"
 AGE_GROUP_PEDIATRIC = "pediatric"
 
 # ─────────────────────────────────────────────
+# track 태깅 (knsn/ 영양 3종 전용 — doc_type=nutrition)
+#   파일명(source stem) 기반 파일 단위 판정.
+#     "혈액투석 환자를 위한 영양..." → 파일 전체 hemodialysis
+#     "복막투석 환자를 위한 영양..." → 파일 전체 peritoneal
+#     "투석 전 단계의 만성콩팥병..." → 파일 전체 non_dialysis
+#   h2 소제목이 달라져도 트랙이 바뀌지 않음 (교차 오염 방지).
+#   clinical·lifestyle·기타 knsn 문서는 항상 common.
+#   retriever 에서 "track=X OR track=common" OR 필터로 사용.
+# ─────────────────────────────────────────────
+TRACK_NON_DIALYSIS = "non_dialysis"
+TRACK_HEMODIALYSIS = "hemodialysis"
+TRACK_PERITONEAL = "peritoneal"
+TRACK_COMMON = "common"
+
+# 파일명 부분 문자열 → track (doc_type=nutrition 파일에만 적용)
+TRACK_BY_SOURCE_KO: dict = {
+    "혈액투석": TRACK_HEMODIALYSIS,
+    "혈액 투석": TRACK_HEMODIALYSIS,
+    "복막투석": TRACK_PERITONEAL,
+    "복막 투석": TRACK_PERITONEAL,
+    "투석전": TRACK_NON_DIALYSIS,
+    "투석 전": TRACK_NON_DIALYSIS,
+    "비투석": TRACK_NON_DIALYSIS,
+}
+
+# ─────────────────────────────────────────────
 # Qdrant 업로드 (qdrant_uploader.py)
 # ─────────────────────────────────────────────
 QDRANT_DISTANCE = "Cosine"  # child 벡터 검색 거리 (정규화 임베딩 표준)
@@ -133,6 +166,7 @@ PAYLOAD_FIELDS = [
     "parent_id",  # child → parent 조회 키
     "chunk_idx",
     "age_group",  # adult | pediatric (uploader 가 부착 — P1-4)
+    "track",  # non_dialysis | hemodialysis | peritoneal | common (chunking 단계 부착)
     "text",  # 원문 (uploader 가 부착 — 검색 결과 반환용)
 ]
 

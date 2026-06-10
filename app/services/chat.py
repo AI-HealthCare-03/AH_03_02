@@ -16,6 +16,12 @@ from app.models.chat import ChatRole
 from app.models.health_check import HealthCheck
 from app.repositories.chat_repository import ChatRepository
 
+_DIALYSIS_TO_TRACK: dict[str, str] = {
+    "none": "non_dialysis",
+    "hemodialysis": "hemodialysis",
+    "peritoneal": "peritoneal",
+}
+
 
 def _sse(event: dict) -> str:
     """dict → SSE 'data: {json}\\n\\n' 프레임."""
@@ -38,6 +44,10 @@ class ChatService:
             ctx["risk_group"] = str(hc.ckd_stage)
         if hc.weight is not None:
             ctx["weight"] = hc.weight  # 단백질 등 영양 권장량을 사용자 체중으로 개인화 환산
+        if hc.dialysis_type is not None:
+            track = _DIALYSIS_TO_TRACK.get(str(hc.dialysis_type))
+            if track:
+                ctx["track"] = track
         return ctx
 
     async def ask(self, user_id: int, question: str) -> ChatMessageResponse:
