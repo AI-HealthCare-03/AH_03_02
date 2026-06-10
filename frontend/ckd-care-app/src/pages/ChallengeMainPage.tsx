@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 import { CheckinResultModal } from "../components/CheckinResultModal";
+import { EggWidget } from "../components/EggWidget";
 import {
   challengeApi,
   type ChallengeTrack, type ChallengeCategory,
@@ -52,6 +53,8 @@ export function ChallengeMainPage() {
       setChallenges(list.items);
       setMyChallenges(mine.items);
       setActiveCat((prev) => prev ?? mt.categories[0]?.category ?? null);
+      // 캐릭터 창 배경(proficiency)이 스테이지 백필로 갱신됐을 수 있어 mascot 재조회
+      queryClient.invalidateQueries({ queryKey: ["gamification", "mascot"], refetchType: "all" });
     } catch (e) {
       setError(e instanceof Error ? e.message : "데이터를 불러오지 못했습니다.");
     } finally {
@@ -254,6 +257,11 @@ export function ChallengeMainPage() {
               <span className="text-[11px]">변경 ›</span>
             </button>
           )}
+        </div>
+
+        {/* 캐릭터 창 — 대시보드 연동 (배경 = 챌린지 스테이지) */}
+        <div className="px-5 pt-4">
+          <EggWidget />
         </div>
 
         {/* 진행도 바 */}
