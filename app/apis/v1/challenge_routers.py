@@ -10,10 +10,15 @@ from app.dtos.challenge import (
     CancelCheckinResponse,
     CategoryProgressResponse,
     ChallengeListResponse,
+    ChallengeTrack,
     CheckinRequest,
     CheckInResponse,
+    DailyChecklistItemResponse,
+    DailyChecklistResponse,
     HeatmapResponse,
     JoinChallengeRequest,
+    MyTrackResponse,
+    UpdateMyTrackRequest,
     UserChallengeListResponse,
     UserChallengeResponse,
     WeeklyEmotionResponse,
@@ -23,7 +28,6 @@ from app.dtos.slump import (
     SlumpMicroCheckinResponse,
     SlumpStatusResponse,
 )
-from app.models.health_check import AppGroup
 from app.models.users import User
 from app.services.challenge import ChallengeService
 from app.services.slump import SlumpService
@@ -67,35 +71,84 @@ async def checkin_slump_micro(
 
 
 @challenge_router.get(
+    "/my-track",
+    response_model=MyTrackResponse,
+    status_code=status.HTTP_200_OK,
+    summary="내 트랙 조회",
+    description="사용자의 현재 챌린지 트랙(CARE / WELLNESS)을 반환합니다.",
+)
+async def get_my_track(
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[ChallengeService, Depends(ChallengeService)],
+) -> Response:
+    result = await service.get_my_track(user_id=user.id)
+    return Response(result.model_dump(), status_code=status.HTTP_200_OK)
+
+
+@challenge_router.put(
+    "/my-track",
+    response_model=MyTrackResponse,
+    status_code=status.HTTP_200_OK,
+    summary="내 트랙 수동 변경",
+    description="사용자의 챌린지 트랙을 수동으로 변경합니다.",
+)
+async def update_my_track(
+    body: UpdateMyTrackRequest,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[ChallengeService, Depends(ChallengeService)],
+) -> Response:
+    result = await service.update_my_track(user_id=user.id, dto=body)
+    return Response(result.model_dump(), status_code=status.HTTP_200_OK)
+
+
+@challenge_router.get(
+    "/daily-checklist",
+    response_model=DailyChecklistResponse,
+    status_code=status.HTTP_200_OK,
+    summary="오늘의 필수체크 목록 조회",
+    description="사용자의 트랙에 맞는 오늘의 필수 체크리스트 항목과 완료 여부를 반환합니다.",
+)
+async def get_daily_checklist(
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[ChallengeService, Depends(ChallengeService)],
+) -> Response:
+    result = await service.get_daily_checklist(user_id=user.id, today=date.today())
+    return Response(result.model_dump(), status_code=status.HTTP_200_OK)
+
+
+@challenge_router.post(
+    "/daily-checklist/{item_key}",
+    response_model=DailyChecklistItemResponse,
+    status_code=status.HTTP_200_OK,
+    summary="필수체크 항목 토글",
+    description="오늘의 필수체크 항목을 완료/취소 토글합니다.",
+)
+async def toggle_daily_checklist(
+    item_key: str,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[ChallengeService, Depends(ChallengeService)],
+) -> Response:
+    result = await service.toggle_daily_checklist(user_id=user.id, item_key=item_key, today=date.today())
+    return Response(result.model_dump(), status_code=status.HTTP_200_OK)
+
+
+@challenge_router.get(
     "",
     response_model=ChallengeListResponse,
     status_code=status.HTTP_200_OK,
     summary="챌린지 목록 조회",
     description=(
-        "사용자의 App 그룹(app_group)에 맞는 챌린지 목록을 반환합니다. "
-        "G1·G2는 Track A(케어), G3·G4는 Track B(일반). "
-        "미입력 시 최신 검진의 CKD 단계로 자동 배정 (ML 모델 미실행 fallback)."
+        "track·stage 쿼리 파라미터로 챌린지 목록을 필터링합니다. "
+        "track 미입력 시 전체 트랙, stage 미입력 시 전체 단계 반환."
     ),
 )
 async def list_challenges(
     user: Annotated[User, Depends(get_request_user)],
     service: Annotated[ChallengeService, Depends(ChallengeService)],
-    app_group: Annotated[AppGroup | None, Query(description="ML 모델 배정 그룹 (G1~G4)")] = None,
+    track: Annotated[ChallengeTrack | None, Query(description="챌린지 트랙 (CARE / WELLNESS)")] = None,
+    stage: Annotated[int | None, Query(ge=1, le=5, description="CKD 단계 (1~5)")] = None,
 ) -> Response:
-    # ML 모델 미실행 시: 최신 검진 CKD 단계로 fallback
-    if app_group is None:
-        from app.models.health_check import CkdStage, HealthCheck
-
-        latest = await HealthCheck.filter(user_id=user.id).order_by("-checked_date").first()
-        if latest is None:
-            from app.dtos.challenge import ChallengeListResponse
-
-            return Response(ChallengeListResponse(total=0, items=[]).model_dump(), status_code=status.HTTP_200_OK)
-        if latest.ckd_stage in (CkdStage.G3A, CkdStage.G3B, CkdStage.G4, CkdStage.G5):
-            app_group = AppGroup.G3
-        else:
-            app_group = AppGroup.G2
-    result = await service.list_challenges(app_group)
+    result = await service.list_challenges(track=track, stage=stage)
     return Response(result.model_dump(), status_code=status.HTTP_200_OK)
 
 
