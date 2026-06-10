@@ -1,12 +1,16 @@
 from fastapi import HTTPException
 from starlette import status
 
+from app.core.logger import setup_logger
 from app.dtos.lifestyle_survey import (
     LifestyleSurveyCreateRequest,
     LifestyleSurveyListResponse,
     LifestyleSurveyResponse,
 )
 from app.repositories.lifestyle_survey_repository import LifestyleSurveyRepository
+from app.services import ckd_publisher
+
+logger = setup_logger("lifestyle_survey_service")
 
 
 class LifestyleSurveyService:
@@ -43,6 +47,16 @@ class LifestyleSurveyService:
             ckd_diagnosed=dto.ckd_diagnosed,
             is_pregnant=dto.is_pregnant,
         )
+
+        # 설문은 모델 입력의 약 절반(생활습관·진단력·가족력)을 차지하므로 갱신 시
+        # 사용자의 최근 검진 기준으로 SHAP·AI 가이드를 재계산. 실패는 graceful.
+        try:
+            rescored_hc_id = await ckd_publisher.republish_for_latest_health_check(user_id)
+            if rescored_hc_id is not None:
+                logger.info("설문 갱신 → ckd job 재발행 hc=%s", rescored_hc_id)
+        except Exception:  # noqa: BLE001 — job 발행 실패가 설문 저장 API를 깨지 않게
+            logger.exception("설문 갱신 후 ckd job 재발행 실패 user=%s", user_id)
+
         return LifestyleSurveyResponse.model_validate(survey)
 
     async def get_surveys(
