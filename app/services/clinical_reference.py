@@ -205,6 +205,23 @@ M2_LABEL = {
     "smoking_current": "흡연 여부",
 }
 
+# 모델2 생활습관 도메인 분류 (식이/운동/기타) — Phase B
+M2_DOMAIN = {
+    # 식이 연관: 체중·지질 지표 (운동도 영향하나 식이 개입이 주된 권고)
+    "bmi": "diet",
+    "waist_cm": "diet",
+    "hdl_cholesterol": "diet",
+    "ldl_cholesterol": "diet",
+    "triglycerides": "diet",
+    "sitting_hours": "exercise",
+    "walking_days": "exercise",
+    "moderate_days": "exercise",
+    "vigorous_days": "exercise",
+    "smoking_current": "etc",
+}
+DOMAIN_LABEL = {"diet": "식이", "exercise": "운동", "etc": "기타"}
+DOMAIN_ORDER = ["diet", "exercise", "etc"]
+
 # CLINICAL_STAGES subset (ast·alt 제외)
 M2_STAGES = {
     "bmi": {
@@ -556,3 +573,18 @@ def m2_improve_action(feature: str) -> str:
 def m2_maintain_msg(feature: str) -> str:
     """유지 메시지 반환."""
     return M2_MAINTAIN_MSG.get(feature, "")
+
+
+def m2_domain(feature: str) -> str:
+    """생활습관 feature의 도메인(diet/exercise/etc) 반환. 미정의는 etc."""
+    return M2_DOMAIN.get(feature, "etc")
+
+
+def build_domain_summary_text(improve_labels: list[str]) -> str:
+    """도메인 개선항목 표시명(m2_label 변환 후) → 한 줄 요약.
+
+    빈 리스트는 '양호합니다'. 라벨 순서는 호출자가 보장한다.
+    """
+    if not improve_labels:
+        return "양호합니다"
+    return f"{'·'.join(improve_labels)} 관리가 필요합니다"
