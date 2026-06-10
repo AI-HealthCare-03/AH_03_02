@@ -4,16 +4,23 @@ from tortoise import fields, models
 
 
 class ChallengeCategory(StrEnum):
-    HYDRATION = "HYDRATION"
-    EXERCISE = "EXERCISE"
-    DIET = "DIET"
-    SLEEP = "SLEEP"
-    STRESS = "STRESS"
+    HYDRATION = "HYDRATION"  # 수분
+    EXERCISE = "EXERCISE"  # 운동 (전 트랙 공유)
+    DIET = "DIET"  # 식단
+    SLEEP = "SLEEP"  # 수면
+    STRESS = "STRESS"  # 스트레스
+    EDUCATION = "EDUCATION"  # 교육·이해 (투석/CKD)
+    RECORD = "RECORD"  # 기록 습관 (투석/CKD)
+    MONITORING = "MONITORING"  # 검사·수치 관리 (투석/CKD)
+    EMOTION = "EMOTION"  # 정서 (투석/CKD)
 
 
 class ChallengeTrack(StrEnum):
-    A = "A"  # App G1·G2 대상 (케어)
-    B = "B"  # App G3·G4 대상 (일반)
+    DIALYSIS = "DIALYSIS"  # 투석·이식 트랙 (CKD진단 + 투석/이식 or eGFR<15)
+    CKD = "CKD"  # 비투석 CKD 트랙 (CKD진단 보존기)
+    INTENSIVE = "INTENSIVE"  # 집중케어 트랙 (A그룹)
+    DAILY = "DAILY"  # 일상케어 트랙 (B·C그룹)
+    WELLNESS = "WELLNESS"  # 웰니스 트랙 (D그룹)
 
 
 class UserChallengeStatus(StrEnum):
@@ -36,7 +43,7 @@ class CheckinEmotion(StrEnum):
 
 class Challenge(models.Model):
     id = fields.BigIntField(primary_key=True)
-    name = fields.CharField(max_length=100)
+    name = fields.CharField(max_length=200)
     category = fields.CharEnumField(enum_type=ChallengeCategory)
     description = fields.TextField()
     duration_days = fields.IntField(description="챌린지 총 기간 (일)")
@@ -80,3 +87,40 @@ class CheckinEmotionLog(models.Model):
     class Meta:
         table = "checkin_emotion_logs"
         ordering = ["-log_date"]
+
+
+class DailyChecklistLog(models.Model):
+    """매일 필수 체크리스트 일별 기록 (트랙별 고정 항목)."""
+
+    id = fields.BigIntField(primary_key=True)
+    user = fields.ForeignKeyField("models.User", related_name="daily_checklist_logs")
+    log_date = fields.DateField()
+    item_key = fields.CharField(
+        max_length=40,
+        description="medication/diet_fluid/appointment/symptom 등",
+    )
+    checked = fields.BooleanField(default=False)
+    created_at = fields.DatetimeField(auto_now_add=True)
+    updated_at = fields.DatetimeField(auto_now=True)
+
+    class Meta:
+        table = "daily_checklist_logs"
+        unique_together = [("user", "log_date", "item_key")]
+
+
+class UserChallengeProfile(models.Model):
+    """사용자별 챌린지 트랙/스테이지 선택 (자동배정 결과 저장 + 수동변경)."""
+
+    id = fields.BigIntField(primary_key=True)
+    user = fields.OneToOneField("models.User", related_name="challenge_profile")
+    track = fields.CharEnumField(enum_type=ChallengeTrack)
+    stage = fields.IntField(default=1, description="1~4")
+    auto_assigned = fields.BooleanField(
+        default=True,
+        description="자동배정 후 사용자 변경 시 False",
+    )
+    created_at = fields.DatetimeField(auto_now_add=True)
+    updated_at = fields.DatetimeField(auto_now=True)
+
+    class Meta:
+        table = "user_challenge_profiles"
