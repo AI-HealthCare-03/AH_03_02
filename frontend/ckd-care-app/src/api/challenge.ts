@@ -1,7 +1,24 @@
 import { api } from "./client";
 
-export type ChallengeCategory = "HYDRATION" | "EXERCISE" | "DIET" | "SLEEP" | "STRESS";
-export type ChallengeTrack = "A" | "B";
+// ── 신버전 타입: 5트랙·9카테고리·stage ──────────────────────────────────────
+export type ChallengeCategory =
+  | "HYDRATION"
+  | "EXERCISE"
+  | "DIET"
+  | "SLEEP"
+  | "STRESS"
+  | "EDUCATION"
+  | "RECORD"
+  | "MONITORING"
+  | "EMOTION";
+
+export type ChallengeTrack =
+  | "DIALYSIS"
+  | "CKD"
+  | "INTENSIVE"
+  | "DAILY"
+  | "WELLNESS";
+
 export type UserChallengeStatus = "ACTIVE" | "COMPLETED" | "ABANDONED";
 
 export interface Challenge {
@@ -11,8 +28,10 @@ export interface Challenge {
   description: string;
   duration_days: number;
   track: ChallengeTrack;
+  stage: number; // 1~4
 }
 
+// ── 기존 유지 타입 ────────────────────────────────────────────────────────────
 export interface ChallengeListResponse {
   total: number;
   items: Challenge[];
@@ -100,9 +119,46 @@ export interface CancelCheckinResponse {
   points_revoked: number;
 }
 
+// ── 신규 타입: my-track·daily-checklist ──────────────────────────────────────
+export interface TrackCategoryInfo {
+  category: ChallengeCategory;
+  label: string;
+}
+
+export interface MyTrack {
+  track: ChallengeTrack;
+  track_label: string;
+  stage: number;
+  stage_label: string;
+  auto_assigned: boolean;
+  categories: TrackCategoryInfo[];
+}
+
+export interface DailyChecklistItem {
+  item_key: string;
+  text: string;
+  checked: boolean;
+}
+
+export interface DailyChecklistResponse {
+  date: string;
+  track: ChallengeTrack;
+  items: DailyChecklistItem[];
+}
+
+// ── challengeApi ─────────────────────────────────────────────────────────────
 export const challengeApi = {
-  list: () => api.get<ChallengeListResponse>("/challenges"),
-  myList: (limit = 20, offset = 0) =>
+  // ── 신버전 (트랙·스테이지·필수체크) ─────────────────────────────────────
+  myTrack: () => api.get<MyTrack>("/challenges/my-track"),
+  updateMyTrack: (track: ChallengeTrack, stage: number) =>
+    api.put<MyTrack>("/challenges/my-track", { track, stage }),
+  dailyChecklist: () => api.get<DailyChecklistResponse>("/challenges/daily-checklist"),
+  toggleChecklist: (itemKey: string) =>
+    api.post<DailyChecklistItem>(`/challenges/daily-checklist/${itemKey}`, {}),
+  listByTrackStage: (track: ChallengeTrack, stage: number) =>
+    api.get<ChallengeListResponse>(`/challenges?track=${track}&stage=${stage}`),
+  // ── 기존 유지 (참여·체크인·게이미피케이션) ──────────────────────────────
+  myList: (limit = 100, offset = 0) =>
     api.get<UserChallengeListResponse>(`/user-challenges?limit=${limit}&offset=${offset}`),
   join: (challenge_id: number, started_at: string) =>
     api.post<UserChallenge>("/user-challenges", { challenge_id, started_at }),
@@ -117,6 +173,7 @@ export const challengeApi = {
   weeklyEmotion: () => api.get<WeeklyEmotionResponse>("/challenges/weekly-emotion"),
 };
 
+// ── 감정 이모지 (기존 유지) ────────────────────────────────────────────────
 export type CheckinEmotion =
   | "VERY_HAPPY"
   | "HAPPY"
