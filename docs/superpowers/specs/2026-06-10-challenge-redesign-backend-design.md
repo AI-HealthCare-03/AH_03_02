@@ -21,8 +21,10 @@
 | 카테고리 | enum 9종 확장 + 트랙→카테고리 매핑 상수 |
 | 필수체크 | 경량 모델(`DailyChecklistLog`) + 일별 기록 |
 | 트랙 배정 | 자동(group·진단·dialysis·eGFR) + 수동 변경 |
-| 트랙/스테이지 저장 | 신규 `UserChallengeProfile` 모델 |
+| 트랙/스테이지 저장 | 신규 `UserChallengeProfile` 모델 (향후 기록 기능과 공유) |
 | 시드 소스 | 받은 HTML `TRACKS` 객체 |
+| 진단자 포함 | CKD 진단자도 챌린지 대상(투석/CKD 트랙) — 받은 설계 기준 |
+| 기록 기능 | 별도 프로젝트로 분해 (이 스펙 비범위) |
 
 ## 3. 모델 변경 (`app/models/challenge.py`)
 
@@ -165,9 +167,12 @@ def assign_track(app_group: str | None, ckd_diagnosed: bool,
 - **app_group 코드**: A/B/C/D 문자열 (`clinical_reference.M1_GROUP_TITLE` 확인됨)
 - **시드 재적재 FK**: challenges 교체 시 user_challenges 초기화 (개발 단계 허용). 운영 전환 시 마이그레이션 전략 재검토 필요
 - **dialysis_type 값**: `none/hemodialysis/peritoneal/transplant/null` (PR #27)
+- **CKD 진단자 챌린지 포함**: 메모리 `project_ckd_care_policy`는 "진단자=의료영역, 서비스 개입X"였으나, 받은 팀 설계가 진단자에게 투석/CKD 트랙을 명시 제공 → **받은 설계 기준으로 진단자 포함**(주니 결정 2026-06-10). 챌린지는 처방 이행을 돕는 보조도구임을 면책 문구로 명시.
 
-## 10. 비범위 (Phase 2 이후)
+## 10. 비범위 (별도 프로젝트 / Phase 2 이후)
 
-- 프론트 이식 (트랙선택/스테이지/메인-필수체크+선택챌린지)
+- **기록 기능 7개** (수분·체중·수면·감정 쓰레기통·운동 피로도·검사 수치 기록장·진료 캘린더) — 별도 프로젝트(별도 spec). 우선순위 1(수분/체중/수면)→2(감정/피로도)→3(검사/캘린더). 자료: `docs/reference/challenge/콩팥챌린지_기록기능_기획서.md`. 이 스펙의 `UserChallengeProfile`(track/stage)을 기록 기능 `user_settings`와 공유.
+- 챌린지 프론트 이식 (트랙선택/스테이지/메인-필수체크+선택챌린지) — Phase 2
 - 필수체크 → 대시보드/리포트 통계 연동
+- 운동 피로도 ↔ 챌린지 운동 카테고리 연동 (기록 기능 프로젝트에서)
 - 챌린지 추천 고도화

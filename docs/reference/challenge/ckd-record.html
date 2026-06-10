@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기록 — 콩팥 챌린지</title>
+<style>
+:root {
+  --teal-50:#E1F5EE;--teal-100:#9FE1CB;--teal-200:#5DCAA5;--teal-400:#1D9E75;--teal-600:#0F6E56;--teal-800:#085041;
+  --purple-50:#EEEDFE;--purple-400:#7F77DD;--purple-800:#3C3489;
+  --amber-50:#FAEEDA;--amber-100:#FAC775;--amber-400:#BA7517;--amber-800:#633806;
+  --coral-50:#FAECE7;--coral-100:#F5C4B3;--coral-400:#D85A30;--coral-800:#4A1B0C;
+  --blue-50:#E6F1FB;--blue-400:#378ADD;--blue-800:#0C447C;
+  --red-50:#FCEBEB;--red-400:#E24B4A;--red-800:#501313;
+  --green-50:#EAF3DE;--green-400:#639922;--green-800:#173404;
+  --gray-50:#F1EFE8;--gray-100:#D3D1C7;--gray-200:#B4B2A9;--gray-400:#888780;--gray-800:#2C2C2A;
+  --bg:#FAFAF8;--bg2:#F1EFE8;--text:#1a1a18;--text2:#5F5E5A;
+  --border:rgba(0,0,0,0.09);--radius:12px;--radius-sm:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,'Pretendard','Apple SD Gothic Neo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;}
+
+/* NAV TABS */
+.tab-nav{display:flex;border-bottom:0.5px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:20;overflow-x:auto;scrollbar-width:none;}
+.tab-nav::-webkit-scrollbar{display:none;}
+.tnav-btn{flex:0 0 auto;padding:14px 16px;background:none;border:none;cursor:pointer;font-size:13px;color:var(--text2);white-space:nowrap;border-bottom:2px solid transparent;transition:color .15s;}
+.tnav-btn.active{color:var(--teal-600);border-bottom-color:var(--teal-400);font-weight:500;}
+
+/* COMMON */
+.page{display:none;padding-bottom:40px;}
+.page.active{display:block;}
+.page-head{padding:20px 20px 12px;}
+.page-head h2{font-size:20px;font-weight:600;letter-spacing:-.3px;}
+.page-head p{font-size:13px;color:var(--text2);margin-top:4px;line-height:1.5;}
+.section{padding:0 20px 20px;}
+.sec-label{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;}
+.card{background:#fff;border:0.5px solid var(--border);border-radius:var(--radius);padding:16px 18px;margin-bottom:10px;}
+.card-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.card-label{font-size:13px;color:var(--text2);}
+.card-val{font-size:22px;font-weight:600;color:var(--text);}
+.card-sub{font-size:12px;color:var(--text2);margin-top:2px;}
+.btn{padding:11px 18px;border-radius:var(--radius-sm);border:0.5px solid var(--border);background:#fff;font-size:14px;cursor:pointer;color:var(--text);}
+.btn:hover{background:var(--bg2);}
+.btn-primary{background:var(--teal-400);color:#fff;border-color:var(--teal-400);}
+.btn-primary:hover{background:var(--teal-600);}
+.btn-sm{padding:7px 14px;font-size:12px;}
+.input{width:100%;border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:15px;background:var(--bg);color:var(--text);outline:none;}
+.input:focus{border-color:var(--teal-200);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.disclaimer{margin:0 20px 16px;padding:10px 13px;background:var(--amber-50);border:0.5px solid var(--amber-100);border-radius:var(--radius-sm);font-size:12px;color:var(--amber-800);line-height:1.6;}
+.badge-pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:500;}
+.divider{height:0.5px;background:var(--border);margin:4px 0;}
+.empty-state{text-align:center;padding:32px 20px;color:var(--text2);font-size:14px;}
+
+/* MINI BAR CHART */
+.mini-chart{display:flex;align-items:flex-end;gap:4px;height:48px;margin-top:12px;}
+.mini-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.mini-bar{width:100%;border-radius:3px 3px 0 0;min-height:2px;background:var(--teal-100);}
+.mini-bar.today{background:var(--teal-400);}
+.mini-lbl{font-size:9px;color:var(--text2);}
+
+/* WATER PAGE */
+.water-gauge-wrap{display:flex;justify-content:center;padding:8px 0 16px;}
+.water-gauge{position:relative;width:140px;height:140px;}
+.gauge-svg{transform:rotate(-90deg);}
+.gauge-bg{fill:none;stroke:var(--bg2);stroke-width:10;}
+.gauge-fill{fill:none;stroke:var(--teal-400);stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .4s;}
+.gauge-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;}
+.gauge-num{font-size:22px;font-weight:700;color:var(--teal-800);}
+.gauge-unit{font-size:12px;color:var(--text2);}
+.quick-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.quick-btn{flex:1;min-width:60px;padding:10px 4px;border-radius:var(--radius-sm);border:0.5px solid var(--teal-100);background:var(--teal-50);font-size:13px;font-weight:500;color:var(--teal-800);cursor:pointer;text-align:center;}
+.quick-btn:hover{background:var(--teal-100);}
+.water-type-row{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;scrollbar-width:none;}
+.water-type-btn{flex:0 0 auto;padding:7px 14px;border-radius:20px;border:0.5px solid var(--border);background:#fff;font-size:13px;cursor:pointer;color:var(--text2);}
+.water-type-btn.active{background:var(--blue-50);border-color:#B5D4F4;color:var(--blue-800);}
+.water-log-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);}
+.water-log-item:last-child{border-bottom:none;}
+.wli-type{font-size:16px;width:24px;text-align:center;}
+.wli-info{flex:1;}
+.wli-ml{font-size:14px;font-weight:500;}
+.wli-time{font-size:12px;color:var(--text2);}
+.wli-del{background:none;border:none;cursor:pointer;color:var(--gray-200);font-size:18px;padding:2px 6px;}
+.wli-del:hover{color:var(--red-400);}
+.warn-bar{padding:10px 14px;background:var(--red-50);border:0.5px solid var(--coral-100);border-radius:var(--radius-sm);font-size:13px;color:var(--red-800);margin-bottom:10px;}
+
+/* WEIGHT PAGE */
+.weight-big{font-size:52px;font-weight:700;letter-spacing:-2px;color:var(--teal-800);line-height:1;}
+.weight-delta{font-size:15px;font-weight:500;margin-top:6px;}
+.weight-delta.up{color:var(--red-400);}
+.weight-delta.down{color:var(--teal-400);}
+.weight-delta.same{color:var(--text2);}
+.weight-input-row{display:flex;align-items:center;gap:8px;}
+.weight-spinner{display:flex;align-items:center;gap:0;border:0.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;}
+.ws-btn{width:40px;height:40px;background:#fff;border:none;cursor:pointer;font-size:20px;color:var(--text2);display:flex;align-items:center;justify-content:center;}
+.ws-btn:hover{background:var(--bg2);}
+.ws-val{min-width:80px;text-align:center;font-size:18px;font-weight:500;border:none;background:#fff;border-left:0.5px solid var(--border);border-right:0.5px solid var(--border);padding:8px 4px;outline:none;}
+.wlog-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:0.5px solid var(--border);}
+.wlog-item:last-child{border-bottom:none;}
+.wlog-date{font-size:13px;color:var(--text2);min-width:72px;}
+.wlog-kg{font-size:15px;font-weight:500;flex:1;}
+.wlog-diff{font-size:13px;min-width:50px;text-align:right;}
+
+/* SLEEP PAGE */
+.sleep-arc-wrap{display:flex;justify-content:center;padding:4px 0 16px;}
+.sleep-arc-info{text-align:center;}
+.sleep-hours{font-size:42px;font-weight:700;color:var(--purple-800);letter-spacing:-1px;line-height:1;}
+.sleep-label{font-size:13px;color:var(--text2);margin-top:4px;}
+.sleep-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;margin-top:8px;}
+.sleep-badge.good{background:var(--teal-50);color:var(--teal-800);}
+.sleep-badge.bad{background:var(--amber-50);color:var(--amber-800);}
+.time-picker-row{display:flex;align-items:center;gap:12px;}
+.time-label{font-size:13px;color:var(--text2);min-width:52px;}
+.time-input{flex:1;border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:15px;background:var(--bg);color:var(--text);outline:none;}
+.time-input:focus{border-color:var(--purple-400);}
+.wake-row{display:flex;gap:8px;flex-wrap:wrap;}
+.wake-btn{padding:8px 14px;border-radius:20px;border:0.5px solid var(--border);background:#fff;font-size:13px;cursor:pointer;color:var(--text2);}
+.wake-btn.active{background:var(--purple-50);border-color:var(--purple-400);color:var(--purple-800);}
+.slog-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid var(--border);}
+.slog-item:last-child{border-bottom:none;}
+.slog-date{font-size:12px;color:var(--text2);min-width:68px;}
+.slog-bar-wrap{flex:1;height:5px;background:var(--bg2);border-radius:4px;overflow:hidden;}
+.slog-bar{height:100%;border-radius:4px;}
+.slog-hrs{font-size:13px;font-weight:500;min-width:40px;text-align:right;}
+
+/* STRESS PAGE */
+.trash-area{display:flex;flex-direction:column;align-items:center;padding:8px 0 16px;}
+.trash-icon{font-size:48px;margin-bottom:8px;transition:transform .2s;}
+.trash-icon.shake{animation:shake .4s ease;}
+@keyframes shake{0%{transform:rotate(0)}25%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}75%{transform:rotate(-4deg)}100%{transform:rotate(0)}}
+.emotion-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+.etag{padding:8px 14px;border-radius:20px;border:0.5px solid var(--border);background:#fff;font-size:13px;cursor:pointer;color:var(--text2);}
+.etag.active{font-weight:500;}
+.etag[data-e="불안"].active{background:#FAEEDA;border-color:var(--amber-100);color:var(--amber-800);}
+.etag[data-e="긴장"].active{background:#FAECE7;border-color:var(--coral-100);color:var(--coral-800);}
+.etag[data-e="화남"].active{background:var(--red-50);border-color:#F7C1C1;color:var(--red-800);}
+.etag[data-e="슬픔"].active{background:var(--blue-50);border-color:#B5D4F4;color:var(--blue-800);}
+.etag[data-e="외로움"].active{background:var(--purple-50);border-color:#CECBF6;color:var(--purple-800);}
+.etag[data-e="무기력"].active{background:var(--gray-50);border-color:var(--gray-100);color:var(--gray-800);}
+.etag[data-e="감사"].active{background:var(--teal-50);border-color:var(--teal-100);color:var(--teal-800);}
+.etag[data-e="안도"].active{background:var(--green-50);border-color:#C0DD97;color:var(--green-800);}
+.stress-textarea{width:100%;border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:12px;font-size:14px;line-height:1.65;background:var(--bg);color:var(--text);resize:none;height:140px;outline:none;font-family:inherit;}
+.stress-textarea:focus{border-color:var(--gray-400);}
+.burn-btn{width:100%;padding:14px;border-radius:var(--radius);border:none;background:var(--gray-800);color:#fff;font-size:15px;font-weight:500;cursor:pointer;margin-top:10px;transition:background .15s;}
+.burn-btn:hover{background:#1a1a18;}
+.burn-btn:disabled{background:var(--gray-100);color:var(--gray-400);cursor:default;}
+.burned-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .3s;}
+.burned-overlay.show{opacity:1;pointer-events:auto;}
+.burned-box{background:#fff;border-radius:var(--radius);padding:32px 28px;text-align:center;max-width:280px;}
+.burned-icon{font-size:48px;margin-bottom:12px;}
+.burned-msg{font-size:16px;font-weight:500;margin-bottom:6px;}
+.burned-sub{font-size:13px;color:var(--text2);margin-bottom:20px;line-height:1.5;}
+.emotion-freq{display:flex;flex-wrap:wrap;gap:8px;}
+.efreq-item{padding:5px 10px;border-radius:20px;font-size:12px;}
+
+/* EXERCISE PAGE */
+.fatigue-scale{display:flex;gap:8px;margin:8px 0;}
+.fatigue-btn{flex:1;padding:12px 4px;border-radius:var(--radius-sm);border:0.5px solid var(--border);background:#fff;font-size:20px;cursor:pointer;text-align:center;transition:border-color .1s;}
+.fatigue-btn.active{border-color:var(--teal-400);background:var(--teal-50);}
+.fatigue-lbl{font-size:10px;color:var(--text2);display:block;margin-top:4px;}
+.elog-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:0.5px solid var(--border);}
+.elog-item:last-child{border-bottom:none;}
+.elog-icon{font-size:22px;width:28px;text-align:center;flex-shrink:0;}
+.elog-info{flex:1;}
+.elog-title{font-size:14px;font-weight:500;}
+.elog-meta{font-size:12px;color:var(--text2);margin-top:2px;}
+.elog-fatigue{font-size:20px;flex-shrink:0;}
+
+/* CARE PAGE (APPOINTMENTS + LAB) */
+.care-sub-nav{display:flex;gap:0;margin:0 20px 16px;border:0.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;}
+.csnav-btn{flex:1;padding:10px;background:#fff;border:none;cursor:pointer;font-size:13px;color:var(--text2);}
+.csnav-btn.active{background:var(--teal-400);color:#fff;font-weight:500;}
+.apt-cal{padding:0 20px 16px;}
+.apt-cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.apt-cal-title{font-size:15px;font-weight:500;}
+.apt-cal-nav{background:none;border:none;cursor:pointer;color:var(--text2);font-size:18px;padding:4px 8px;}
+.apt-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.apt-day-lbl{font-size:11px;color:var(--text2);text-align:center;padding-bottom:3px;}
+.apt-cell{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:default;position:relative;}
+.apt-cell.today{border:1.5px solid var(--teal-400);}
+.apt-cell.has-apt{background:var(--teal-50);}
+.apt-cell .apt-dot{position:absolute;bottom:3px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--teal-400);}
+.apt-cell.empty{opacity:0;}
+.apt-list-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:0.5px solid var(--border);}
+.apt-list-item:last-child{border-bottom:none;}
+.apt-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.apt-info{flex:1;}
+.apt-title{font-size:14px;font-weight:500;}
+.apt-meta{font-size:12px;color:var(--text2);margin-top:2px;}
+.apt-del{background:none;border:none;cursor:pointer;color:var(--gray-200);font-size:18px;padding:2px 6px;}
+.apt-del:hover{color:var(--red-400);}
+.countdown{font-size:13px;font-weight:500;padding:4px 10px;border-radius:20px;background:var(--teal-50);color:var(--teal-800);}
+
+/* LAB */
+.lab-track-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none;}
+.lab-track-row::-webkit-scrollbar{display:none;}
+.ltrack-btn{flex:0 0 auto;padding:7px 14px;border-radius:20px;border:0.5px solid var(--border);background:#fff;font-size:13px;cursor:pointer;color:var(--text2);}
+.ltrack-btn.active{background:var(--text);color:#fff;border-color:var(--text);}
+.lab-item{background:#fff;border:0.5px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;}
+.lab-item-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;}
+.lab-name{font-size:14px;font-weight:500;}
+.lab-range{font-size:11px;color:var(--text2);}
+.lab-val-row{display:flex;align-items:baseline;gap:8px;padding:0 16px 6px;}
+.lab-val{font-size:26px;font-weight:700;color:var(--text);}
+.lab-unit{font-size:12px;color:var(--text2);}
+.lab-delta{font-size:12px;font-weight:500;}
+.lab-delta.up{color:var(--red-400);}
+.lab-delta.dn{color:var(--teal-400);}
+.lab-delta.norm{color:var(--text2);}
+.lab-mini-chart{display:flex;align-items:flex-end;gap:3px;height:32px;padding:0 16px 12px;}
+.lab-bar{flex:1;border-radius:2px 2px 0 0;background:var(--teal-50);min-height:2px;}
+.lab-bar.active{background:var(--teal-400);}
+.lab-bar.warn{background:var(--amber-100);}
+.lab-input-row{display:flex;align-items:center;gap:8px;padding:10px 16px 14px;border-top:0.5px solid var(--border);}
+.lab-input{flex:1;border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:8px 10px;font-size:15px;background:var(--bg);color:var(--text);outline:none;}
+.lab-input:focus{border-color:var(--teal-200);}
+.lab-add-btn{padding:8px 14px;background:var(--teal-400);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;}
+
+/* MODAL / SHEET */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:50;opacity:0;pointer-events:none;transition:opacity .2s;}
+.sheet-overlay.show{opacity:1;pointer-events:auto;}
+.sheet{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:480px;background:#fff;border-radius:16px 16px 0 0;padding:20px 20px 36px;z-index:51;transition:transform .3s cubic-bezier(.32,1,.32,1);}
+.sheet.show{transform:translateX(-50%) translateY(0);}
+.sheet-handle{width:36px;height:4px;background:var(--gray-100);border-radius:2px;margin:0 auto 16px;}
+.sheet-title{font-size:17px;font-weight:600;margin-bottom:16px;}
+.sheet-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.sheet-row label{font-size:13px;color:var(--text2);min-width:68px;}
+.sheet-row input,.sheet-row select{flex:1;border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:9px 12px;font-size:15px;background:var(--bg);color:var(--text);outline:none;}
+.sheet-row input:focus,.sheet-row select:focus{border-color:var(--teal-200);}
+.sheet-btns{display:flex;gap:10px;margin-top:16px;}
+.sheet-btns .btn{flex:1;}
+</style>
+</head>
+<body>
+
+<!-- TAB NAV -->
+<nav class="tab-nav">
+  <button class="tnav-btn active" onclick="showPage('water')">💧 수분</button>
+  <button class="tnav-btn" onclick="showPage('weight')">⚖️ 체중</button>
+  <button class="tnav-btn" onclick="showPage('sleep')">🌙 수면</button>
+  <button class="tnav-btn" onclick="showPage('stress')">😮‍💨 감정</button>
+  <button class="tnav-btn" onclick="showPage('exercise')">🏃 운동</button>
+  <button class="tnav-btn" onclick="showPage('care')">🏥 케어</button>
+</nav>
+
+<!-- ════════════════════════════════ WATER ════════════════════ -->
+<div id="page-water" class="page active">
+  <div class="page-head">
+    <h2>수분 섭취</h2>
+    <p>오늘 마신 음료를 기록하세요.</p>
+  </div>
+
+  <div class="section">
+    <div id="water-warn" class="warn-bar" style="display:none">⚠️ 목표의 90%에 도달했습니다. 의료진이 정한 수분 제한을 확인하세요.</div>
+    <div class="water-gauge-wrap">
+      <div class="water-gauge">
+        <svg class="gauge-svg" width="140" height="140" viewBox="0 0 140 140">
+          <circle class="gauge-bg" cx="70" cy="70" r="56"/>
+          <circle class="gauge-fill" id="gauge-circle" cx="70" cy="70" r="56"
+            stroke-dasharray="351.9" stroke-dashoffset="351.9"/>
+        </svg>
+        <div class="gauge-center">
+          <div class="gauge-num" id="water-total">0</div>
+          <div class="gauge-unit">/ <span id="water-goal-disp">2000</span> mL</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-label">음료 종류</div>
+      <div class="water-type-row" id="water-types">
+        <button class="water-type-btn active" data-type="물" data-icon="💧">💧 물</button>
+        <button class="water-type-btn" data-type="커피" data-icon="☕">☕ 커피</button>
+        <button class="water-type-btn" data-type="주스" data-icon="🧃">🧃 주스</button>
+        <button class="water-type-btn" data-type="차" data-icon="🍵">🍵 차</button>
+        <button class="water-type-btn" data-type="기타" data-icon="🥤">🥤 기타</button>
+      </div>
+      <div class="sec-label">빠른 추가 (mL)</div>
+      <div class="quick-btns">
+        <button class="quick-btn" onclick="addWater(100)">+100</button>
+        <button class="quick-btn" onclick="addWater(150)">+150</button>
+        <button class="quick-btn" onclick="addWater(200)">+200</button>
+        <button class="quick-btn" onclick="addWater(250)">+250</button>
+        <button class="quick-btn" onclick="addWater(350)">+350</button>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <input type="number" class="input" id="water-custom" placeholder="직접 입력 (mL)" min="1" max="2000" style="flex:1;">
+        <button class="btn btn-primary" onclick="addWaterCustom()">추가</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <span class="sec-label" style="margin:0">오늘 기록</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:12px;color:var(--text2)">목표</span>
+          <input type="number" id="water-goal-input" value="2000" min="300" max="3000" step="100"
+            style="width:72px;border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:4px 8px;font-size:13px;background:var(--bg);color:var(--text);outline:none;"
+            onchange="setWaterGoal(this.value)">
+          <span style="font-size:12px;color:var(--text2)">mL</span>
+        </div>
+      </div>
+      <div id="water-log-list"><div class="empty-state" style="padding:16px">아직 기록이 없습니다.</div></div>
+    </div>
+
+    <div class="card">
+      <div class="sec-label">최근 7일 (mL)</div>
+      <div class="mini-chart" id="water-chart"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ WEIGHT ═══════════════════ -->
+<div id="page-weight" class="page">
+  <div class="page-head">
+    <h2>체중 기록</h2>
+    <p>매일 아침 같은 조건에서 측정하세요.<br>기상 직후 · 소변 후 · 식전</p>
+  </div>
+
+  <div class="section">
+    <div id="weight-warn" class="warn-bar" style="display:none"></div>
+    <div class="card" style="text-align:center;">
+      <div class="weight-big" id="wt-today">—</div>
+      <div class="weight-delta" id="wt-delta" style="color:var(--text2);">이전 기록 없음</div>
+    </div>
+
+    <div class="card">
+      <div class="sec-label">오늘 체중 입력</div>
+      <div class="weight-input-row">
+        <div class="weight-spinner">
+          <button class="ws-btn" onclick="adjustWeight(-0.1)">−</button>
+          <input type="number" class="ws-val" id="wt-input" value="65.0" step="0.1" min="20" max="200">
+          <button class="ws-btn" onclick="adjustWeight(0.1)">+</button>
+        </div>
+        <span style="font-size:15px;color:var(--text2);">kg</span>
+        <button class="btn btn-primary" style="flex:1;" onclick="saveWeight()">저장</button>
+      </div>
+      <div style="margin-top:10px;">
+        <input type="text" class="input" id="wt-note" placeholder="메모 (선택)">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-label">최근 7일 추이</div>
+      <div class="mini-chart" id="weight-chart"></div>
+    </div>
+
+    <div class="card">
+      <div class="sec-label" style="margin-bottom:10px">기록 내역</div>
+      <div id="weight-log-list"><div class="empty-state" style="padding:8px">아직 기록이 없습니다.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ SLEEP ════════════════════ -->
+<div id="page-sleep" class="page">
+  <div class="page-head">
+    <h2>수면 기록</h2>
+    <p>어제 밤 취침과 오늘 기상 시각을 입력하세요.</p>
+  </div>
+
+  <div class="section">
+    <div class="card" style="text-align:center;">
+      <div class="sleep-arc-info">
+        <div class="sleep-hours" id="sleep-hours">—</div>
+        <div class="sleep-label">수면 시간</div>
+        <div id="sleep-badge"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-label">오늘 수면 입력</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;">
+        <div class="time-picker-row">
+          <span class="time-label">🌙 취침</span>
+          <input type="time" class="time-input" id="sleep-bed" value="23:00">
+        </div>
+        <div class="time-picker-row">
+          <span class="time-label">☀️ 기상</span>
+          <input type="time" class="time-input" id="sleep-wake" value="07:00">
+        </div>
+      </div>
+      <div class="sec-label">깬 횟수</div>
+      <div class="wake-row" id="wake-row">
+        <button class="wake-btn active" data-n="0" onclick="setWake(0,this)">0번</button>
+        <button class="wake-btn" data-n="1" onclick="setWake(1,this)">1번</button>
+        <button class="wake-btn" data-n="2" onclick="setWake(2,this)">2번</button>
+        <button class="wake-btn" data-n="3" onclick="setWake(3,this)">3번 이상</button>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:12px;" onclick="saveSleep()">저장</button>
+    </div>
+
+    <div class="card">
+      <div class="sec-label">최근 7일 수면 시간</div>
+      <div id="sleep-chart" style="display:flex;align-items:flex-end;gap:4px;height:56px;margin-top:4px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="sec-label" style="margin-bottom:8px">기록 내역</div>
+      <div id="sleep-log-list"><div class="empty-state" style="padding:8px">아직 기록이 없습니다.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ STRESS ═══════════════════ -->
+<div id="page-stress" class="page">
+  <div class="page-head">
+    <h2>감정 쓰레기통</h2>
+    <p>지금 느끼는 감정을 마음껏 쓰고 버리세요.<br>버린 내용은 저장되지 않습니다.</p>
+  </div>
+
+  <div class="section">
+    <div class="card">
+      <div class="sec-label">지금 감정 (복수 선택)</div>
+      <div class="emotion-tags" id="emotion-tags">
+        <button class="etag" data-e="불안" onclick="toggleTag(this)">😰 불안</button>
+        <button class="etag" data-e="긴장" onclick="toggleTag(this)">😬 긴장</button>
+        <button class="etag" data-e="화남" onclick="toggleTag(this)">😤 화남</button>
+        <button class="etag" data-e="슬픔" onclick="toggleTag(this)">😢 슬픔</button>
+        <button class="etag" data-e="외로움" onclick="toggleTag(this)">🥺 외로움</button>
+        <button class="etag" data-e="무기력" onclick="toggleTag(this)">😞 무기력</button>
+        <button class="etag" data-e="감사" onclick="toggleTag(this)">🙏 감사</button>
+        <button class="etag" data-e="안도" onclick="toggleTag(this)">😌 안도</button>
+      </div>
+      <div class="trash-area">
+        <div class="trash-icon" id="trash-icon">🗑️</div>
+      </div>
+      <textarea class="stress-textarea" id="stress-text" placeholder="지금 마음속에 있는 것들을 자유롭게 적어보세요. 걱정, 불안, 짜증, 무엇이든 괜찮습니다."></textarea>
+      <button class="burn-btn" id="burn-btn" onclick="burnStress()">버리기 🔥</button>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="btn" style="flex:1;font-size:13px;" onclick="saveStressNote()">일기로 보관하기</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec-label" style="margin-bottom:10px">최근 7일 감정 빈도</div>
+      <div class="emotion-freq" id="emotion-freq">
+        <span style="font-size:13px;color:var(--text2);">기록 없음</span>
+      </div>
+    </div>
+
+    <div class="card" id="stress-diary-card" style="display:none;">
+      <div class="sec-label" style="margin-bottom:8px">보관된 일기</div>
+      <div id="stress-diary-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ EXERCISE ════════════════ -->
+<div id="page-exercise" class="page">
+  <div class="page-head">
+    <h2>운동 기록</h2>
+    <p>운동 후 종류, 시간, 피로도를 기록하세요.</p>
+  </div>
+
+  <div class="section">
+    <div id="ex-warn" class="warn-bar" style="display:none">💬 최근 이틀 피로도가 높습니다. 오늘은 가볍게 쉬어가는 것도 좋습니다.</div>
+    <div class="card">
+      <div class="sec-label">운동 종류</div>
+      <div class="row3" id="ex-types" style="margin-bottom:14px;">
+        <button class="fatigue-btn active" data-t="걷기" onclick="selExType(this)">🚶<span class="fatigue-lbl">걷기</span></button>
+        <button class="fatigue-btn" data-t="자전거" onclick="selExType(this)">🚴<span class="fatigue-lbl">자전거</span></button>
+        <button class="fatigue-btn" data-t="근력" onclick="selExType(this)">💪<span class="fatigue-lbl">근력</span></button>
+        <button class="fatigue-btn" data-t="스트레칭" onclick="selExType(this)">🧘<span class="fatigue-lbl">스트레칭</span></button>
+        <button class="fatigue-btn" data-t="수영" onclick="selExType(this)">🏊<span class="fatigue-lbl">수영</span></button>
+        <button class="fatigue-btn" data-t="기타" onclick="selExType(this)">⚡<span class="fatigue-lbl">기타</span></button>
+      </div>
+
+      <div class="sec-label">운동 시간</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+        <input type="number" class="input" id="ex-duration" placeholder="분" min="1" max="300" style="max-width:100px;">
+        <span style="color:var(--text2);font-size:14px;">분</span>
+      </div>
+
+      <div class="sec-label">주관적 피로도</div>
+      <div class="fatigue-scale" id="fatigue-scale">
+        <button class="fatigue-btn" data-f="1" onclick="selFatigue(1,this)">😊<span class="fatigue-lbl">전혀</span></button>
+        <button class="fatigue-btn" data-f="2" onclick="selFatigue(2,this)">🙂<span class="fatigue-lbl">조금</span></button>
+        <button class="fatigue-btn active" data-f="3" onclick="selFatigue(3,this)">😤<span class="fatigue-lbl">적당</span></button>
+        <button class="fatigue-btn" data-f="4" onclick="selFatigue(4,this)">😓<span class="fatigue-lbl">많이</span></button>
+        <button class="fatigue-btn" data-f="5" onclick="selFatigue(5,this)">😵<span class="fatigue-lbl">극심</span></button>
+      </div>
+
+      <input type="text" class="input" id="ex-note" placeholder="메모 (선택)" style="margin:12px 0 12px;">
+      <button class="btn btn-primary" style="width:100%;" onclick="saveExercise()">저장</button>
+    </div>
+
+    <div class="card">
+      <div class="sec-label" style="margin-bottom:8px">오늘 운동 기록</div>
+      <div id="ex-log-today"><div class="empty-state" style="padding:8px">아직 기록이 없습니다.</div></div>
+    </div>
+
+    <div class="card">
+      <div class="sec-label" style="margin-bottom:8px">최근 기록</div>
+      <div id="ex-log-list"><div class="empty-state" style="padding:8px">기록이 없습니다.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ CARE ════════════════════ -->
+<div id="page-care" class="page">
+  <div class="page-head">
+    <h2>케어</h2>
+    <p>진료 일정과 검사 수치를 관리하세요.</p>
+  </div>
+
+  <div class="care-sub-nav">
+    <button class="csnav-btn active" onclick="showCare('apt')">📅 진료 일정</button>
+    <button class="csnav-btn" onclick="showCare('lab')">🔬 검사 수치</button>
+  </div>
+
+  <!-- APPOINTMENTS -->
+  <div id="care-apt">
+    <div class="apt-cal">
+      <div class="apt-cal-header">
+        <button class="apt-cal-nav" onclick="aptCalMove(-1)">‹</button>
+        <span class="apt-cal-title" id="apt-cal-title"></span>
+        <button class="apt-cal-nav" onclick="aptCalMove(1)">›</button>
+      </div>
+      <div class="apt-grid" id="apt-day-labels"></div>
+      <div class="apt-grid" id="apt-grid"></div>
+    </div>
+
+    <div class="section" style="padding-top:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <span class="sec-label" style="margin:0">다음 일정</span>
+        <span class="countdown" id="apt-countdown" style="display:none"></span>
+      </div>
+      <div id="apt-upcoming"><div class="empty-state">등록된 일정이 없습니다.</div></div>
+
+      <button class="btn btn-primary" style="width:100%;margin-top:12px;" onclick="openAptSheet()">+ 일정 추가</button>
+    </div>
+  </div>
+
+  <!-- LAB RECORDS -->
+  <div id="care-lab" style="display:none;">
+    <div class="section">
+      <div class="sec-label" style="margin-bottom:8px">트랙 선택</div>
+      <div class="lab-track-row" id="lab-track-row">
+        <button class="ltrack-btn active" data-lt="dialysis" onclick="selLabTrack(this)">투석</button>
+        <button class="ltrack-btn" data-lt="ckd" onclick="selLabTrack(this)">비투석 CKD</button>
+        <button class="ltrack-btn" data-lt="intensive" onclick="selLabTrack(this)">집중케어</button>
+        <button class="ltrack-btn" data-lt="wellness" onclick="selLabTrack(this)">웰니스</button>
+      </div>
+      <div class="disclaimer" style="margin:0 0 14px;">참고용 수치이며 의료적 진단을 대체하지 않습니다. 수치 해석은 담당 의료진에게 문의하세요.</div>
+      <div id="lab-items"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SHEET: 일정 추가 -->
+<div class="sheet-overlay" id="apt-overlay" onclick="closeAptSheet()"></div>
+<div class="sheet" id="apt-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">진료 일정 추가</div>
+  <div class="sheet-row"><label>날짜</label><input type="date" id="apt-date"></div>
+  <div class="sheet-row">
+    <label>종류</label>
+    <select id="apt-type">
+      <option>정기 진료</option><option>투석</option><option>혈액검사</option><option>영상검사</option><option>기타</option>
+    </select>
+  </div>
+  <div class="sheet-row"><label>병원</label><input type="text" id="apt-hospital" placeholder="병원명 (선택)"></div>
+  <div class="sheet-row"><label>메모</label><input type="text" id="apt-note-inp" placeholder="메모 (선택)"></div>
+  <div class="sheet-btns">
+    <button class="btn" onclick="closeAptSheet()">취소</button>
+    <button class="btn btn-primary" onclick="saveApt()">저장</button>
+  </div>
+</div>
+
+<!-- BURNED OVERLAY -->
+<div class="burned-overlay" id="burned-overlay">
+  <div class="burned-box">
+    <div class="burned-icon">🔥</div>
+    <div class="burned-msg">다 버렸어요</div>
+    <div class="burned-sub">마음이 조금 가벼워졌길 바랍니다.<br>오늘도 잘 버텨냈어요.</div>
+    <button class="btn btn-primary" style="width:100%;" onclick="closeBurned()">닫기</button>
+  </div>
+</div>
+
+<script>
+// ─── UTILS ────────────────────────────────────────────────
+function today(){ return new Date().toISOString().slice(0,10); }
+function now(){ return new Date().toTimeString().slice(0,5); }
+function load(k,d){ try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;} }
+function save(k,v){ try{localStorage.setItem(k,JSON.stringify(v));}catch(e){} }
+function fmtDate(ds){ const d=new Date(ds+'T00:00'); return `${d.getMonth()+1}/${d.getDate()}`; }
+function last7Days(){ return [...Array(7)].map((_,i)=>{ const d=new Date(); d.setDate(d.getDate()-6+i); return d.toISOString().slice(0,10); }); }
+
+// ─── NAV ──────────────────────────────────────────────────
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tnav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.tnav-btn').forEach(b=>{
+    if(b.getAttribute('onclick').includes("'"+name+"'")) b.classList.add('active');
+  });
+  if(name==='water') renderWater();
+  if(name==='weight') renderWeight();
+  if(name==='sleep') renderSleep();
+  if(name==='stress') renderStressFreq();
+  if(name==='exercise') renderExercise();
+  if(name==='care'){ renderAptCal(); renderAptList(); renderLabItems(); }
+}
+
+// ══════════════════════════════════════════════════════════
+// WATER
+// ══════════════════════════════════════════════════════════
+let selectedWaterType = {type:'물',icon:'💧'};
+let waterGoal = load('waterGoal',2000);
+
+document.querySelectorAll('.water-type-btn').forEach(b=>{
+  b.onclick=function(){
+    document.querySelectorAll('.water-type-btn').forEach(x=>x.classList.remove('active'));
+    this.classList.add('active');
+    selectedWaterType={type:this.dataset.type, icon:this.dataset.icon};
+  };
+});
+
+function addWater(ml){
+  const logs=load('water_'+today(),[]);
+  logs.push({time:now(),type:selectedWaterType.type,icon:selectedWaterType.icon,ml});
+  save('water_'+today(),logs); renderWater();
+}
+function addWaterCustom(){
+  const v=parseInt(document.getElementById('water-custom').value);
+  if(!v||v<1) return;
+  addWater(v);
+  document.getElementById('water-custom').value='';
+}
+function setWaterGoal(v){
+  waterGoal=parseInt(v)||2000;
+  save('waterGoal',waterGoal);
+  renderWater();
+}
+function delWater(i){
+  const logs=load('water_'+today(),[]);
+  logs.splice(i,1); save('water_'+today(),logs); renderWater();
+}
+function renderWater(){
+  waterGoal=load('waterGoal',2000);
+  document.getElementById('water-goal-input').value=waterGoal;
+  document.getElementById('water-goal-disp').textContent=waterGoal;
+  const logs=load('water_'+today(),[]);
+  const total=logs.reduce((s,l)=>s+l.ml,0);
+  document.getElementById('water-total').textContent=total;
+  // gauge
+  const pct=Math.min(total/waterGoal,1);
+  const circ=351.9;
+  document.getElementById('gauge-circle').style.strokeDashoffset=circ*(1-pct);
+  document.getElementById('gauge-circle').style.stroke=pct>=1?'var(--teal-600)':pct>=.9?'var(--amber-400)':'var(--teal-400)';
+  // warn
+  const w=document.getElementById('water-warn');
+  w.style.display=pct>=.9&&pct<1?'block':'none';
+  // log
+  const el=document.getElementById('water-log-list');
+  if(!logs.length){el.innerHTML='<div class="empty-state" style="padding:16px">아직 기록이 없습니다.</div>';return;}
+  el.innerHTML=[...logs].reverse().map((l,ri)=>{
+    const i=logs.length-1-ri;
+    return `<div class="water-log-item">
+      <span class="wli-type">${l.icon}</span>
+      <div class="wli-info"><div class="wli-ml">${l.ml} mL</div><div class="wli-time">${l.type} · ${l.time}</div></div>
+      <button class="wli-del" onclick="delWater(${i})">×</button>
+    </div>`;
+  }).join('');
+  // 7-day chart
+  const days=last7Days();
+  const maxW=Math.max(...days.map(d=>load('water_'+d,[]).reduce((s,l)=>s+l.ml,0)),waterGoal,1);
+  document.getElementById('water-chart').innerHTML=days.map(d=>{
+    const tot=load('water_'+d,[]).reduce((s,l)=>s+l.ml,0);
+    const h=Math.round(tot/maxW*44);
+    const isT=d===today();
+    return `<div class="mini-bar-col"><div class="mini-bar${isT?' today':''}" style="height:${h}px"></div><div class="mini-lbl">${fmtDate(d).slice(-2)}</div></div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+// WEIGHT
+// ══════════════════════════════════════════════════════════
+function adjustWeight(delta){
+  const inp=document.getElementById('wt-input');
+  const v=Math.round((parseFloat(inp.value||65)+delta)*10)/10;
+  inp.value=Math.max(20,Math.min(200,v)).toFixed(1);
+}
+function saveWeight(){
+  const kg=parseFloat(document.getElementById('wt-input').value);
+  if(!kg) return;
+  const note=document.getElementById('wt-note').value;
+  const logs=load('weight_log',[]);
+  const existing=logs.findIndex(l=>l.date===today());
+  const entry={date:today(),kg,note,time:now()};
+  if(existing>=0) logs[existing]=entry; else logs.push(entry);
+  save('weight_log',logs);
+  document.getElementById('wt-note').value='';
+  renderWeight();
+}
+function renderWeight(){
+  const logs=load('weight_log',[]).sort((a,b)=>a.date.localeCompare(b.date));
+  const todayLog=logs.find(l=>l.date===today());
+  const yesterLog=logs.filter(l=>l.date<today()).slice(-1)[0];
+  // header
+  if(todayLog){
+    document.getElementById('wt-today').textContent=todayLog.kg.toFixed(1)+' kg';
+    if(yesterLog){
+      const diff=Math.round((todayLog.kg-yesterLog.kg)*10)/10;
+      const el=document.getElementById('wt-delta');
+      el.textContent=(diff>0?'▲ +':diff<0?'▼ ':'')+(diff===0?'전날과 동일':Math.abs(diff).toFixed(1)+' kg');
+      el.className='weight-delta '+(diff>1?'up':diff<0?'down':'same');
+      const w=document.getElementById('weight-warn');
+      if(diff>=2){ w.textContent='⚠️ 전날 대비 2kg 이상 증가했습니다. 이상 증상이 있다면 즉시 의료진에게 연락하세요.'; w.style.display='block'; }
+      else if(diff>=1){ w.textContent='💡 전날 대비 1kg 이상 증가했습니다. 수분 섭취를 확인하세요.'; w.style.display='block'; }
+      else w.style.display='none';
+    }
+  } else {
+    document.getElementById('wt-today').textContent='—';
+    document.getElementById('wt-delta').textContent='오늘 아직 미입력';
+    document.getElementById('wt-delta').className='weight-delta same';
+  }
+  // chart
+  const days=last7Days();
+  const vals=days.map(d=>(logs.find(l=>l.date===d)||{}).kg||null);
+  const filled=vals.filter(Boolean);
+  const minV=filled.length?Math.min(...filled)-1:60;
+  const maxV=filled.length?Math.max(...filled)+1:70;
+  const range=maxV-minV||1;
+  document.getElementById('weight-chart').innerHTML=days.map((d,i)=>{
+    const v=vals[i];
+    const h=v?Math.round((v-minV)/range*44):0;
+    const isT=d===today();
+    return `<div class="mini-bar-col"><div class="mini-bar${isT?' today':''}" style="height:${v?h+2:0}px;${!v?'opacity:.2':''}"></div><div class="mini-lbl">${fmtDate(d).slice(-2)}</div></div>`;
+  }).join('');
+  // log list
+  const el=document.getElementById('weight-log-list');
+  const recent=[...logs].reverse().slice(0,14);
+  if(!recent.length){el.innerHTML='<div class="empty-state" style="padding:8px">아직 기록이 없습니다.</div>';return;}
+  el.innerHTML=recent.map((l,i)=>{
+    const prev=recent[i+1];
+    const diff=prev?Math.round((l.kg-prev.kg)*10)/10:null;
+    const diffStr=diff===null?'':`<span style="font-size:12px;color:${diff>0?'var(--red-400)':diff<0?'var(--teal-400)':'var(--text2)'}">${diff>0?'▲ +':diff<0?'▼ ':''} ${diff===0?'—':Math.abs(diff).toFixed(1)}</span>`;
+    return `<div class="wlog-item"><span class="wlog-date">${l.date===today()?'오늘':fmtDate(l.date)}</span><span class="wlog-kg">${l.kg.toFixed(1)} kg${l.note?` <span style="color:var(--text2);font-size:12px">${l.note}</span>`:''}</span><span class="wlog-diff">${diffStr}</span></div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+// SLEEP
+// ══════════════════════════════════════════════════════════
+let wakeCount=0;
+function setWake(n,el){
+  wakeCount=n;
+  document.querySelectorAll('.wake-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+function calcSleepHours(bed,wake){
+  const [bh,bm]=bed.split(':').map(Number);
+  const [wh,wm]=wake.split(':').map(Number);
+  let min=wh*60+wm-(bh*60+bm);
+  if(min<0) min+=1440;
+  return min/60;
+}
+function saveSleep(){
+  const bed=document.getElementById('sleep-bed').value;
+  const wake=document.getElementById('sleep-wake').value;
+  if(!bed||!wake) return;
+  const hrs=calcSleepHours(bed,wake);
+  const logs=load('sleep_log',[]);
+  const existing=logs.findIndex(l=>l.date===today());
+  const entry={date:today(),bed,wake,hrs:Math.round(hrs*10)/10,wakeCount};
+  if(existing>=0) logs[existing]=entry; else logs.push(entry);
+  save('sleep_log',logs);
+  renderSleep();
+}
+function renderSleep(){
+  const logs=load('sleep_log',[]).sort((a,b)=>a.date.localeCompare(b.date));
+  const todayLog=logs.find(l=>l.date===today());
+  if(todayLog){
+    document.getElementById('sleep-hours').textContent=todayLog.hrs.toFixed(1)+'h';
+    const badge=document.getElementById('sleep-badge');
+    badge.innerHTML=todayLog.hrs>=7
+      ?'<span class="sleep-badge good">✓ 7시간 이상 달성</span>'
+      :'<span class="sleep-badge bad">⚠️ 7시간 미달</span>';
+  } else {
+    document.getElementById('sleep-hours').textContent='—';
+    document.getElementById('sleep-badge').innerHTML='<span class="sleep-badge bad" style="background:var(--gray-50);color:var(--gray-400)">오늘 미입력</span>';
+  }
+  // chart
+  const days=last7Days();
+  const maxH=8;
+  document.getElementById('sleep-chart').innerHTML=days.map(d=>{
+    const l=logs.find(x=>x.date===d);
+    const h=l?Math.round(l.hrs/maxH*52):0;
+    const isT=d===today();
+    const good=l&&l.hrs>=7;
+    return `<div class="mini-bar-col" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;">
+      <div style="width:100%;border-radius:3px 3px 0 0;min-height:2px;background:${good?'var(--purple-400)':'var(--gray-100)'};height:${l?h+2:0}px;${isT?'outline:1.5px solid var(--purple-400)':''}"></div>
+      <div class="mini-lbl">${fmtDate(d).slice(-2)}</div></div>`;
+  }).join('');
+  // log
+  const el=document.getElementById('sleep-log-list');
+  const recent=[...logs].reverse().slice(0,7);
+  if(!recent.length){el.innerHTML='<div class="empty-state" style="padding:8px">아직 기록이 없습니다.</div>';return;}
+  el.innerHTML=recent.map(l=>{
+    return `<div class="slog-item">
+      <span class="slog-date">${l.date===today()?'오늘':fmtDate(l.date)}</span>
+      <div class="slog-bar-wrap"><div class="slog-bar" style="width:${Math.min(l.hrs/8*100,100)}%;background:${l.hrs>=7?'var(--purple-400)':'var(--amber-100)'}"></div></div>
+      <span class="slog-hrs" style="color:${l.hrs>=7?'var(--purple-800)':'var(--amber-800)'}">${l.hrs.toFixed(1)}h</span>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+// STRESS
+// ══════════════════════════════════════════════════════════
+let activeTags=new Set();
+function toggleTag(el){
+  const e=el.dataset.e;
+  if(activeTags.has(e)){activeTags.delete(e);el.classList.remove('active');}
+  else{activeTags.add(e);el.classList.add('active');}
+}
+function burnStress(){
+  if(!document.getElementById('stress-text').value.trim()&&!activeTags.size) return;
+  // save tags
+  if(activeTags.size){
+    const freq=load('stress_freq',[]);
+    const entry={date:today(),tags:[...activeTags]};
+    freq.push(entry); save('stress_freq',freq);
+  }
+  // animate
+  const icon=document.getElementById('trash-icon');
+  icon.classList.add('shake');
+  setTimeout(()=>icon.classList.remove('shake'),400);
+  setTimeout(()=>{
+    document.getElementById('stress-text').value='';
+    activeTags.clear();
+    document.querySelectorAll('.etag').forEach(b=>b.classList.remove('active'));
+    document.getElementById('burned-overlay').classList.add('show');
+    renderStressFreq();
+  },300);
+}
+function closeBurned(){ document.getElementById('burned-overlay').classList.remove('show'); }
+function saveStressNote(){
+  const txt=document.getElementById('stress-text').value.trim();
+  if(!txt) return;
+  const diary=load('stress_diary',[]);
+  diary.push({date:today(),time:now(),tags:[...activeTags],text:txt});
+  save('stress_diary',diary);
+  document.getElementById('stress-text').value='';
+  activeTags.clear();
+  document.querySelectorAll('.etag').forEach(b=>b.classList.remove('active'));
+  renderStressDiary();
+}
+function renderStressFreq(){
+  const freq=load('stress_freq',[]);
+  const days=last7Days();
+  const counts={};
+  freq.filter(f=>days.includes(f.date)).forEach(f=>f.tags.forEach(t=>counts[t]=(counts[t]||0)+1));
+  const el=document.getElementById('emotion-freq');
+  const entries=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  if(!entries.length){el.innerHTML='<span style="font-size:13px;color:var(--text2);">기록 없음</span>';return;}
+  const tagColors={불안:'var(--amber-50)',긴장:'var(--coral-50)',화남:'var(--red-50)',슬픔:'var(--blue-50)',외로움:'var(--purple-50)',무기력:'var(--gray-50)',감사:'var(--teal-50)',안도:'var(--green-50)'};
+  el.innerHTML=entries.map(([t,c])=>`<span class="efreq-item" style="background:${tagColors[t]||'var(--bg2)'};color:var(--text)">${t} <strong>${c}</strong></span>`).join('');
+}
+function renderStressDiary(){
+  const diary=load('stress_diary',[]).reverse();
+  const card=document.getElementById('stress-diary-card');
+  const el=document.getElementById('stress-diary-list');
+  if(!diary.length){card.style.display='none';return;}
+  card.style.display='block';
+  el.innerHTML=diary.slice(0,10).map(d=>`
+    <div style="padding:10px 0;border-bottom:0.5px solid var(--border);">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+        <span style="font-size:12px;color:var(--text2)">${d.date===today()?'오늘':fmtDate(d.date)} ${d.time}</span>
+        ${d.tags.length?`<span style="font-size:12px;color:var(--text2)">${d.tags.join(' ')}</span>`:''}
+      </div>
+      <div style="font-size:14px;line-height:1.55;color:var(--text)">${d.text}</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+// EXERCISE
+// ══════════════════════════════════════════════════════════
+let selExTypeVal='걷기', selFatigueVal=3;
+function selExType(el){ document.querySelectorAll('#ex-types .fatigue-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); selExTypeVal=el.dataset.t; }
+function selFatigue(n,el){ document.querySelectorAll('#fatigue-scale .fatigue-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); selFatigueVal=n; }
+const exTypeIcons={걷기:'🚶',자전거:'🚴',근력:'💪',스트레칭:'🧘',수영:'🏊',기타:'⚡'};
+function saveExercise(){
+  const dur=parseInt(document.getElementById('ex-duration').value);
+  if(!dur||dur<1) return;
+  const note=document.getElementById('ex-note').value;
+  const logs=load('exercise_log',[]);
+  logs.push({date:today(),time:now(),type:selExTypeVal,duration:dur,fatigue:selFatigueVal,note});
+  save('exercise_log',logs);
+  document.getElementById('ex-duration').value='';
+  document.getElementById('ex-note').value='';
+  renderExercise();
+}
+function renderExercise(){
+  const logs=load('exercise_log',[]).sort((a,b)=>a.date.localeCompare(b.date));
+  // warn
+  const last2=logs.filter(l=>l.date>=last7Days()[5]).slice(-2);
+  const warn=document.getElementById('ex-warn');
+  warn.style.display=last2.length>=2&&last2.every(l=>l.fatigue>=4)?'block':'none';
+  // today
+  const todayLogs=logs.filter(l=>l.date===today());
+  const todayEl=document.getElementById('ex-log-today');
+  if(!todayLogs.length){todayEl.innerHTML='<div class="empty-state" style="padding:8px">아직 기록이 없습니다.</div>';}
+  else todayEl.innerHTML=todayLogs.map(l=>exLogItem(l)).join('');
+  // recent
+  const recentEl=document.getElementById('ex-log-list');
+  const recent=[...logs].reverse().filter(l=>l.date!==today()).slice(0,10);
+  if(!recent.length){recentEl.innerHTML='<div class="empty-state" style="padding:8px">기록이 없습니다.</div>';}
+  else recentEl.innerHTML=recent.map(l=>`<div style="font-size:11px;color:var(--text2);padding:6px 0 2px;">${fmtDate(l.date)}</div>`+exLogItem(l)).join('');
+}
+const fatigueEmoji=['','😊','🙂','😤','😓','😵'];
+function exLogItem(l){
+  return `<div class="elog-item"><span class="elog-icon">${exTypeIcons[l.type]||'⚡'}</span><div class="elog-info"><div class="elog-title">${l.type} · ${l.duration}분</div><div class="elog-meta">${l.time}${l.note?' · '+l.note:''}</div></div><span class="elog-fatigue">${fatigueEmoji[l.fatigue]}</span></div>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// CARE — APPOINTMENTS
+// ══════════════════════════════════════════════════════════
+let aptCalYear, aptCalMonth;
+function showCare(tab){
+  document.querySelectorAll('#care-apt,#care-lab').forEach(el=>el.style.display='none');
+  document.getElementById('care-'+tab).style.display='block';
+  document.querySelectorAll('.csnav-btn').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  if(tab==='apt'){renderAptCal();renderAptList();}
+  if(tab==='lab') renderLabItems();
+}
+function aptCalMove(dir){
+  aptCalMonth+=dir;
+  if(aptCalMonth<0){aptCalMonth=11;aptCalYear--;}
+  if(aptCalMonth>11){aptCalMonth=0;aptCalYear++;}
+  renderAptCal();
+}
+function renderAptCal(){
+  const now=new Date();
+  if(aptCalYear===undefined){aptCalYear=now.getFullYear();aptCalMonth=now.getMonth();}
+  const apts=load('apts',[]);
+  document.getElementById('apt-cal-title').textContent=`${aptCalYear}년 ${aptCalMonth+1}월`;
+  const labels=document.getElementById('apt-day-labels');
+  labels.innerHTML=['일','월','화','수','목','금','토'].map(d=>`<div class="apt-day-lbl">${d}</div>`).join('');
+  const grid=document.getElementById('apt-grid');grid.innerHTML='';
+  const first=new Date(aptCalYear,aptCalMonth,1).getDay();
+  const dim=new Date(aptCalYear,aptCalMonth+1,0).getDate();
+  const todayStr=today();
+  for(let i=0;i<first;i++){const c=document.createElement('div');c.className='apt-cell empty';grid.appendChild(c);}
+  for(let d=1;d<=dim;d++){
+    const ds=`${aptCalYear}-${String(aptCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const hasApt=apts.some(a=>a.date===ds);
+    const c=document.createElement('div');
+    c.className='apt-cell'+(ds===todayStr?' today':'')+(hasApt?' has-apt':'');
+    c.textContent=d;
+    if(hasApt){const dot=document.createElement('div');dot.className='apt-dot';c.appendChild(dot);}
+    grid.appendChild(c);
+  }
+}
+function renderAptList(){
+  const apts=load('apts',[]).filter(a=>a.date>=today()).sort((a,b)=>a.date.localeCompare(b.date));
+  const el=document.getElementById('apt-upcoming');
+  if(!apts.length){el.innerHTML='<div class="empty-state">등록된 일정이 없습니다.</div>';document.getElementById('apt-countdown').style.display='none';return;}
+  const next=apts[0];
+  const diff=Math.ceil((new Date(next.date+' 00:00')-new Date())/(1000*60*60*24));
+  const cd=document.getElementById('apt-countdown');
+  cd.style.display='inline-block';
+  cd.textContent=diff===0?'오늘!':diff===1?'내일!':'D-'+diff;
+  const typeColors={정기진료:'var(--teal-50)',투석:'var(--blue-50)',혈액검사:'var(--amber-50)',영상검사:'var(--purple-50)',기타:'var(--gray-50)'};
+  const typeEmoji={'정기 진료':'🏥','투석':'💧','혈액검사':'🩸','영상검사':'📷','기타':'📋'};
+  el.innerHTML=apts.slice(0,5).map((a,i)=>`
+    <div class="apt-list-item">
+      <div class="apt-icon" style="background:${typeColors[a.type]||'var(--gray-50)'}">${typeEmoji[a.type]||'📋'}</div>
+      <div class="apt-info">
+        <div class="apt-title">${a.type}${a.hospital?' — '+a.hospital:''}</div>
+        <div class="apt-meta">${a.date}${a.note?' · '+a.note:''}</div>
+      </div>
+      <button class="apt-del" onclick="delApt(${i})">×</button>
+    </div>`).join('');
+}
+function delApt(i){
+  const apts=load('apts',[]).filter(a=>a.date>=today()).sort((a,b)=>a.date.localeCompare(b.date));
+  const all=load('apts',[]);
+  const target=apts[i];
+  const idx=all.findIndex(a=>a.date===target.date&&a.type===target.type);
+  if(idx>=0){all.splice(idx,1);save('apts',all);}
+  renderAptCal();renderAptList();
+}
+function openAptSheet(){
+  document.getElementById('apt-date').value=today();
+  document.getElementById('apt-overlay').classList.add('show');
+  document.getElementById('apt-sheet').classList.add('show');
+}
+function closeAptSheet(){
+  document.getElementById('apt-overlay').classList.remove('show');
+  document.getElementById('apt-sheet').classList.remove('show');
+}
+function saveApt(){
+  const date=document.getElementById('apt-date').value;
+  if(!date) return;
+  const apts=load('apts',[]);
+  apts.push({date,type:document.getElementById('apt-type').value,hospital:document.getElementById('apt-hospital').value,note:document.getElementById('apt-note-inp').value});
+  save('apts',apts);
+  closeAptSheet();renderAptCal();renderAptList();
+}
+
+// ══════════════════════════════════════════════════════════
+// CARE — LAB
+// ══════════════════════════════════════════════════════════
+const LAB_DEFS={
+  dialysis:[
+    {key:'K',name:'칼륨 (K)',unit:'mEq/L',range:'3.5 ~ 5.0',min:3.5,max:5.0},
+    {key:'P',name:'인 (P)',unit:'mg/dL',range:'2.5 ~ 4.5',min:2.5,max:4.5},
+    {key:'Hb',name:'헤모글로빈 (Hb)',unit:'g/dL',range:'12.0 ~ 17.5',min:12,max:17.5},
+    {key:'BW_pre',name:'투석 전 체중',unit:'kg',range:'—',min:null,max:null},
+    {key:'BW_post',name:'투석 후 체중',unit:'kg',range:'—',min:null,max:null},
+  ],
+  ckd:[
+    {key:'eGFR',name:'eGFR',unit:'mL/min/1.73m²',range:'≥ 60',min:60,max:null},
+    {key:'Cr',name:'크레아티닌',unit:'mg/dL',range:'0.5 ~ 1.2',min:0.5,max:1.2},
+    {key:'SBP',name:'수축기 혈압',unit:'mmHg',range:'< 130',min:null,max:130},
+    {key:'DBP',name:'이완기 혈압',unit:'mmHg',range:'< 80',min:null,max:80},
+  ],
+  intensive:[
+    {key:'SBP',name:'수축기 혈압',unit:'mmHg',range:'< 130',min:null,max:130},
+    {key:'DBP',name:'이완기 혈압',unit:'mmHg',range:'< 80',min:null,max:80},
+    {key:'FBG',name:'공복 혈당',unit:'mg/dL',range:'70 ~ 100',min:70,max:100},
+    {key:'LDL',name:'LDL 콜레스테롤',unit:'mg/dL',range:'< 100',min:null,max:100},
+    {key:'HbA1c',name:'당화혈색소 (HbA1c)',unit:'%',range:'< 6.5',min:null,max:6.5},
+  ],
+  wellness:[
+    {key:'SBP',name:'수축기 혈압',unit:'mmHg',range:'< 130',min:null,max:130},
+    {key:'DBP',name:'이완기 혈압',unit:'mmHg',range:'< 80',min:null,max:80},
+    {key:'LDL',name:'LDL 콜레스테롤',unit:'mg/dL',range:'< 100',min:null,max:100},
+    {key:'BMI',name:'BMI',unit:'kg/m²',range:'18.5 ~ 24.9',min:18.5,max:24.9},
+  ]
+};
+let currentLabTrack='dialysis';
+function selLabTrack(el){
+  document.querySelectorAll('.ltrack-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  currentLabTrack=el.dataset.lt;
+  renderLabItems();
+}
+function renderLabItems(){
+  const defs=LAB_DEFS[currentLabTrack]||[];
+  const el=document.getElementById('lab-items');
+  el.innerHTML=defs.map(def=>{
+    const records=load('lab_'+def.key,[]).sort((a,b)=>a.date.localeCompare(b.date));
+    const latest=records[records.length-1];
+    const prev=records[records.length-2];
+    const diff=latest&&prev?Math.round((latest.val-prev.val)*100)/100:null;
+    const inRange=latest&&def.min!==null&&def.max!==null?(latest.val>=def.min&&latest.val<=def.max):latest&&def.max!==null?latest.val<=def.max:latest&&def.min!==null?latest.val>=def.min:true;
+    const last5=records.slice(-5);
+    const maxV=last5.length?Math.max(...last5.map(r=>r.val)):1;
+    const minV=last5.length?Math.min(...last5.map(r=>r.val)):0;
+    const range2=maxV-minV||1;
+    return `<div class="lab-item">
+      <div class="lab-item-head">
+        <span class="lab-name">${def.name}</span>
+        <span class="lab-range">참고: ${def.range} ${def.unit}</span>
+      </div>
+      <div class="lab-val-row">
+        <span class="lab-val" style="color:${latest?(inRange?'var(--teal-800)':'var(--amber-400)'):'var(--gray-200)'}">${latest?latest.val:'—'}</span>
+        <span class="lab-unit">${def.unit}</span>
+        ${diff!==null?`<span class="lab-delta ${diff>0?'up':'dn'}">${diff>0?'▲':diff<0?'▼':''}${Math.abs(diff)}</span>`:''}
+      </div>
+      ${last5.length?`<div class="lab-mini-chart">${last5.map((r,i)=>{
+        const h=Math.round((r.val-minV)/range2*28)+4;
+        const isLast=i===last5.length-1;
+        const rOk=def.min!==null&&def.max!==null?(r.val>=def.min&&r.val<=def.max):def.max!==null?r.val<=def.max:def.min!==null?r.val>=def.min:true;
+        return `<div class="lab-bar${isLast?' active':''}${!rOk?' warn':''}" style="height:${h}px;flex:1;" title="${r.date}: ${r.val}"></div>`;
+      }).join('')}</div>`:''}
+      <div class="lab-input-row">
+        <input type="number" class="lab-input" id="lab-inp-${def.key}" placeholder="수치 입력" step="0.1">
+        <button class="lab-add-btn" onclick="addLabRecord('${def.key}')">기록</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function addLabRecord(key){
+  const inp=document.getElementById('lab-inp-'+key);
+  const v=parseFloat(inp.value);
+  if(isNaN(v)) return;
+  const records=load('lab_'+key,[]);
+  const existing=records.findIndex(r=>r.date===today());
+  if(existing>=0) records[existing].val=v; else records.push({date:today(),val:v});
+  save('lab_'+key,records);
+  inp.value='';
+  renderLabItems();
+}
+
+// ─── INIT ────────────────────────────────────────────────
+renderWater();
+renderStressFreq();
+renderStressDiary();
+</script>
+</body>
+</html>
