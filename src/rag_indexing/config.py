@@ -180,14 +180,14 @@ SECTION_TRACK_SPLIT_SOURCE = "241212_당뇨병콩팥병 진료지침"
 SECTION_TRACK_SPLIT_H2_PREFIXES = ("3.3.", "4.2.", "6.5.")
 SECTION_ITEM_TRACK_MAP: dict = {
     "3.3.1": TRACK_NON_DIALYSIS,  # 투석 전 환자 HbA1c 목표 7% 미만
-    "3.3.2": TRACK_COMMON,        # 개별화 기준 (트랙 무관)
-    "3.3.3": TRACK_DIALYSIS,      # 투석 중 HbA1c 목표 불확실
+    "3.3.2": TRACK_COMMON,  # 개별화 기준 (트랙 무관)
+    "3.3.3": TRACK_DIALYSIS,  # 투석 중 HbA1c 목표 불확실
     "4.2.1": TRACK_NON_DIALYSIS,  # 비투석 단백질 0.8 g/kg
-    "4.2.2": TRACK_DIALYSIS,      # 투석 단백질 1.0–1.2 g/kg
-    "6.5.1": TRACK_COMMON,        # 혈청지질검사 적응증 (트랙 무관)
+    "4.2.2": TRACK_DIALYSIS,  # 투석 단백질 1.0–1.2 g/kg
+    "6.5.1": TRACK_COMMON,  # 혈청지질검사 적응증 (트랙 무관)
     "6.5.2": TRACK_NON_DIALYSIS,  # 투석 전 스타틴 처방
-    "6.5.3": TRACK_DIALYSIS,      # 투석 중 스타틴 신규처방 불필요
-    "6.5.4": TRACK_DIALYSIS,      # 투석 시작 시 기존 스타틴 유지
+    "6.5.3": TRACK_DIALYSIS,  # 투석 중 스타틴 신규처방 불필요
+    "6.5.4": TRACK_DIALYSIS,  # 투석 시작 시 기존 스타틴 유지
 }
 
 # ─────────────────────────────────────────────

@@ -237,10 +237,16 @@ def _emit_split_numbered_section(
     if not boundaries:
         # N.N.N. 없음 → common 폴백
         _emit_parent_children(
-            parents=parents, children=children,
-            text=text, source=source, doc_type=doc_type,
-            language=language, h1=h1, h2=h2,
-            parent_counter=parent_counter, page=page,
+            parents=parents,
+            children=children,
+            text=text,
+            source=source,
+            doc_type=doc_type,
+            language=language,
+            h1=h1,
+            h2=h2,
+            parent_counter=parent_counter,
+            page=page,
             track=cfg.TRACK_COMMON,
         )
         return
@@ -250,10 +256,16 @@ def _emit_split_numbered_section(
         preamble = text[: boundaries[0]].strip()
         if len(preamble) >= _MIN_CHUNK_CHARS:
             _emit_parent_children(
-                parents=parents, children=children,
-                text=preamble, source=source, doc_type=doc_type,
-                language=language, h1=h1, h2=h2,
-                parent_counter=parent_counter, page=page,
+                parents=parents,
+                children=children,
+                text=preamble,
+                source=source,
+                doc_type=doc_type,
+                language=language,
+                h1=h1,
+                h2=h2,
+                parent_counter=parent_counter,
+                page=page,
                 track=cfg.TRACK_COMMON,
             )
 
@@ -274,25 +286,43 @@ def _emit_split_numbered_section(
             tail = item_text[para_m.end() :].strip()
             if len(head) >= _MIN_CHUNK_CHARS:
                 _emit_parent_children(
-                    parents=parents, children=children,
-                    text=head, source=source, doc_type=doc_type,
-                    language=language, h1=h1, h2=h2,
-                    parent_counter=parent_counter, page=page,
+                    parents=parents,
+                    children=children,
+                    text=head,
+                    source=source,
+                    doc_type=doc_type,
+                    language=language,
+                    h1=h1,
+                    h2=h2,
+                    parent_counter=parent_counter,
+                    page=page,
                     track=item_track,
                 )
             _emit_parent_children(
-                parents=parents, children=children,
-                text=tail, source=source, doc_type=doc_type,
-                language=language, h1=h1, h2=h2,
-                parent_counter=parent_counter, page=page,
+                parents=parents,
+                children=children,
+                text=tail,
+                source=source,
+                doc_type=doc_type,
+                language=language,
+                h1=h1,
+                h2=h2,
+                parent_counter=parent_counter,
+                page=page,
                 track=cfg.TRACK_COMMON,
             )
         else:
             _emit_parent_children(
-                parents=parents, children=children,
-                text=item_text, source=source, doc_type=doc_type,
-                language=language, h1=h1, h2=h2,
-                parent_counter=parent_counter, page=page,
+                parents=parents,
+                children=children,
+                text=item_text,
+                source=source,
+                doc_type=doc_type,
+                language=language,
+                h1=h1,
+                h2=h2,
+                parent_counter=parent_counter,
+                page=page,
                 track=item_track,
             )
 
