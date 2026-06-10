@@ -91,7 +91,7 @@ class TestDashboardSummaryAPI(TestCase):
             category=ChallengeCategory.EXERCISE,
             description="테스트용",
             duration_days=7,
-            track=ChallengeTrack.A,
+            track=ChallengeTrack.WELLNESS,
             stage=1,
         )
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:

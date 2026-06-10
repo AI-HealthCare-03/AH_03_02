@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>콩팥 챌린지</title>
+<style>
+  :root {
+    --teal-50: #E1F5EE; --teal-100: #9FE1CB; --teal-200: #5DCAA5;
+    --teal-400: #1D9E75; --teal-600: #0F6E56; --teal-800: #085041;
+    --purple-50: #EEEDFE; --purple-100: #CECBF6; --purple-200: #AFA9EC;
+    --purple-400: #7F77DD; --purple-600: #534AB7; --purple-800: #3C3489;
+    --amber-50: #FAEEDA; --amber-100: #FAC775; --amber-400: #BA7517; --amber-800: #633806;
+    --coral-50: #FAECE7; --coral-100: #F5C4B3; --coral-400: #D85A30; --coral-800: #4A1B0C;
+    --gray-50: #F1EFE8; --gray-100: #D3D1C7; --gray-400: #888780; --gray-800: #2C2C2A;
+    --bg: #FAFAF8; --bg2: #F1EFE8; --text: #1a1a18; --text2: #5F5E5A;
+    --border: rgba(0,0,0,0.1); --radius: 12px; --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, 'Pretendard', 'Apple SD Gothic Neo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* SCREENS */
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* HEADER */
+  .header { padding: 20px 24px 16px; border-bottom: 0.5px solid var(--border); background: var(--bg); display: flex; align-items: center; gap: 12px; }
+  .header-back { background: none; border: none; cursor: pointer; color: var(--text2); font-size: 20px; padding: 4px; }
+  .header h1 { font-size: 17px; font-weight: 500; flex: 1; }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--teal-400); }
+
+  /* ONBOARDING */
+  #screen-onboard { justify-content: center; align-items: center; padding: 40px 24px; text-align: center; }
+  .onboard-icon { width: 72px; height: 72px; border-radius: 24px; background: var(--teal-50); display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 32px; }
+  .onboard-title { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 10px; color: var(--teal-800); }
+  .onboard-sub { font-size: 15px; color: var(--text2); line-height: 1.6; margin-bottom: 40px; }
+  .btn-primary { background: var(--teal-400); color: #fff; border: none; padding: 14px 32px; border-radius: var(--radius); font-size: 16px; font-weight: 500; cursor: pointer; width: 100%; max-width: 320px; }
+  .btn-primary:hover { background: var(--teal-600); }
+
+  /* TRACK SELECT */
+  #screen-track { padding: 0; }
+  .track-list { padding: 20px 20px 40px; display: flex; flex-direction: column; gap: 12px; }
+  .track-card { background: #fff; border: 0.5px solid var(--border); border-radius: var(--radius); padding: 18px 20px; cursor: pointer; display: flex; align-items: flex-start; gap: 14px; transition: border-color 0.15s, box-shadow 0.15s; }
+  .track-card:hover { border-color: var(--teal-200); box-shadow: 0 2px 8px rgba(29,158,117,0.08); }
+  .track-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .track-info h3 { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+  .track-info p { font-size: 13px; color: var(--text2); line-height: 1.5; }
+  .track-badge { font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 20px; margin-top: 6px; display: inline-block; }
+
+  /* STAGE SELECT */
+  #screen-stage { padding: 0; }
+  .stage-intro { padding: 20px 20px 4px; }
+  .stage-intro p { font-size: 14px; color: var(--text2); line-height: 1.5; }
+  .stage-list { padding: 12px 20px 40px; display: flex; flex-direction: column; gap: 10px; }
+  .stage-card { background: #fff; border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 16px 18px; cursor: pointer; display: flex; align-items: center; gap: 14px; }
+  .stage-card:hover { border-color: var(--purple-200); }
+  .stage-num { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+  .stage-info h3 { font-size: 14px; font-weight: 500; }
+  .stage-info p { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .stage-arrow { margin-left: auto; color: var(--text2); font-size: 16px; }
+
+  /* MAIN - TODAY */
+  #screen-main { padding: 0; }
+  .today-header { padding: 20px 20px 16px; }
+  .today-date { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+  .today-title { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
+  .today-stage-badge { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; }
+
+  /* CHECKLIST */
+  .checklist-section { padding: 0 20px 8px; }
+  .section-label { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; }
+  .check-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; background: #fff; border: 0.5px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; cursor: pointer; }
+  .check-item.done { background: var(--teal-50); border-color: var(--teal-100); }
+  .check-box { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--gray-100); background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; margin-top: 1px; }
+  .check-item.done .check-box { background: var(--teal-400); border-color: var(--teal-400); }
+  .check-text { font-size: 14px; line-height: 1.5; color: var(--text); }
+  .check-item.done .check-text { color: var(--teal-800); }
+  .check-tag { font-size: 11px; font-weight: 600; color: var(--teal-600); margin-right: 4px; }
+
+  /* OPTIONAL CHALLENGES */
+  .challenges-wrap { padding: 0 20px 40px; }
+  .category-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; scrollbar-width: none; }
+  .category-tabs::-webkit-scrollbar { display: none; }
+  .cat-tab { padding: 7px 14px; border-radius: 20px; border: 0.5px solid var(--border); background: #fff; font-size: 13px; cursor: pointer; white-space: nowrap; color: var(--text2); }
+  .cat-tab.active { background: var(--text); color: #fff; border-color: var(--text); }
+  .challenge-card { background: #fff; border: 0.5px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
+  .challenge-card.done { background: var(--teal-50); border-color: var(--teal-100); }
+  .challenge-inner { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; cursor: pointer; }
+  .chal-num { font-size: 12px; font-weight: 600; color: var(--text2); min-width: 22px; margin-top: 1px; }
+  .chal-text { font-size: 14px; line-height: 1.55; flex: 1; }
+  .challenge-card.done .chal-text { color: var(--teal-800); }
+  .chal-check { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--gray-100); background: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .challenge-card.done .chal-check { background: var(--teal-400); border-color: var(--teal-400); }
+
+  /* PROGRESS BAR */
+  .progress-bar-wrap { padding: 12px 20px 16px; }
+  .progress-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+  .progress-bar { height: 4px; background: var(--bg2); border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--teal-400); border-radius: 4px; transition: width 0.3s; }
+
+  /* DISCLAIMER */
+  .disclaimer { margin: 0 20px 16px; padding: 12px 14px; background: var(--amber-50); border: 0.5px solid var(--amber-100); border-radius: var(--radius-sm); font-size: 12px; color: var(--amber-800); line-height: 1.6; }
+
+  /* CHANGE TRACK MODAL (faux) */
+  #screen-change { padding: 0; }
+
+  @media (min-width: 600px) {
+    .track-list, .stage-list { max-width: 480px; margin: 0 auto; }
+    .today-header, .checklist-section, .progress-bar-wrap, .challenges-wrap, .disclaimer { max-width: 480px; margin-left: auto; margin-right: auto; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SCREEN 1: ONBOARD -->
+<div id="screen-onboard" class="screen active">
+  <div class="onboard-icon">🫘</div>
+  <div class="onboard-title">콩팥 챌린지</div>
+  <div class="onboard-sub">매일 작은 실천으로<br>신장 건강을 지켜보세요.<br><br>본 서비스는 처방·진단을 대체하지 않으며<br>의료진의 지침을 우선으로 따르세요.</div>
+  <button class="btn-primary" onclick="showScreen('screen-track')">트랙 선택하기</button>
+</div>
+
+<!-- SCREEN 2: TRACK SELECT -->
+<div id="screen-track" class="screen">
+  <div class="header">
+    <button class="header-back" onclick="showScreen('screen-onboard')">←</button>
+    <h1>나의 트랙 선택</h1>
+  </div>
+  <div class="track-list">
+    <div class="track-card" onclick="selectTrack('dialysis')">
+      <div class="track-icon" style="background:#E1F5EE">💧</div>
+      <div class="track-info">
+        <h3>투석 트랙</h3>
+        <p>CKD 5단계 · eGFR &lt; 15<br>혈액투석 또는 복막투석 중</p>
+        <span class="track-badge" style="background:#E1F5EE;color:#085041">투석 중</span>
+      </div>
+    </div>
+    <div class="track-card" onclick="selectTrack('ckd')">
+      <div class="track-icon" style="background:#EEEDFE">🌿</div>
+      <div class="track-info">
+        <h3>비투석 CKD 트랙</h3>
+        <p>CKD 진단, 투석 전 보존기<br>진행을 늦추는 것이 목표</p>
+        <span class="track-badge" style="background:#EEEDFE;color:#3C3489">보존기 CKD</span>
+      </div>
+    </div>
+    <div class="track-card" onclick="selectTrack('intensive')">
+      <div class="track-icon" style="background:#FAECE7">🏥</div>
+      <div class="track-info">
+        <h3>집중케어 트랙</h3>
+        <p>신장 집중 관리군 (A그룹)<br>스크리닝을 통해 배정된 분</p>
+        <span class="track-badge" style="background:#FAECE7;color:#4A1B0C">A그룹</span>
+      </div>
+    </div>
+    <div class="track-card" onclick="selectTrack('daily')">
+      <div class="track-icon" style="background:#FAEEDA">🌱</div>
+      <div class="track-info">
+        <h3>일상케어 트랙</h3>
+        <p>신장 위험·사전 관리군 (B·C그룹)<br>생활 습관 개선 중심</p>
+        <span class="track-badge" style="background:#FAEEDA;color:#633806">B·C그룹</span>
+      </div>
+    </div>
+    <div class="track-card" onclick="selectTrack('wellness')">
+      <div class="track-icon" style="background:#EAF3DE">☀️</div>
+      <div class="track-info">
+        <h3>웰니스 트랙</h3>
+        <p>건강 습관 형성군 (D그룹)<br>예방 중심 일반 건강 관리</p>
+        <span class="track-badge" style="background:#EAF3DE;color:#173404">D그룹</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 3: STAGE SELECT -->
+<div id="screen-stage" class="screen">
+  <div class="header">
+    <button class="header-back" onclick="showScreen('screen-track')">←</button>
+    <h1 id="stage-track-name">스테이지 선택</h1>
+  </div>
+  <div class="stage-intro">
+    <p>현재 자신에게 맞는 단계를 선택하세요.<br>언제든지 변경할 수 있습니다.</p>
+  </div>
+  <div class="stage-list">
+    <div class="stage-card" onclick="selectStage('S1')">
+      <div class="stage-num" style="background:#E1F5EE;color:#085041">S1</div>
+      <div class="stage-info">
+        <h3>잔디 단계</h3>
+        <p>처음 시작하거나 기초를 다지는 단계</p>
+      </div>
+      <span class="stage-arrow">›</span>
+    </div>
+    <div class="stage-card" onclick="selectStage('S2')">
+      <div class="stage-num" style="background:#9FE1CB;color:#085041">S2</div>
+      <div class="stage-info">
+        <h3>산스장 단계</h3>
+        <p>기본 습관을 형성하고 강화하는 단계</p>
+      </div>
+      <span class="stage-arrow">›</span>
+    </div>
+    <div class="stage-card" onclick="selectStage('S3')">
+      <div class="stage-num" style="background:#7F77DD;color:#fff">S3</div>
+      <div class="stage-info">
+        <h3>헬스장 단계</h3>
+        <p>목표를 높여 집중적으로 관리하는 단계</p>
+      </div>
+      <span class="stage-arrow">›</span>
+    </div>
+    <div class="stage-card" onclick="selectStage('S4')">
+      <div class="stage-num" style="background:#D85A30;color:#fff">S4</div>
+      <div class="stage-info">
+        <h3>지옥도 단계</h3>
+        <p>최고 강도의 자기 관리 도전 단계</p>
+      </div>
+      <span class="stage-arrow">›</span>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 4: MAIN (TODAY) -->
+<div id="screen-main" class="screen">
+  <div class="header">
+    <div class="logo-dot"></div>
+    <h1>오늘의 챌린지</h1>
+    <button style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text2)" onclick="showScreen('screen-track')">⚙</button>
+  </div>
+
+  <div class="today-header">
+    <div class="today-date" id="today-date"></div>
+    <div class="today-title" id="today-title">오늘도 건강한 하루를</div>
+    <div class="today-stage-badge" id="today-badge" onclick="showScreen('screen-stage')" style="background:var(--teal-50);color:var(--teal-800)">
+      <span id="badge-text">투석 트랙 · S1 잔디</span>
+      <span style="font-size:11px">변경 ›</span>
+    </div>
+  </div>
+
+  <div class="progress-bar-wrap">
+    <div class="progress-meta">
+      <span>오늘 진행도</span>
+      <span id="progress-text">0 / 9 완료</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+
+  <div class="disclaimer">
+    ⚠️ 본 챌린지는 처방 이행을 돕는 보조 도구입니다. 부종·호흡곤란·소변량 급감 등 이상 시 즉시 의료진에게 연락하세요.
+  </div>
+
+  <div class="checklist-section">
+    <div class="section-label">매일 필수 체크</div>
+    <div id="required-list"></div>
+  </div>
+
+  <div class="challenges-wrap">
+    <div class="section-label" style="margin-bottom:10px">선택 챌린지</div>
+    <div class="category-tabs" id="cat-tabs"></div>
+    <div id="challenge-list"></div>
+  </div>
+</div>
+
+<script>
+const TRACKS = {
+  dialysis: {
+    name: '투석 트랙',
+    badgeStyle: 'background:var(--teal-50);color:var(--teal-800)',
+    required: [
+      '[복약] 처방약을 정해진 시간 내로 복용하셨나요?',
+      '[식이·수분] 주치의가 처방한 수분 제한량 및 식이요법(칼륨, 인 등)을 지키셨나요?',
+      '[투석 일정] 투석 일정일을 캘린더에 등록되어 있나요?',
+      '[이상 증상] 호흡곤란·심한 부종 등 이상 시 즉시 의료진에게 연락하세요.',
+    ],
+    categories: {
+      S1: ['교육·이해', '기록 습관', '검사·수치 관리', '운동', '정서'],
+      S2: ['교육·이해', '기록 습관', '검사·수치 관리', '운동', '정서'],
+      S3: ['교육·이해', '기록 습관', '검사·수치 관리', '운동', '정서'],
+      S4: ['교육·이해', '기록 습관', '검사·수치 관리', '운동', '정서'],
+    },
+    challenges: {
+      S1: {
+        '교육·이해': ['투석의 종류(혈액투석·복막투석)와 차이를 소개한 영상 1개 보기'],
+        '기록 습관': ['복약 알림을 스마트폰에 설정하기'],
+        '검사·수치 관리': ['다음 투석 일정을 앱 또는 캘린더에 등록하기'],
+        '운동': ['앉은 자리에서 가벼운 스트레칭 10분 완료하기'],
+        '정서': ['오늘 하루 3분 복식 심호흡하기'],
+      },
+      S2: {
+        '교육·이해': ['투석 간 체중 증가 허용 범위와 관리 방법을 다룬 자료 읽기'],
+        '기록 습관': ['오늘 수분 섭취량을 앱 또는 수첩에 기록하기'],
+        '검사·수치 관리': ['오늘 투석 전후 체중을 측정하고 기록하기'],
+        '운동': ['투석 안 하는 날 평지 걷기 5분 완료하기'],
+        '정서': ['오늘 좋았던 일 한 줄 적기'],
+      },
+      S3: {
+        '교육·이해': ['칼륨·인을 제한해야 하는 이유를 설명한 자료 읽기'],
+        '기록 습관': ['오늘 수분 섭취량·투석 간 체중·복약 여부를 함께 기록하기'],
+        '검사·수치 관리': ['가장 최근 검사 결과의 K·P·Hb 수치를 받아 적기'],
+        '운동': ['투석 안 하는 날 가벼운 걷기 10~15분 완료하기'],
+        '정서': ['오늘 가벼운 취미 또는 대화로 기분 전환하기'],
+      },
+      S4: {
+        '교육·이해': ['오늘 교육 콘텐츠 1개를 보고 핵심 내용을 한 줄로 적기'],
+        '기록 습관': ['오늘 수분 섭취량·투석 간 체중·복약·식사(칼륨·인 조절 여부)를 한 곳에 통합 기록하기'],
+        '검사·수치 관리': ['오늘 K·P·Hb 수치를 이전 결과와 비교해 변화를 메모하기'],
+        '운동': ['투석 안 하는 날 가벼운 유산소 운동 20분 완료 후 피로도를 기록하기'],
+        '정서': ['오늘 환우 커뮤니티 또는 지지 그룹에 참여하거나 활동 살펴보기'],
+      },
+    }
+  },
+  ckd: {
+    name: '비투석 CKD 트랙',
+    badgeStyle: 'background:var(--purple-50);color:var(--purple-800)',
+    required: [
+      '[복약] 처방약을 정해진 시간 내로 복용하셨나요?',
+      '[식이·수분] 주치의가 정한 수분·식이 지키셨나요?',
+      '[진료·검사] 진료 예약일을 캘린더에 등록되어 있나요?',
+      '[이상 증상] 부종, 소변량, 체중 이상 시 즉시 의료진에게 연락하세요.',
+    ],
+    categories: { S1: ['교육·이해','기록 습관','검사·수치 관리','운동','정서'], S2: ['교육·이해','기록 습관','검사·수치 관리','운동','정서'], S3: ['교육·이해','기록 습관','검사·수치 관리','운동','정서'], S4: ['교육·이해','기록 습관','검사·수치 관리','운동','정서'] },
+    challenges: {
+      S1: { '교육·이해': ['CKD(만성 콩팥병)란 무엇인지 소개하는 영상 1개 보기'], '기록 습관': ['복약 알림을 스마트폰에 설정하기'], '검사·수치 관리': ['다음 진료 예약일을 앱 또는 캘린더에 등록하기'], '운동': ['오늘 평지 걷기 10분 완료하기 (의료진 승인 범위 내)'], '정서': ['오늘 하루 3분 복식 심호흡하기'] },
+      S2: { '교육·이해': ['내 eGFR 단계의 의미와 관리 목표를 다룬 자료 읽기'], '기록 습관': ['오늘 복약 여부와 수분 섭취량을 함께 기록하기'], '검사·수치 관리': ['가장 최근 검사 결과의 eGFR·크레아티닌 수치를 받아 적기'], '운동': ['오늘 3,000보 걷기'], '정서': ['오늘 좋았던 일 한 줄 적기'] },
+      S3: { '교육·이해': ['혈압이 신장 기능에 미치는 영향을 다룬 자료 읽기'], '기록 습관': ['오늘 복약·수분·체중을 빠짐없이 기록하기'], '검사·수치 관리': ['오늘 혈압을 측정하고 수치를 기록하기'], '운동': ['오늘 가벼운 유산소 운동 20분 완료하기'], '정서': ['오늘 가벼운 취미 또는 산책으로 기분 전환하기'] },
+      S4: { '교육·이해': ['오늘 교육 콘텐츠 1개를 보고 핵심 내용을 한 줄로 적기'], '기록 습관': ['오늘 복약·수분·체중·혈압을 한 곳에 통합 기록하기'], '검사·수치 관리': ['오늘 검사 결과를 이전 수치와 비교해 변화를 메모하기'], '운동': ['오늘 유산소 운동 30분 완료 후 피로도를 기록하기'], '정서': ['오늘 환우 커뮤니티 또는 지지 그룹에 참여하거나 활동 살펴보기'] },
+    }
+  },
+  intensive: {
+    name: '집중케어 트랙',
+    badgeStyle: 'background:var(--coral-50);color:var(--coral-800)',
+    required: [
+      '[복약] 처방약을 정해진 시간 내로 복용하셨나요?',
+      '[식이·수분] 주치의가 처방한 수분·식이를 지키셨나요?',
+      '[진료·검사] 진료 예약일을 캘린더에 등록되어 있나요?',
+      '[이상 증상] 이상 증상 발생 시 즉시 의료진에게 연락하세요.',
+    ],
+    categories: { S1: ['수분','식단','운동','수면','스트레스'], S2: ['수분','식단','운동','수면','스트레스'], S3: ['수분','식단','운동','수면','스트레스'], S4: ['수분','식단','운동','수면','스트레스'] },
+    challenges: {
+      S1: { '수분': ['오늘 신장 기능 보호를 위한 수분 관리의 중요성을 다룬 짧은 영상(5분 이내)을 시청하기','오늘 탄산음료·설탕 음료를 0잔으로 줄이고 물·무가당 음료로만 수분 섭취하기','오늘 카페인 음료(커피·녹차·에너지음료)를 3잔 이하로 제한하기','오늘 국·찌개·가공식품 섭취를 1회 이하로 줄여 갈증 유발 나트륨을 낮추기','적절한 음수량 확인법 영상 시청하기'], '식단': ['오늘 나트륨 과다 섭취가 신장에 미치는 영향을 설명한 영상(5분 이내)을 시청하기','오늘 신장 부담을 줄이는 식물성 식품(채소·콩류)을 1끼 이상 포함해 식사하기','오늘 국·찌개를 절반 이하로 먹거나 싱겁게 조리해 나트륨 섭취를 줄이기','오늘 동물성 단백질 1회 제공량을 손바닥 크기(약 80g) 이하로 조절하기','오늘 흰 밥·흰 빵 대신 현미·잡곡·통곡물로 1끼 이상 대체하기'], '운동': ['오늘 규칙적인 운동이 신장 기능 보호와 혈압 조절에 도움이 된다는 내용의 영상(5분 이내)을 시청하기','오늘 평지 걷기 10분 이상 완료하기','오늘 운동 전 어지럼증·극심한 피로가 없는지 확인하고 이상 없을 때 운동 시작하기','오늘 운동 전 워밍업 스트레칭 5분 + 운동 후 쿨다운 스트레칭 5분을 완료하기','오늘 1시간마다 자리에서 일어나 5분씩 걷거나 스트레칭하는 활동을 2회 이상 실천하기'], '수면': ['오늘 수면 부족이 혈압 상승과 신장 기능에 미치는 영향을 다룬 영상(5분 이내)을 시청하기','오늘 밤 11시 이전에 취침하고 어제와 ±30분 이내로 맞추기','오늘 취침 30분 전 스마트폰·태블릿을 내려놓고 독서·스트레칭·명상 중 1가지로 전환하기','오늘 밤 11시 이전에 취침하기','오늘 밤사이 잠에서 깬 횟수가 2회 이하였는지 기상 후 확인하기'], '스트레스': ['오늘 만성 스트레스가 혈압과 신장 기능에 미치는 영향을 설명한 영상(5분 이내)을 시청하기','오늘 가족 또는 가까운 사람과 건강 관련 걱정을 5분 이상 직접 대화로 나누기','오늘 혈압 안정을 위해 복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 3회 이상 실천하기','오늘 스트레스를 느꼈을 때 폭식·음주 대신 10분 산책·5분 호흡·5분 대화 중 1가지로 해소하기','오늘 신장 질환 관리 중 느끼는 걱정을 종이에 한 문장으로 적고 내려놓기'] },
+      S2: { '수분': ['갈증 해소 정도만 수분 섭취하기','오늘 식품 라벨의 나트륨 함량을 2회 이상 확인해 나트륨 목표(2g 미만) 달성에 활용하기','오늘 알코올 0잔으로 하루를 보내기','오늘 카페인 음료를 오후 2시 이전에만 마시고 이후에는 물·허브티로 대체하기','오늘 탄산음료·에너지음료·설탕 음료를 한 잔도 마시지 않기'], '식단': ['오늘 식물성 단백질(두부·콩·렌틸) 식품을 1회 이상 섭취하기','오늘 소금 대신 허브·레몬즙·식초로 간을 맞춰 나트륨 목표를 달성하기','오늘 신선식품·통곡물·채소 위주로 2끼 이상 식사하고 초가공식품 섭취를 피하기','오늘 고기·생선을 1회 섭취할 때 손바닥 크기(약 80g) 이하로 조절하기','오늘 나트륨 목표(2g 미만) 달성을 위해 소금 대신 허브·레몬즙·식초로 간을 맞추기'], '운동': ['오늘 운동 전 피로·통증이 심하지 않은지 확인하고 이상 없을 때 운동 시작하기','오늘 빠른 걷기 또는 실내 자전거를 20분 이상 완료하기','오늘 운동 중 짧은 대화가 가능한 강도(약간 숨차는 수준)로 15분 이상 유지하기','오늘 매 시간 5분 이상 자리에서 일어나 이동하는 활동을 3회 이상 실천하기','오늘 의자 스쿼트 10회 × 2세트 이상 하체 근력 운동 수행하기'], '수면': ['오늘 취침 2시간 전에 식사를 마치기','오늘 침실 온도를 18~20°C, 조명을 소등 상태로 설정해 수면 환경을 조성하기','오늘 낮잠을 15분 이내로 제한하기','오늘 기상 후 어제 수면 시간이 7시간 이상이었는지 확인하기','오늘 기상 후 밤사이 잠에서 깬 횟수가 2회 이하였는지 확인하기'], '스트레스': ['오늘 신장 질환 관리 부담을 느낄 때 가족 또는 친구와 10분 이상 직접 대화를 나누기','오늘 복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 5분 이상 실천하기','오늘 복식 호흡 또는 마음챙김 명상을 5분 이상 실시하기','오늘 저녁 하루를 마치며 오늘 느낀 감정(불안·긴장·안도·감사 중 1가지)을 말로 표현하기','오늘 부정적인 생각이 들 때 그 생각을 종이에 적고 현실적으로 반박하는 문장을 1개 이상 써보기'] },
+      S3: { '수분': ['오늘 직접 요리 1회 이상 + 식품 라벨 확인 2회 이상으로 나트륨 목표(2g 미만)를 실천하기','오늘 카페인 음료를 오전 1잔으로 제한하고 오후 12시 이후에는 물·허브티만 마시기','오늘 나트륨 목표(2g 미만) 달성을 위해 직접 조리 1회 이상 + 식품 라벨 확인 2회 이상 실천하기','적절한 음수량 확인법 실천하기','오늘 알코올 0잔으로 하루를 보내기'], '식단': ['오늘 저녁 식사에서 국·찌개를 절반 이하로 먹고 채소 반찬을 1가지 이상 포함하기','오늘 흰 밥 대신 현미밥·잡곡밥으로 2끼 이상 대체하기','오늘 나트륨 목표 달성을 위해 소금 대신 허브·향신료·레몬즙을 2회 이상 활용하기','오늘 동물성 단백질(고기·생선·달걀)을 1회 섭취 시 손바닥 크기(약 80g) 이하로 조절하기','오늘 끼니마다 채소 반찬 2가지 이상을 포함해 식물성 식품 섭취 비중을 높이기'], '운동': ['오늘 유산소 운동 20분 이상을 약간 숨차는 강도로 완료하기','오늘 저항 운동(탄성 밴드·체중 스쿼트·팔굽혀펴기)을 10분 이상 수행하기','오늘 운동 중 10분마다 짧은 대화가 가능한 강도인지 확인하며 30분 이상 유지하기','오늘 운동 후 쿨다운 스트레칭 5분을 수행하고 5분간 앉아서 호흡을 안정시키기','오늘 좌식 시간을 전날보다 30분 이상 줄이고 총 좌식 시간을 5시간 이하로 유지하기'], '수면': ['오늘 운동을 취침 3시간 이전에 마치기','오늘 취침 전 이완 루틴(명상·스트레칭·독서)을 10분 이상 수행하기','오늘 밤 11시 이전에 취침하고 어제와 ±30분 이내로 맞추기','오늘 기상 후 밤사이 잠에서 깬 횟수가 2회 이하였는지 확인하기','오늘 낮잠을 15분 이내로 제한해 야간 수면 질을 보호하기'], '스트레스': ['오늘 마음챙김 명상을 10분 이상 실천하기','오늘 신장 질환 관련 걱정을 통제 가능한 것과 통제 불가능한 것으로 나누고 통제 가능한 것 1가지에만 집중하기','오늘 스트레스를 느꼈을 때 10분 걷기·5분 호흡·5분 대화 중 1가지로 해소하기','오늘 부정적 감정을 판단 없이 3분간 관찰하는 마음챙김 연습을 1회 이상 하기','오늘 신장 질환 관리 중 잘 실천한 일 1가지를 떠올리며 스스로 인정하기'] },
+      S4: { '수분': ['오늘 직접 조리 + 라벨 확인 두 방법으로 나트륨 목표(2g 미만) 달성 여부를 검증하기','오늘 운동 전·중·후에 각 150~200mL씩 수분을 보충해 목표 수분량을 달성하기','오늘 운동 전·중·후 각 150~200mL씩 수분을 보충해 일일 목표 수분량을 달성하기','오늘 직접 조리 + 식품 라벨 확인 두 방법으로 나트륨 목표(2g 미만) 달성 여부를 검증하기','오늘 알코올 0잔으로 하루를 보내기'], '식단': ['오늘 흰 밥 대신 현미밥·잡곡밥으로 3끼 모두 대체하기','오늘 하루 식단 전체가 식물성 위주·저나트륨·통곡물 원칙에 3끼 모두 부합하기','오늘 고기·생선·달걀을 1회 섭취할 때 손바닥 크기(약 80g) 이하로 조절하기','오늘 고기·생선·달걀을 1회 섭취할 때 손바닥 크기(약 80g) 이하로 조절하기','오늘 외식 시 국물 요리 대신 구이·찜·나물 반찬 위주로 선택하기'], '운동': ['오늘 유산소 25분 + 근력 운동 15분으로 총 40분 이상 운동하기','오늘 근력 운동 시 스쿼트·런지·플랭크 중 2가지 이상을 각 15회 × 2세트 수행하기','오늘 숨이 차고 땀이 나지만 짧은 대화는 가능한 강도로 유산소 운동을 25분 이상 유지하기','오늘 총 좌식 시간을 4시간 이하로 줄이기','오늘 운동 후 쿨다운 스트레칭 5분 + 5분 호흡 안정을 완료하고 다음 운동 일정을 정하기'], '수면': ['오늘 취침 전 이완 루틴(명상·호흡·스트레칭)을 10분 이상 수행하고 침실 환경(18~20°C·소등)을 조성하기','오늘 밤 11시 이전에 취침하고 어제와 ±30분 이내로 맞추기','오늘 기상 후 어제 수면 시간이 7시간 이상이었는지 확인하기','오늘 밤 11시 이전에 취침하고 어제와 ±30분 이내로 맞추기','오늘 낮잠을 15분 이내로 제한하고 취침 전 스마트폰을 30분 이상 내려놓기'], '스트레스': ['오늘 명상·복식 호흡·긍정적 자기 대화를 15분 이상 실천하기','오늘 스트레스 상황에서 즉각 반응하지 않고 5초간 멈춘 뒤 복식 호흡 후 반응하기','오늘 신장 질환 관련 부정적 생각이 반복될 때 \'지금 이 순간\'에 집중하는 마음챙김을 10분 이상 실천하기','오늘 만성 스트레스를 줄이기 위해 명상·복식 호흡·긍정적 자기 대화를 15분 이상 실천하기','오늘 신장 질환 관리의 심리적 부담을 신뢰하는 사람과 10분 이상 직접 대화로 나누기'] },
+    }
+  },
+  daily: {
+    name: '일상케어 트랙',
+    badgeStyle: 'background:var(--amber-50);color:var(--amber-800)',
+    required: [
+      '[복약] 처방약을 정해진 시간 내로 복용하셨나요?',
+      '[식이·수분] 주치의가 정한 수분·식이 지키셨나요?',
+      '[진료·검사] 진료 예약일을 캘린더에 등록되어 있나요?',
+      '[이상 증상] 이상 증상 발생 시 즉시 의료진에게 연락하세요.',
+    ],
+    categories: { S1: ['수분','식단','운동','수면','스트레스'], S2: ['수분','식단','운동','수면','스트레스'], S3: ['수분','식단','운동','수면','스트레스'], S4: ['수분','식단','운동','수면','스트레스'] },
+    challenges: {
+      S1: { '수분': ['오늘 충분한 수분 섭취가 혈압·혈당 조절에 미치는 영향을 다룬 아티클을 읽기','오늘 탄산음료·설탕 음료를 0잔으로 줄이고 물·무가당 음료로만 수분 섭취하기','오늘 카페인 음료(커피·녹차·에너지음료)를 3잔 이하로 제한하기','오늘 혈압 관리를 위해 수분이 충분한지 소변 색깔(연한 노란색)로 확인하기','오늘 아침·점심·저녁 식사 전 물 200mL를 2끼 이상 마시기'], '식단': ['오늘 나쁜 지방(포화지방)이 혈관 건강을 나쁘게 만드는 이유를 설명한 영상(5분 이내)을 시청하기','오늘 혈관 건강을 위해 채소·통곡물(현미·귀리 등)을 1끼 이상 식사에 포함하기','오늘 혈압 관리를 위해 국·찌개를 절반 이하로 먹거나 국물을 남겨 나트륨 섭취를 줄이기','오늘 과자·케이크 등 포화지방·트랜스지방이 많은 간식 대신 견과류(30g)나 과일을 선택하기','오늘 아침·점심·저녁 3끼를 규칙적인 시간에 먹기'], '운동': ['오늘 운동이 혈압·혈당·콜레스테롤 개선에 미치는 효과를 다룬 영상(5분 이내)을 시청하기','오늘 엘리베이터 대신 계단을 1회 이상 이용하기','오늘 빠른 걷기 10분 이상 또는 계단 오르기 5층 이상 실천하기','오늘 1시간마다 자리에서 일어나 5분씩 움직이는 활동을 2회 이상 실천하기','오늘 어제보다 걸음 수가 같거나 더 많도록 의식적으로 움직이기'], '수면': ['오늘 수면 부족이 혈압·혈당·콜레스테롤에 미치는 영향을 설명한 아티클을 읽기','오늘 밤 12시 이전에 취침하고 어제와 ±30분 이내로 맞추기','오늘 취침 30분 전 스마트폰·태블릿을 내려놓고 독서·스트레칭·명상 중 1가지로 전환하기','오늘 야간 혈압 회복을 위해 침실 온도를 18~20°C로 맞추고 조명을 어둡게 설정해 수면 환경을 조성하기','오늘 20분 이상 잠들지 못하면 침대에서 일어나 독서·스트레칭을 5~10분 후 다시 눕기'], '스트레스': ['오늘 만성 스트레스가 혈압·혈당·콜레스테롤 수치에 미치는 영향을 다룬 아티클을 읽기','오늘 가족이나 친구와 건강 관련 걱정을 5분 이상 직접 대화로 나누기','오늘 복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 3회 이상 실천하기','오늘 스트레스를 느꼈을 때 폭식·음주 대신 10분 산책·5분 호흡·5분 대화 중 1가지로 해소하기','오늘 만성 질환 관리 중 느끼는 걱정을 종이에 한 문장으로 적고 내려놓기'] },
+      S2: { '수분': ['오늘 물(음료 제외)을 1,500mL 이상 마시기','오늘 음주 목표를 지켜 알코올을 마시지 않거나 남성 2잔·여성 1잔 이하로 제한하기','오늘 혈압 안정을 위해 카페인 음료를 오후 2시 이전에만 마시고 이후에는 물·허브티로 대체하기','오늘 아침·점심·저녁 식사 때마다 물 200mL를 함께 마시기(총 600mL)','오늘 카페인 음료를 오후 2시 이전에만 마시고 이후에는 물·허브티로 대체하기'], '식단': ['오늘 식품 구매 시 포화지방·나트륨·당 함량을 1회 이상 확인해 선택에 활용하기','오늘 삼겹살·소시지 대신 생선·두부·콩류를 단백질 반찬으로 1회 이상 선택하기','오늘 흰 밥 대신 잡곡밥·현미밥·귀리밥으로 2끼 이상 대체하기','오늘 국·찌개를 절반 이하로 섭취하거나 싱겁게 조리해 나트륨 2,300mg 미만을 달성하기','오늘 간식으로 과자·빵 대신 견과류 한 줌(30g) 또는 과일 1개를 선택하기'], '운동': ['오늘 운동 전 피로·통증이 심하지 않은지 확인하고 이상 없을 때 운동 시작하기','오늘 빠른 걷기·자전거 등 유산소 운동을 20분 이상 완료하기','오늘 스쿼트·팔굽혀펴기 등 근력 운동을 10분 이상 수행하기','오늘 운동 전후 워밍업·쿨다운 스트레칭을 각 5분씩 수행하기','오늘 운동 중 약간 숨차지만 대화 가능한 강도로 15분 이상 유지하기'], '수면': ['오늘 취침 2시간 전에 식사를 마치기','오늘 밤 12시 이전에 취침했는지, 어제와 ±30분 이내인지 기상 후 확인하기','오늘 취침 전 이완 활동(명상·독서·스트레칭)을 10분 이상 수행하기','오늘 낮잠을 15분 이내로 제한하기','오늘 기상 후 어제 수면 시간이 7시간 이상이었는지 확인하기'], '스트레스': ['오늘 만성 질환 관리 부담을 느낄 때 가족 또는 친구와 10분 이상 직접 대화를 나누기','오늘 복식 호흡 또는 마음챙김 명상을 5분 이상 실시하기','오늘 스트레스를 느낄 때 복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 5분 이상 실천하기','오늘 저녁 하루를 마치며 오늘 느낀 감정(불안·긴장·안도·감사 중 1가지)을 말로 표현하기','오늘 스트레스를 느꼈을 때 폭식·음주 대신 10분 산책·5분 호흡·5분 대화 중 1가지로 해소하기'] },
+      S3: { '수분': ['오늘 운동 전·중·후에 각 150~200mL씩 수분을 보충하기','오늘 카페인 음료를 오전 1잔 이하로 조절하기','오늘 알코올 0잔으로 하루를 보내기','오늘 오전 700mL, 오후 700mL, 저녁 600mL로 나눠 총 2,000mL 이상 마시기','오늘 알코올 0잔으로 하루를 보내기'], '식단': ['오늘 채소 반찬 2가지 이상 + 통곡물 또는 생선 1가지 이상을 포함해 2끼 이상 먹기','오늘 포화지방 식품(삼겹살·버터·가공육) 대신 불포화지방 식품(등 푸른 생선·올리브오일·아보카도)을 1회 이상 선택하기','오늘 혈관 건강에 좋은 식품(귀리·보리·사과·콩류)을 1회 이상 섭취하기','오늘 포화지방 식품(삼겹살·버터·가공육) 대신 불포화지방 식품(등 푸른 생선·올리브오일)을 1회 이상 선택하기','오늘 붉은 육류 대신 등 푸른 생선(고등어·삼치·연어)을 1회 이상 단백질 반찬으로 선택하기'], '운동': ['오늘 저항 운동(밴드·덤벨·체중)을 20분 이상 수행하기','오늘 유산소 운동 20분 이상을 약간 숨차지만 대화 가능한 강도로 완료하기','오늘 걷기·자전거·수영 중 1가지를 30분 이상 완료하기','오늘 좌식 시간을 전날보다 30분 이상 줄이고 총 좌식 시간을 5시간 이하로 유지하기','오늘 운동 후 쿨다운 스트레칭 5분을 수행하고 5분간 앉아서 호흡을 안정시키기'], '수면': ['오늘 취침 전 침실 온도를 18~20°C로 맞추고 커튼·암막으로 빛을 차단하기','오늘 운동을 취침 3시간 이전에 마치기','오늘 밤 12시 이전에 취침하고 어제와 ±30분 이내로 맞추기','오늘 기상 후 피로감 없이 개운하게 일어났는지 확인하기','오늘 취침 전 침실 온도를 18~20°C로 맞추고 커튼·암막으로 빛을 차단하기'], '스트레스': ['오늘 마음챙김 명상을 10분 이상 실천하기','오늘 만성 질환 관리 스트레스 원인을 통제 가능한 것과 불가능한 것으로 나누고 통제 가능한 것 1가지에 집중하기','오늘 스트레스 원인을 통제 가능한 것과 통제 불가능한 것으로 구분하고 통제 가능한 것 1가지에 집중하기','오늘 부정적 감정을 판단 없이 3분간 관찰하는 마음챙김 연습을 1회 이상 하기','오늘 스트레스를 느꼈을 때 복식 호흡 3회 또는 신뢰하는 사람과 5분 대화 중 1가지로 해소하기'] },
+      S4: { '수분': ['오늘 운동 1시간당 500mL 추가 수분을 보충하기','오늘 설탕 음료·탄산음료를 0잔으로 줄이고 물·무가당 음료만 마시기','오늘 운동 1시간당 500mL 추가 수분을 보충하기','오늘 설탕 음료·탄산음료를 0잔으로 줄이고 물·무가당 음료만 마시기','오늘 알코올 0잔으로 하루를 보내기'], '식단': ['오늘 포화지방·트랜스지방 식품을 완전히 피하고 불포화지방(생선·올리브오일·견과류) 위주로 식사하기','오늘 혈관·혈당 건강에 좋은 식품(귀리·사과·콩류)을 2회 이상 섭취하기','오늘 채소 반찬 2가지 이상 + 통곡물 또는 생선 1가지 이상을 포함해 3끼 모두 먹기','오늘 외식 시 튀김·패스트푸드 대신 채소·단백질 중심 메뉴를 선택하기','오늘 간식으로 과자·빵 대신 견과류 한 줌(30g) 또는 과일 1개를 선택하기'], '운동': ['오늘 유산소 25분 이상을 숨차지만 대화 가능한 강도로 완료하기','오늘 근력 운동 시 스쿼트·런지·플랭크 중 2가지 이상을 각 15회 × 2세트 수행하기','오늘 유산소 25분 + 근력 운동 15분으로 총 40분 이상 운동하기','오늘 총 좌식 시간을 4시간 이하로 줄이기','오늘 운동 후 쿨다운 스트레칭 5분 + 5분 호흡 안정을 완료하고 다음 운동 일정을 정하기'], '수면': ['오늘 취침 전 이완 루틴(명상·호흡·스트레칭)을 15분 이상 수행하기','오늘 취침 전 이완 루틴(명상·호흡·스트레칭)을 15분 이상 수행하기','오늘 밤 12시 이전에 취침하고 전날과 ±30분 이내로 맞추기','오늘 기상 후 어제 수면 시간이 7시간 이상이었는지 확인하기','오늘 낮잠을 15분 이내로 제한해 야간 수면 질을 보호하기'], '스트레스': ['오늘 명상·복식 호흡·긍정적 자기 대화를 15분 이상 실천하기','오늘 만성 질환 관리의 심리적 부담을 신뢰하는 사람과 10분 이상 직접 대화로 나누기','오늘 명상·복식 호흡·긍정적 자기 대화를 15분 이상 실천하기','오늘 스트레스 상황에서 즉각 반응하지 않고 5초간 멈춘 뒤 복식 호흡 후 반응하기','오늘 부정적 생각이 반복될 때 \'지금 이 순간\'에 집중하는 마음챙김을 10분 이상 실천하기'] },
+    }
+  },
+  wellness: {
+    name: '웰니스 트랙',
+    badgeStyle: 'background:#EAF3DE;color:#173404',
+    required: [
+      '[건강 점검] 오늘 몸 상태를 간단히 점검해 보셨나요?',
+      '[수분·식이] 균형 잡힌 식사와 충분한 수분 섭취를 하셨나요?',
+      '[활동] 오늘 몸을 움직이는 시간이 있었나요?',
+      '[수면] 어젯밤 수면은 충분했나요?',
+    ],
+    categories: { S1: ['수분','식단','운동','수면','스트레스'], S2: ['수분','식단','운동','수면','스트레스'], S3: ['수분','식단','운동','수면','스트레스'], S4: ['수분','식단','운동','수면','스트레스'] },
+    challenges: {
+      S1: { '수분': ['오늘 건강한 하루 수분 목표(물 기준 약 1.5~2L)와 그 효과를 다룬 콘텐츠를 확인하기','오늘 탄산음료·설탕 음료를 0잔으로 줄이고 물·무가당 음료로만 수분 섭취하기','오늘 카페인 음료(커피·녹차)를 3잔 이하로 조절하고 나머지는 물로 대체하기','오늘 물 마시는 습관을 점검하기 위해 소변 색깔이 연한 노란색인지 확인하기','오늘 수분 섭취 습관 형성을 위해 식사 전 물 한 잔(200mL)을 마시는 루틴을 2끼 이상 실천하기'], '식단': ['오늘 균형 잡힌 식사와 초가공식품의 차이를 다룬 아티클이나 인포그래픽을 확인하기','오늘 균형 잡힌 식사를 위해 다양한 색깔의 채소를 1끼 이상 식사에 포함하기','오늘 나트륨 과다 섭취를 예방하기 위해 국물 요리는 건더기 위주로 먹고 국물을 남기기','오늘 과자·쿠키 대신 과일 또는 견과류 1회 분량(약 30g)을 간식으로 선택하기','오늘 아침·점심·저녁 3끼를 규칙적인 시간에 먹기'], '운동': ['오늘 WHO 권장 주간 운동량(중등도 150분)을 다룬 영상(5분 이내)을 시청하기','오늘 엘리베이터 대신 계단을 1회 이상 이용하기','오늘 가벼운 걷기 또는 스트레칭을 10분 이상 하기','오늘 1시간마다 자리에서 일어나 스트레칭·이동을 2회 이상 하기','오늘 어제보다 걸음 수가 같거나 더 많도록 의식적으로 움직이기'], '수면': ['오늘 수면이 면역력·피로 회복에 미치는 영향을 다룬 영상(5분 이내)이나 아티클을 확인하기','오늘 밤 12시 이전에 취침하고 어제와 ±30분 이내로 맞추기','오늘 밤 12시 이전에 취침하기','오늘 취침 전 침실 온도를 18~20°C로 맞추고 암막·소등 상태를 만들기','오늘 20분 이상 잠들지 못하면 침대에서 일어나 독서·스트레칭을 5~10분 후 다시 눕기'], '스트레스': ['오늘 만성 스트레스가 혈압·혈당·면역력에 미치는 영향을 다룬 영상(5분 이내)을 시청하기','오늘 편한 사람(가족·친구·동료)과 5분 이상 직접 대화를 나누기','오늘 스트레스 받은 상황 및 감정을 종이에 작성하기','오늘 일상 스트레스를 느낄 때 복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 3회 이상 실천하기','오늘 스트레스를 느꼈을 때 폭식·음주 대신 10분 산책·5분 호흡·5분 대화 중 1가지로 해소하기'] },
+      S2: { '수분': ['오늘 물(음료 제외)을 1,500mL 이상 마시기','오늘 음주 목표를 지켜 알코올을 마시지 않거나 남성 2잔·여성 1잔 이하로 제한하기','오늘 카페인 음료를 오후 2시 이후에는 마시지 않는 습관을 실천하기','오늘 아침·점심·저녁 식사 전 물 200mL를 먼저 마시기(총 600mL)','오늘 카페인 음료를 오후 2시 이전에만 마시고 이후에는 물·허브티로 대체하기'], '식단': ['오늘 식품 구매 시 포장 뒷면의 나트륨·당 함량을 1회 이상 확인해 선택에 활용하기','오늘 채소·과일을 2회 이상 섭취하고 동물성 단백질 1회 제공량을 80g 이하로 조절하기','오늘 흰 밥 대신 잡곡·현미로 2끼 이상 대체하기','오늘 조리 시 소금을 줄이고 하루 나트륨 섭취를 2,000mg 수준으로 낮추기','오늘 간식으로 과자·빵 대신 견과류 한 줌(30g) 또는 과일 1개를 선택하기'], '운동': ['오늘 운동 전 피로·통증이 심하지 않은지 확인하고 이상 없을 때 운동 시작하기','오늘 빠른 걷기·자전거 등 유산소 운동을 20분 이상 완료하기','오늘 스쿼트·팔굽혀펴기·플랭크 등 근력 운동을 10분 이상 수행하기','오늘 운동 전후 워밍업·쿨다운 스트레칭을 각 5분씩 수행하기','오늘 운동 중 약간 숨차지만 대화 가능한 강도로 15분 이상 유지하기'], '수면': ['오늘 취침 2시간 전에 식사를 마치기','오늘 밤 12시 이전에 취침하고 기상 시간도 어제와 ±30분 이내로 맞추기','오늘 취침 전 본인만의 이완 루틴(독서·스트레칭·음악 감상)을 10분 이상 수행하기','오늘 낮잠을 15분 이내로 제한하기','오늘 기상 후 어제 수면 시간이 7시간 이상이었는지 확인하기'], '스트레스': ['오늘 스트레스를 느낄 때 가족·친구와 10분 이상 직접 대화를 나누기','오늘 복식 호흡 또는 마음챙김 명상을 5분 이상 실시하기','오늘 스트레스를 느낄 때 복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 5분 이상 실천하기','오늘 저녁 하루를 마치며 오늘 느낀 감정(불안·긴장·안도·감사 중 1가지)을 말로 표현하기','오늘 스트레스를 느꼈을 때 폭식·음주 대신 10분 산책·5분 호흡·5분 대화 중 1가지로 해소하기'] },
+      S3: { '수분': ['오늘 수분 섭취량을 시간대별로 분산해 총 2,000mL를 달성하기','오늘 운동 전·중·후에 각 150~200mL씩 수분을 나눠 보충하기','오늘 카페인 음료를 오전 1잔으로 제한하고 오후 12시 이후에는 물·허브티만 마시기','오늘 알코올 0잔으로 하루를 보내기','오늘 오전 700mL, 오후 700mL, 저녁 600mL로 나눠 총 2,000mL 이상 마시기'], '식단': ['오늘 채소 반찬 2가지 이상 + 통곡물 또는 과일을 1가지 이상 포함해 2끼 이상 먹기','오늘 붉은 육류 대신 생선·두부·콩류를 단백질 공급원으로 1회 이상 선택하기','오늘 국·김치·소스류를 절반 이하로 줄여 나트륨 2,300mg 미만을 달성하기','오늘 혈관 건강에 좋은 식품(귀리·사과·콩류)을 1회 이상 섭취하기','오늘 포화지방이 많은 삼겹살·버터·가공육 대신 생선·두부·콩류를 단백질 반찬으로 1회 이상 선택하기'], '운동': ['오늘 저항 운동(밴드·덤벨·체중)을 20분 이상 수행하기','오늘 유산소 운동 20분 이상을 약간 숨차지만 대화 가능한 강도로 완료하기','오늘 걷기·자전거·수영 중 1가지를 30분 이상 완료하기','오늘 좌식 시간을 전날보다 30분 이상 줄이고 총 좌식 시간을 5시간 이하로 유지하기','오늘 운동 후 쿨다운 스트레칭 5분을 수행하고 5분간 앉아서 호흡을 안정시키기'], '수면': ['오늘 기상 후 피로감 없이 개운하게 일어났는지 확인하기','오늘 운동을 취침 3시간 이전에 마치기','오늘 기상 후 피로감 없이 개운하게 일어났는지, 밤사이 잠에서 깬 횟수가 2회 이하였는지 확인하기','오늘 밤 11시 이전에 취침하고 어제와 ±30분 이내로 맞추기','오늘 낮잠을 15분 이내로 제한해 야간 수면 질을 보호하기'], '스트레스': ['오늘 마음챙김 명상을 10분 이상 실천하기','오늘 일상 스트레스 원인을 통제 가능한 것과 불가능한 것으로 나누고 통제 가능한 것 1가지에 집중하기','오늘 스트레스 원인을 통제 가능한 것과 통제 불가능한 것으로 구분하고 통제 가능한 것 1가지에 집중하기','오늘 부정적 감정을 판단 없이 3분간 관찰하는 마음챙김 연습을 1회 이상 하기','오늘 스트레스를 느꼈을 때 복식 호흡 3회 또는 신뢰하는 사람과 5분 대화 중 1가지로 해소하기'] },
+      S4: { '수분': ['오늘 운동 중 탈수 예방과 회복을 위해 1시간 운동당 500mL 추가 수분을 보충하기','오늘 설탕 음료·탄산음료를 0잔으로 줄이고 물·무가당 음료만 마시기','오늘 오전 700mL, 오후 700mL, 저녁 600mL로 나눠 총 2,000mL 이상 마시기','오늘 설탕 음료·탄산음료·에너지음료를 마시지 않기','오늘 알코올을 마시지 않기'], '식단': ['오늘 소금 대신 허브·향신료만 사용해 나트륨 목표 2,000mg 미만을 달성하기','오늘 식물성 단백질(콩·두부·렌틸) 식품을 1회 이상 섭취하기','오늘 채소 반찬 2가지 이상 + 통곡물 또는 생선 1가지 이상을 포함해 3끼 모두 먹기','오늘 외식 시 메뉴를 고를 때 튀김·패스트푸드 대신 채소·단백질 중심 메뉴를 선택하기','오늘 나트륨 섭취를 줄이기 위해 국·찌개를 절반만 먹거나 국물을 남기기'], '운동': ['오늘 숨이 차고 땀이 나지만 짧은 대화는 가능한 강도로 유산소 운동을 25분 이상 완료하기','오늘 근력 운동 시 스쿼트·런지·플랭크 중 2가지 이상을 각 15회 × 2세트 수행하기','오늘 유산소 25분 + 근력 운동 15분으로 총 40분 이상 운동하기','오늘 총 좌식 시간을 4시간 이하로 줄이기','오늘 운동 후 쿨다운 스트레칭 5분 + 5분 호흡 안정을 완료하고 다음 운동 일정을 정하기'], '수면': ['오늘 취침 전 이완 루틴(복식 호흡·근육 이완·스트레칭)을 15분 이상 수행하기','오늘 취침 전 이완 루틴(명상·호흡·스트레칭)을 15분 이상 수행하기','오늘 밤 12시 이전에 취침하고 전날과 ±30분 이내로 맞추기','오늘 기상 후 어제 수면 시간이 7시간 이상이었는지 확인하기','오늘 낮잠을 15분 이내로 제한해 야간 수면 질을 보호하기'], '스트레스': ['오늘 명상·복식 호흡·긍정적 자기 대화를 15분 이상 실천하기','오늘 일상의 좋은 점 3가지를 떠올리며 감사 일기를 마음속으로 정리하기','오늘 스트레스 상황에서 즉각 반응하지 않고 5초간 멈춘 뒤 복식 호흡 후 반응하기','오늘 가족·친구·커뮤니티와 10분 이상 직접 대화를 나누기','오늘 부정적 생각이 반복될 때 \'지금 이 순간\'에 집중하는 마음챙김을 10분 이상 실천하기'] },
+    }
+  }
+};
+
+let currentTrack = 'dialysis';
+let currentStage = 'S1';
+let currentCat = null;
+let reqDone = {};
+let chalDone = {};
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function selectTrack(trackId) {
+  currentTrack = trackId;
+  reqDone = {};
+  chalDone = {};
+  const t = TRACKS[trackId];
+  document.getElementById('stage-track-name').textContent = t.name;
+  showScreen('screen-stage');
+}
+
+function selectStage(stage) {
+  currentStage = stage;
+  currentCat = null;
+  reqDone = {};
+  chalDone = {};
+  renderMain();
+  showScreen('screen-main');
+}
+
+function renderMain() {
+  const t = TRACKS[currentTrack];
+  const stageNames = { S1: '잔디', S2: '산스장', S3: '헬스장', S4: '지옥도' };
+  const stageColors = { S1: 'background:var(--teal-50);color:var(--teal-800)', S2: 'background:#9FE1CB;color:#085041', S3: 'background:var(--purple-50);color:var(--purple-800)', S4: 'background:var(--coral-50);color:var(--coral-800)' };
+  
+  const now = new Date();
+  const dayNames = ['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
+  document.getElementById('today-date').textContent = `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 ${dayNames[now.getDay()]}`;
+  document.getElementById('badge-text').textContent = `${t.name} · ${currentStage} ${stageNames[currentStage]}`;
+  document.getElementById('today-badge').style = stageColors[currentStage];
+
+  renderRequired();
+  const cats = t.categories[currentStage];
+  currentCat = cats[0];
+  renderCategoryTabs(cats);
+  renderChallenges();
+}
+
+function renderRequired() {
+  const t = TRACKS[currentTrack];
+  const list = document.getElementById('required-list');
+  list.innerHTML = '';
+  t.required.forEach((text, i) => {
+    const div = document.createElement('div');
+    div.className = 'check-item' + (reqDone[i] ? ' done' : '');
+    div.innerHTML = `<div class="check-box">${reqDone[i] ? '<svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}</div><div class="check-text">${text}</div>`;
+    div.onclick = () => { reqDone[i] = !reqDone[i]; renderRequired(); updateProgress(); };
+    list.appendChild(div);
+  });
+}
+
+function renderCategoryTabs(cats) {
+  const tabs = document.getElementById('cat-tabs');
+  tabs.innerHTML = '';
+  cats.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-tab' + (cat === currentCat ? ' active' : '');
+    btn.textContent = cat;
+    btn.onclick = () => { currentCat = cat; renderCategoryTabs(cats); renderChallenges(); };
+    tabs.appendChild(btn);
+  });
+}
+
+function renderChallenges() {
+  const t = TRACKS[currentTrack];
+  const items = t.challenges[currentStage][currentCat] || [];
+  const list = document.getElementById('challenge-list');
+  list.innerHTML = '';
+  const key = currentStage + '_' + currentCat;
+  items.forEach((text, i) => {
+    const doneKey = key + '_' + i;
+    const done = !!chalDone[doneKey];
+    const card = document.createElement('div');
+    card.className = 'challenge-card' + (done ? ' done' : '');
+    card.innerHTML = `<div class="challenge-inner"><span class="chal-num">${i+1}</span><span class="chal-text">${text}</span><div class="chal-check">${done ? '<svg width="12" height="12" viewBox="0 0 12 12"><polyline points="2,6 5,9 10,3" stroke="white" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}</div></div>`;
+    card.onclick = () => { chalDone[doneKey] = !chalDone[doneKey]; renderChallenges(); updateProgress(); };
+    list.appendChild(card);
+  });
+}
+
+function updateProgress() {
+  const t = TRACKS[currentTrack];
+  const reqTotal = t.required.length;
+  const reqCount = Object.values(reqDone).filter(Boolean).length;
+  const cats = t.categories[currentStage];
+  let chalTotal = 0, chalCount = 0;
+  cats.forEach(cat => {
+    const items = t.challenges[currentStage][cat] || [];
+    chalTotal += items.length;
+    items.forEach((_, i) => { if (chalDone[currentStage + '_' + cat + '_' + i]) chalCount++; });
+  });
+  const total = reqTotal + chalTotal;
+  const done = reqCount + chalCount;
+  const pct = total > 0 ? Math.round(done / total * 100) : 0;
+  document.getElementById('progress-text').textContent = `${done} / ${total} 완료`;
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+</script>
+</body>
+</html>

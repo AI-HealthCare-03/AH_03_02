@@ -24,7 +24,7 @@ async def _get_token(client: AsyncClient) -> str:
     return resp.json()["access_token"]
 
 
-async def _seed_challenge(track: ChallengeTrack = ChallengeTrack.A, stage: int = 1) -> Challenge:
+async def _seed_challenge(track: ChallengeTrack = ChallengeTrack.WELLNESS, stage: int = 1) -> Challenge:
     return await Challenge.create(
         name="물 1.5L 마시기",
         category=ChallengeCategory.HYDRATION,
@@ -36,77 +36,50 @@ async def _seed_challenge(track: ChallengeTrack = ChallengeTrack.A, stage: int =
 
 
 class TestChallengeListAPI(TestCase):
-    async def test_list_challenges_g1_returns_track_a(self):
-        """App G1 → Track A 챌린지 반환."""
-        await _seed_challenge(ChallengeTrack.A)
+    async def test_list_challenges_track_wellness_returns_items(self):
+        """track=WELLNESS 쿼리 → WELLNESS 챌린지 반환."""
+        await _seed_challenge(ChallengeTrack.WELLNESS)
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             token = await _get_token(client)
             response = await client.get(
-                "/api/v1/challenges?app_group=G1",
+                "/api/v1/challenges?track=WELLNESS&stage=1",
                 headers={"Authorization": f"Bearer {token}"},
             )
         assert response.status_code == status.HTTP_200_OK
         body = response.json()
         assert body["total"] == 1
-        assert body["items"][0]["track"] == "A"
+        assert body["items"][0]["track"] == "WELLNESS"
+        assert body["items"][0]["stage"] == 1
 
-    async def test_list_challenges_g2_returns_track_a(self):
-        """App G2 → Track A 챌린지 반환."""
-        await _seed_challenge(ChallengeTrack.A)
+    async def test_list_challenges_track_daily_returns_items(self):
+        """track=DAILY 쿼리 → DAILY 챌린지 반환."""
+        await _seed_challenge(ChallengeTrack.DAILY)
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             token = await _get_token(client)
             response = await client.get(
-                "/api/v1/challenges?app_group=G2",
+                "/api/v1/challenges?track=DAILY&stage=1",
                 headers={"Authorization": f"Bearer {token}"},
             )
         assert response.status_code == status.HTTP_200_OK
         body = response.json()
         assert body["total"] == 1
-        assert body["items"][0]["track"] == "A"
+        assert body["items"][0]["track"] == "DAILY"
 
-    async def test_list_challenges_g3_returns_track_b(self):
-        """App G3 → Track B 챌린지 반환."""
-        await _seed_challenge(ChallengeTrack.B)
+    async def test_list_challenges_track_filters_correctly(self):
+        """WELLNESS 트랙 쿼리 시 DAILY 챌린지는 반환하지 않음."""
+        await _seed_challenge(ChallengeTrack.DAILY)
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             token = await _get_token(client)
             response = await client.get(
-                "/api/v1/challenges?app_group=G3",
-                headers={"Authorization": f"Bearer {token}"},
-            )
-        assert response.status_code == status.HTTP_200_OK
-        body = response.json()
-        assert body["total"] == 1
-        assert body["items"][0]["track"] == "B"
-
-    async def test_list_challenges_g4_returns_track_b(self):
-        """App G4 → Track B 챌린지 반환 (차단 없음)."""
-        await _seed_challenge(ChallengeTrack.B)
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            token = await _get_token(client)
-            response = await client.get(
-                "/api/v1/challenges?app_group=G4",
-                headers={"Authorization": f"Bearer {token}"},
-            )
-        assert response.status_code == status.HTTP_200_OK
-        body = response.json()
-        assert body["total"] == 1
-        assert body["items"][0]["track"] == "B"
-
-    async def test_list_challenges_g1_does_not_return_track_b(self):
-        """App G1 → Track B 챌린지는 반환하지 않음."""
-        await _seed_challenge(ChallengeTrack.B)
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            token = await _get_token(client)
-            response = await client.get(
-                "/api/v1/challenges?app_group=G1",
+                "/api/v1/challenges?track=WELLNESS&stage=1",
                 headers={"Authorization": f"Bearer {token}"},
             )
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["total"] == 0
 
-    async def test_list_challenges_no_group_returns_empty(self):
-        """App 그룹 미입력 → 빈 목록."""
-        await _seed_challenge(ChallengeTrack.A)
+    async def test_list_challenges_no_track_returns_empty(self):
+        """track 미입력 → 빈 목록 (서비스 명세: track=None이면 total=0)."""
+        await _seed_challenge(ChallengeTrack.WELLNESS)
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             token = await _get_token(client)
             response = await client.get(
@@ -118,7 +91,7 @@ class TestChallengeListAPI(TestCase):
 
     async def test_list_challenges_unauthorized(self):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            response = await client.get("/api/v1/challenges?app_group=G1")
+            response = await client.get("/api/v1/challenges?track=WELLNESS")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
@@ -208,7 +181,7 @@ class TestCheckinAPI(TestCase):
             category=ChallengeCategory.EXERCISE,
             description="딱 하루만",
             duration_days=1,
-            track=ChallengeTrack.A,
+            track=ChallengeTrack.WELLNESS,
             stage=1,
         )
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:

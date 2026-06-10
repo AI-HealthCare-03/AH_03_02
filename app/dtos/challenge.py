@@ -18,6 +18,7 @@ class ChallengeResponse(BaseSerializerModel):
     description: str
     duration_days: int
     track: ChallengeTrack
+    stage: int  # 난이도 단계 (1=입문 2=초보 3=중급 4=숙련)
 
 
 class ChallengeListResponse(BaseSerializerModel):
@@ -135,3 +136,47 @@ class AbandonChallengeResponse(BaseSerializerModel):
     status: UserChallengeStatus
     points_revoked: int
     message: str
+
+
+# ─── 챌린지 재설계: 트랙/스테이지/필수체크 응답 DTO ───────────────────────────
+
+
+class TrackCategoryInfo(BaseSerializerModel):
+    """트랙에 속한 카테고리 정보 (UI 탭 목록용)"""
+
+    category: ChallengeCategory
+    label: str  # 한글 라벨
+
+
+class MyTrackResponse(BaseSerializerModel):
+    """내 트랙 정보 조회 응답"""
+
+    track: ChallengeTrack
+    track_label: str
+    stage: int
+    stage_label: str
+    auto_assigned: bool
+    categories: list[TrackCategoryInfo]  # 트랙의 카테고리 목록 (UI 탭)
+
+
+class UpdateMyTrackRequest(BaseModel):
+    """내 트랙/스테이지 수동 변경 요청"""
+
+    track: ChallengeTrack
+    stage: int  # 1~4
+
+
+class DailyChecklistItemResponse(BaseSerializerModel):
+    """일일 필수체크 항목 개별 응답"""
+
+    item_key: str
+    text: str
+    checked: bool
+
+
+class DailyChecklistResponse(BaseSerializerModel):
+    """일일 필수체크 전체 응답"""
+
+    date: date  # YYYY-MM-DD
+    track: ChallengeTrack
+    items: list[DailyChecklistItemResponse]

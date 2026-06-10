@@ -1,0 +1,2722 @@
+[
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "EDUCATION",
+    "name": "투석의 종류(혈액투석·복막투석)와 차이를 소개한 영상 1개 보기",
+    "description": "투석의 종류(혈액투석·복막투석)와 차이를 소개한 영상 1개 보기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "RECORD",
+    "name": "복약 알림을 스마트폰에 설정하기",
+    "description": "복약 알림을 스마트폰에 설정하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "MONITORING",
+    "name": "다음 투석 일정을 앱 또는 캘린더에 등록하기",
+    "description": "다음 투석 일정을 앱 또는 캘린더에 등록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "앉은 자리에서 가벼운 스트레칭 10분 완료하기",
+    "description": "앉은 자리에서 가벼운 스트레칭 10분 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "EMOTION",
+    "name": "오늘 하루 3분 복식 심호흡하기",
+    "description": "오늘 하루 3분 복식 심호흡하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "EDUCATION",
+    "name": "투석 간 체중 증가 허용 범위와 관리 방법을 다룬 자료 읽기",
+    "description": "투석 간 체중 증가 허용 범위와 관리 방법을 다룬 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "RECORD",
+    "name": "오늘 수분 섭취량을 앱 또는 수첩에 기록하기",
+    "description": "오늘 수분 섭취량을 앱 또는 수첩에 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "MONITORING",
+    "name": "오늘 투석 전후 체중을 측정하고 기록하기",
+    "description": "오늘 투석 전후 체중을 측정하고 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "투석 안 하는 날 평지 걷기 5분 완료하기",
+    "description": "투석 안 하는 날 평지 걷기 5분 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "EMOTION",
+    "name": "오늘 좋았던 일 한 줄 적기",
+    "description": "오늘 좋았던 일 한 줄 적기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "EDUCATION",
+    "name": "칼륨·인을 제한해야 하는 이유를 설명한 자료 읽기",
+    "description": "칼륨·인을 제한해야 하는 이유를 설명한 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "RECORD",
+    "name": "오늘 수분 섭취량·투석 간 체중·복약 여부를 함께 기록하기",
+    "description": "오늘 수분 섭취량·투석 간 체중·복약 여부를 함께 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "MONITORING",
+    "name": "가장 최근 검사 결과의 K·P·Hb 수치를 받아 적기",
+    "description": "가장 최근 검사 결과의 K·P·Hb 수치를 받아 적기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "투석 안 하는 날 가벼운 걷기 10~15분 완료하기",
+    "description": "투석 안 하는 날 가벼운 걷기 10~15분 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "EMOTION",
+    "name": "오늘 가벼운 취미 또는 대화로 기분 전환하기",
+    "description": "오늘 가벼운 취미 또는 대화로 기분 전환하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "EDUCATION",
+    "name": "오늘 교육 콘텐츠 1개를 보고 핵심 내용을 한 줄로 적기",
+    "description": "오늘 교육 콘텐츠 1개를 보고 핵심 내용을 한 줄로 적기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "RECORD",
+    "name": "오늘 수분 섭취량·투석 간 체중·복약·식사(칼륨·인 조절 여부)를 한 곳에 통합 기록하기",
+    "description": "오늘 수분 섭취량·투석 간 체중·복약·식사(칼륨·인 조절 여부)를 한 곳에 통합 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "MONITORING",
+    "name": "오늘 K·P·Hb 수치를 이전 결과와 비교해 변화를 메모하기",
+    "description": "오늘 K·P·Hb 수치를 이전 결과와 비교해 변화를 메모하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "투석 안 하는 날 가벼운 유산소 운동 20분 완료 후 피로도를 기록하기",
+    "description": "투석 안 하는 날 가벼운 유산소 운동 20분 완료 후 피로도를 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "EMOTION",
+    "name": "오늘 환우 커뮤니티 또는 지지 그룹에 참여하거나 활동 살펴보기",
+    "description": "오늘 환우 커뮤니티 또는 지지 그룹에 참여하거나 활동 살펴보기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "EDUCATION",
+    "name": "CKD(만성 콩팥병)란 무엇인지 소개하는 영상 1개 보기",
+    "description": "CKD(만성 콩팥병)란 무엇인지 소개하는 영상 1개 보기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "RECORD",
+    "name": "복약 알림을 스마트폰에 설정하기",
+    "description": "복약 알림을 스마트폰에 설정하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "MONITORING",
+    "name": "다음 진료 예약일을 앱 또는 캘린더에 등록하기",
+    "description": "다음 진료 예약일을 앱 또는 캘린더에 등록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "오늘 평지 걷기 10분 완료하기 (의료진 승인 범위 내)",
+    "description": "오늘 평지 걷기 10분 완료하기 (의료진 승인 범위 내)",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "EMOTION",
+    "name": "오늘 하루 3분 복식 심호흡하기",
+    "description": "오늘 하루 3분 복식 심호흡하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "EDUCATION",
+    "name": "내 eGFR 단계의 의미와 관리 목표를 다룬 자료 읽기",
+    "description": "내 eGFR 단계의 의미와 관리 목표를 다룬 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "RECORD",
+    "name": "오늘 복약 여부와 수분 섭취량을 함께 기록하기",
+    "description": "오늘 복약 여부와 수분 섭취량을 함께 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "MONITORING",
+    "name": "가장 최근 검사 결과의 eGFR·크레아티닌 수치를 받아 적기",
+    "description": "가장 최근 검사 결과의 eGFR·크레아티닌 수치를 받아 적기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "오늘 3,000보 걷기",
+    "description": "오늘 3,000보 걷기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "EMOTION",
+    "name": "오늘 좋았던 일 한 줄 적기",
+    "description": "오늘 좋았던 일 한 줄 적기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "EDUCATION",
+    "name": "혈압이 신장 기능에 미치는 영향을 다룬 자료 읽기",
+    "description": "혈압이 신장 기능에 미치는 영향을 다룬 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "RECORD",
+    "name": "오늘 복약·수분·체중을 빠짐없이 기록하기",
+    "description": "오늘 복약·수분·체중을 빠짐없이 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "MONITORING",
+    "name": "오늘 혈압을 측정하고 수치를 기록하기",
+    "description": "오늘 혈압을 측정하고 수치를 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "오늘 가벼운 유산소 운동 20분 완료하기",
+    "description": "오늘 가벼운 유산소 운동 20분 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "EMOTION",
+    "name": "오늘 가벼운 취미 또는 산책으로 기분 전환하기",
+    "description": "오늘 가벼운 취미 또는 산책으로 기분 전환하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "EDUCATION",
+    "name": "오늘 교육 콘텐츠 1개를 보고 핵심 내용을 한 줄로 적기",
+    "description": "오늘 교육 콘텐츠 1개를 보고 핵심 내용을 한 줄로 적기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "RECORD",
+    "name": "오늘 복약·수분·체중·혈압을 한 곳에 통합 기록하기",
+    "description": "오늘 복약·수분·체중·혈압을 한 곳에 통합 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "MONITORING",
+    "name": "오늘 검사 결과를 이전 수치와 비교해 변화를 메모하기",
+    "description": "오늘 검사 결과를 이전 수치와 비교해 변화를 메모하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "오늘 유산소 운동 30분 완료 후 피로도를 기록하기",
+    "description": "오늘 유산소 운동 30분 완료 후 피로도를 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "EMOTION",
+    "name": "오늘 환우 커뮤니티 또는 지지 그룹에 참여하거나 활동 살펴보기",
+    "description": "오늘 환우 커뮤니티 또는 지지 그룹에 참여하거나 활동 살펴보기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "HYDRATION",
+    "name": "오늘 신장 기능 보호를 위한 수분 관리의 중요성을 다룬 짧은 영상(5분 이내)을 시청하기",
+    "description": "오늘 신장 기능 보호를 위한 수분 관리의 중요성을 다룬 짧은 영상(5분 이내)을 시청하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "HYDRATION",
+    "name": "오늘 탄산음료·설탕 음료를 0잔으로 줄이고 물·무가당 음료로만 수분 섭취하기",
+    "description": "오늘 탄산음료·설탕 음료를 0잔으로 줄이고 물·무가당 음료로만 수분 섭취하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "HYDRATION",
+    "name": "오늘 카페인 음료(커피·녹차·에너지음료)를 3잔 이하로 제한하기",
+    "description": "오늘 카페인 음료(커피·녹차·에너지음료)를 3잔 이하로 제한하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "HYDRATION",
+    "name": "오늘 국·찌개·가공식품 섭취를 1회 이하로 줄여 갈증 유발 나트륨을 낮추기",
+    "description": "오늘 국·찌개·가공식품 섭취를 1회 이하로 줄여 갈증 유발 나트륨을 낮추기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "HYDRATION",
+    "name": "적절한 음수량 확인법 영상 시청하기",
+    "description": "적절한 음수량 확인법 영상 시청하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "DIET",
+    "name": "오늘 나트륨 과다 섭취가 신장에 미치는 영향을 설명한 영상(5분 이내)을 시청하기",
+    "description": "오늘 나트륨 과다 섭취가 신장에 미치는 영향을 설명한 영상(5분 이내)을 시청하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "DIET",
+    "name": "오늘 신장 부담을 줄이는 식물성 식품(채소·콩류)을 1끼 이상 포함해 식사하기",
+    "description": "오늘 신장 부담을 줄이는 식물성 식품(채소·콩류)을 1끼 이상 포함해 식사하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "DIET",
+    "name": "오늘 국·찌개를 절반 이하로 먹거나 싱겁게 조리해 나트륨 섭취를 줄이기",
+    "description": "오늘 국·찌개를 절반 이하로 먹거나 싱겁게 조리해 나트륨 섭취를 줄이기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "DIET",
+    "name": "오늘 동물성 단백질 1회 제공량을 손바닥 크기(약 80g) 이하로 조절하기",
+    "description": "오늘 동물성 단백질 1회 제공량을 손바닥 크기(약 80g) 이하로 조절하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "DIET",
+    "name": "오늘 흰 밥·흰 빵 대신 현미·잡곡·통곡물로 1끼 이상 대체하기",
+    "description": "오늘 흰 밥·흰 빵 대신 현미·잡곡·통곡물로 1끼 이상 대체하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "오늘 규칙적인 운동이 신장 기능 보호와 혈압 조절에 도움이 된다는 내용의 영상(5분 이내)을 시청하기",
+    "description": "오늘 규칙적인 운동이 신장 기능 보호와 혈압 조절에 도움이 된다는 내용의 영상(5분 이내)을 시청하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "오늘 평지 걷기 10분 이상 완료하기",
+    "description": "오늘 평지 걷기 10분 이상 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "오늘 운동 전 어지럼증·극심한 피로가 없는지 확인하고 이상 없을 때 운동 시작하기",
+    "description": "오늘 운동 전 어지럼증·극심한 피로가 없는지 확인하고 이상 없을 때 운동 시작하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "오늘 운동 전 워밍업 스트레칭 5분 + 운동 후 쿨다운 스트레칭 5분을 완료하기",
+    "description": "오늘 운동 전 워밍업 스트레칭 5분 + 운동 후 쿨다운 스트레칭 5분을 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "오늘 1시간마다 자리에서 일어나 5분씩 걷거나 스트레칭하는 활동을 2회 이상 실천하기",
+    "description": "오늘 1시간마다 자리에서 일어나 5분씩 걷거나 스트레칭하는 활동을 2회 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "SLEEP",
+    "name": "오늘 수면 부족이 혈압 상승과 신장 기능에 미치는 영향을 다룬 영상(5분 이내)을 시청하기",
+    "description": "오늘 수면 부족이 혈압 상승과 신장 기능에 미치는 영향을 다룬 영상(5분 이내)을 시청하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "SLEEP",
+    "name": "오늘 밤 11시 이전에 취침하고 어제와 ±30분 이내로 맞추기",
+    "description": "오늘 밤 11시 이전에 취침하고 어제와 ±30분 이내로 맞추기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "SLEEP",
+    "name": "오늘 취침 30분 전 스마트폰·태블릿을 내려놓고 독서·스트레칭·명상 중 1가지로 전환하기",
+    "description": "오늘 취침 30분 전 스마트폰·태블릿을 내려놓고 독서·스트레칭·명상 중 1가지로 전환하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "SLEEP",
+    "name": "오늘 밤 11시 이전에 취침하기",
+    "description": "오늘 밤 11시 이전에 취침하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "SLEEP",
+    "name": "오늘 밤사이 잠에서 깬 횟수가 2회 이하였는지 기상 후 확인하기",
+    "description": "오늘 밤사이 잠에서 깬 횟수가 2회 이하였는지 기상 후 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "STRESS",
+    "name": "오늘 만성 스트레스가 혈압과 신장 기능에 미치는 영향을 설명한 영상(5분 이내)을 시청하기",
+    "description": "오늘 만성 스트레스가 혈압과 신장 기능에 미치는 영향을 설명한 영상(5분 이내)을 시청하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "STRESS",
+    "name": "오늘 가족 또는 가까운 사람과 건강 관련 걱정을 5분 이상 직접 대화로 나누기",
+    "description": "오늘 가족 또는 가까운 사람과 건강 관련 걱정을 5분 이상 직접 대화로 나누기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "STRESS",
+    "name": "오늘 혈압 안정을 위해 복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 3회 이상 실천하기",
+    "description": "오늘 혈압 안정을 위해 복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 3회 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "STRESS",
+    "name": "오늘 스트레스를 느꼈을 때 폭식·음주 대신 10분 산책·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "description": "오늘 스트레스를 느꼈을 때 폭식·음주 대신 10분 산책·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 1,
+    "category": "STRESS",
+    "name": "오늘 신장 질환 관리 중 느끼는 걱정을 종이에 한 문장으로 적고 내려놓기",
+    "description": "오늘 신장 질환 관리 중 느끼는 걱정을 종이에 한 문장으로 적고 내려놓기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "HYDRATION",
+    "name": "갈증 해소 정도만 수분 섭취하기",
+    "description": "갈증 해소 정도만 수분 섭취하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "HYDRATION",
+    "name": "오늘 식품 라벨의 나트륨 함량을 2회 이상 확인해 나트륨 목표(2g 미만) 달성에 활용하기",
+    "description": "오늘 식품 라벨의 나트륨 함량을 2회 이상 확인해 나트륨 목표(2g 미만) 달성에 활용하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "HYDRATION",
+    "name": "오늘 알코올 0잔으로 하루를 보내기",
+    "description": "오늘 알코올 0잔으로 하루를 보내기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "HYDRATION",
+    "name": "오늘 카페인 음료를 오후 2시 이전에만 마시고 이후에는 물·허브티로 대체하기",
+    "description": "오늘 카페인 음료를 오후 2시 이전에만 마시고 이후에는 물·허브티로 대체하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "HYDRATION",
+    "name": "오늘 탄산음료·에너지음료·설탕 음료를 한 잔도 마시지 않기",
+    "description": "오늘 탄산음료·에너지음료·설탕 음료를 한 잔도 마시지 않기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "DIET",
+    "name": "오늘 식물성 단백질(두부·콩·렌틸) 식품을 1회 이상 섭취하기",
+    "description": "오늘 식물성 단백질(두부·콩·렌틸) 식품을 1회 이상 섭취하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "DIET",
+    "name": "오늘 소금 대신 허브·레몬즙·식초로 간을 맞춰 나트륨 목표를 달성하기",
+    "description": "오늘 소금 대신 허브·레몬즙·식초로 간을 맞춰 나트륨 목표를 달성하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "DIET",
+    "name": "오늘 신선식품·통곡물·채소 위주로 2끼 이상 식사하고 초가공식품 섭취를 피하기",
+    "description": "오늘 신선식품·통곡물·채소 위주로 2끼 이상 식사하고 초가공식품 섭취를 피하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "DIET",
+    "name": "오늘 고기·생선을 1회 섭취할 때 손바닥 크기(약 80g) 이하로 조절하기",
+    "description": "오늘 고기·생선을 1회 섭취할 때 손바닥 크기(약 80g) 이하로 조절하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "DIET",
+    "name": "오늘 나트륨 목표(2g 미만) 달성을 위해 소금 대신 허브·레몬즙·식초로 간을 맞추기",
+    "description": "오늘 나트륨 목표(2g 미만) 달성을 위해 소금 대신 허브·레몬즙·식초로 간을 맞추기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "오늘 운동 전 피로·통증이 심하지 않은지 확인하고 이상 없을 때 운동 시작하기",
+    "description": "오늘 운동 전 피로·통증이 심하지 않은지 확인하고 이상 없을 때 운동 시작하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "오늘 빠른 걷기 또는 실내 자전거를 20분 이상 완료하기",
+    "description": "오늘 빠른 걷기 또는 실내 자전거를 20분 이상 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "오늘 운동 중 짧은 대화가 가능한 강도(약간 숨차는 수준)로 15분 이상 유지하기",
+    "description": "오늘 운동 중 짧은 대화가 가능한 강도(약간 숨차는 수준)로 15분 이상 유지하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "오늘 매 시간 5분 이상 자리에서 일어나 이동하는 활동을 3회 이상 실천하기",
+    "description": "오늘 매 시간 5분 이상 자리에서 일어나 이동하는 활동을 3회 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "오늘 의자 스쿼트 10회 × 2세트 이상 하체 근력 운동 수행하기",
+    "description": "오늘 의자 스쿼트 10회 × 2세트 이상 하체 근력 운동 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "SLEEP",
+    "name": "오늘 취침 2시간 전에 식사를 마치기",
+    "description": "오늘 취침 2시간 전에 식사를 마치기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "SLEEP",
+    "name": "오늘 침실 온도를 18~20°C, 조명을 소등 상태로 설정해 수면 환경을 조성하기",
+    "description": "오늘 침실 온도를 18~20°C, 조명을 소등 상태로 설정해 수면 환경을 조성하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "SLEEP",
+    "name": "오늘 낮잠을 15분 이내로 제한하기",
+    "description": "오늘 낮잠을 15분 이내로 제한하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "SLEEP",
+    "name": "오늘 기상 후 어제 수면 시간이 7시간 이상이었는지 확인하기",
+    "description": "오늘 기상 후 어제 수면 시간이 7시간 이상이었는지 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "SLEEP",
+    "name": "오늘 기상 후 밤사이 잠에서 깬 횟수가 2회 이하였는지 확인하기",
+    "description": "오늘 기상 후 밤사이 잠에서 깬 횟수가 2회 이하였는지 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "STRESS",
+    "name": "오늘 신장 질환 관리 부담을 느낄 때 가족 또는 친구와 10분 이상 직접 대화를 나누기",
+    "description": "오늘 신장 질환 관리 부담을 느낄 때 가족 또는 친구와 10분 이상 직접 대화를 나누기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "STRESS",
+    "name": "오늘 복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 5분 이상 실천하기",
+    "description": "오늘 복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 5분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "STRESS",
+    "name": "오늘 복식 호흡 또는 마음챙김 명상을 5분 이상 실시하기",
+    "description": "오늘 복식 호흡 또는 마음챙김 명상을 5분 이상 실시하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "STRESS",
+    "name": "오늘 저녁 하루를 마치며 오늘 느낀 감정(불안·긴장·안도·감사 중 1가지)을 말로 표현하기",
+    "description": "오늘 저녁 하루를 마치며 오늘 느낀 감정(불안·긴장·안도·감사 중 1가지)을 말로 표현하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 2,
+    "category": "STRESS",
+    "name": "오늘 부정적인 생각이 들 때 그 생각을 종이에 적고 현실적으로 반박하는 문장을 1개 이상 써보기",
+    "description": "오늘 부정적인 생각이 들 때 그 생각을 종이에 적고 현실적으로 반박하는 문장을 1개 이상 써보기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "HYDRATION",
+    "name": "오늘 직접 요리 1회 이상 + 식품 라벨 확인 2회 이상으로 나트륨 목표(2g 미만)를 실천하기",
+    "description": "오늘 직접 요리 1회 이상 + 식품 라벨 확인 2회 이상으로 나트륨 목표(2g 미만)를 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "HYDRATION",
+    "name": "오늘 카페인 음료를 오전 1잔으로 제한하고 오후 12시 이후에는 물·허브티만 마시기",
+    "description": "오늘 카페인 음료를 오전 1잔으로 제한하고 오후 12시 이후에는 물·허브티만 마시기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "HYDRATION",
+    "name": "오늘 나트륨 목표(2g 미만) 달성을 위해 직접 조리 1회 이상 + 식품 라벨 확인 2회 이상 실천하기",
+    "description": "오늘 나트륨 목표(2g 미만) 달성을 위해 직접 조리 1회 이상 + 식품 라벨 확인 2회 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "HYDRATION",
+    "name": "적절한 음수량 확인법 실천하기",
+    "description": "적절한 음수량 확인법 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "HYDRATION",
+    "name": "오늘 알코올 0잔으로 하루를 보내기",
+    "description": "오늘 알코올 0잔으로 하루를 보내기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "DIET",
+    "name": "오늘 저녁 식사에서 국·찌개를 절반 이하로 먹고 채소 반찬을 1가지 이상 포함하기",
+    "description": "오늘 저녁 식사에서 국·찌개를 절반 이하로 먹고 채소 반찬을 1가지 이상 포함하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "DIET",
+    "name": "오늘 흰 밥 대신 현미밥·잡곡밥으로 2끼 이상 대체하기",
+    "description": "오늘 흰 밥 대신 현미밥·잡곡밥으로 2끼 이상 대체하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "DIET",
+    "name": "오늘 나트륨 목표 달성을 위해 소금 대신 허브·향신료·레몬즙을 2회 이상 활용하기",
+    "description": "오늘 나트륨 목표 달성을 위해 소금 대신 허브·향신료·레몬즙을 2회 이상 활용하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "DIET",
+    "name": "오늘 동물성 단백질(고기·생선·달걀)을 1회 섭취 시 손바닥 크기(약 80g) 이하로 조절하기",
+    "description": "오늘 동물성 단백질(고기·생선·달걀)을 1회 섭취 시 손바닥 크기(약 80g) 이하로 조절하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "DIET",
+    "name": "오늘 끼니마다 채소 반찬 2가지 이상을 포함해 식물성 식품 섭취 비중을 높이기",
+    "description": "오늘 끼니마다 채소 반찬 2가지 이상을 포함해 식물성 식품 섭취 비중을 높이기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "오늘 유산소 운동 20분 이상을 약간 숨차는 강도로 완료하기",
+    "description": "오늘 유산소 운동 20분 이상을 약간 숨차는 강도로 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "오늘 저항 운동(탄성 밴드·체중 스쿼트·팔굽혀펴기)을 10분 이상 수행하기",
+    "description": "오늘 저항 운동(탄성 밴드·체중 스쿼트·팔굽혀펴기)을 10분 이상 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "오늘 운동 중 10분마다 짧은 대화가 가능한 강도인지 확인하며 30분 이상 유지하기",
+    "description": "오늘 운동 중 10분마다 짧은 대화가 가능한 강도인지 확인하며 30분 이상 유지하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "오늘 운동 후 쿨다운 스트레칭 5분을 수행하고 5분간 앉아서 호흡을 안정시키기",
+    "description": "오늘 운동 후 쿨다운 스트레칭 5분을 수행하고 5분간 앉아서 호흡을 안정시키기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "오늘 좌식 시간을 전날보다 30분 이상 줄이고 총 좌식 시간을 5시간 이하로 유지하기",
+    "description": "오늘 좌식 시간을 전날보다 30분 이상 줄이고 총 좌식 시간을 5시간 이하로 유지하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "SLEEP",
+    "name": "오늘 운동을 취침 3시간 이전에 마치기",
+    "description": "오늘 운동을 취침 3시간 이전에 마치기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "SLEEP",
+    "name": "오늘 취침 전 이완 루틴(명상·스트레칭·독서)을 10분 이상 수행하기",
+    "description": "오늘 취침 전 이완 루틴(명상·스트레칭·독서)을 10분 이상 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "SLEEP",
+    "name": "오늘 밤 11시 이전에 취침하고 어제와 ±30분 이내로 맞추기",
+    "description": "오늘 밤 11시 이전에 취침하고 어제와 ±30분 이내로 맞추기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "SLEEP",
+    "name": "오늘 기상 후 밤사이 잠에서 깬 횟수가 2회 이하였는지 확인하기",
+    "description": "오늘 기상 후 밤사이 잠에서 깬 횟수가 2회 이하였는지 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "SLEEP",
+    "name": "오늘 낮잠을 15분 이내로 제한해 야간 수면 질을 보호하기",
+    "description": "오늘 낮잠을 15분 이내로 제한해 야간 수면 질을 보호하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "STRESS",
+    "name": "오늘 마음챙김 명상을 10분 이상 실천하기",
+    "description": "오늘 마음챙김 명상을 10분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "STRESS",
+    "name": "오늘 신장 질환 관련 걱정을 통제 가능한 것과 통제 불가능한 것으로 나누고 통제 가능한 것 1가지에만 집중하기",
+    "description": "오늘 신장 질환 관련 걱정을 통제 가능한 것과 통제 불가능한 것으로 나누고 통제 가능한 것 1가지에만 집중하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "STRESS",
+    "name": "오늘 스트레스를 느꼈을 때 10분 걷기·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "description": "오늘 스트레스를 느꼈을 때 10분 걷기·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "STRESS",
+    "name": "오늘 부정적 감정을 판단 없이 3분간 관찰하는 마음챙김 연습을 1회 이상 하기",
+    "description": "오늘 부정적 감정을 판단 없이 3분간 관찰하는 마음챙김 연습을 1회 이상 하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 3,
+    "category": "STRESS",
+    "name": "오늘 신장 질환 관리 중 잘 실천한 일 1가지를 떠올리며 스스로 인정하기",
+    "description": "오늘 신장 질환 관리 중 잘 실천한 일 1가지를 떠올리며 스스로 인정하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "HYDRATION",
+    "name": "오늘 직접 조리 + 라벨 확인 두 방법으로 나트륨 목표(2g 미만) 달성 여부를 검증하기",
+    "description": "오늘 직접 조리 + 라벨 확인 두 방법으로 나트륨 목표(2g 미만) 달성 여부를 검증하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "HYDRATION",
+    "name": "오늘 운동 전·중·후에 각 150~200mL씩 수분을 보충해 목표 수분량을 달성하기",
+    "description": "오늘 운동 전·중·후에 각 150~200mL씩 수분을 보충해 목표 수분량을 달성하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "HYDRATION",
+    "name": "오늘 운동 전·중·후 각 150~200mL씩 수분을 보충해 일일 목표 수분량을 달성하기",
+    "description": "오늘 운동 전·중·후 각 150~200mL씩 수분을 보충해 일일 목표 수분량을 달성하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "HYDRATION",
+    "name": "오늘 직접 조리 + 식품 라벨 확인 두 방법으로 나트륨 목표(2g 미만) 달성 여부를 검증하기",
+    "description": "오늘 직접 조리 + 식품 라벨 확인 두 방법으로 나트륨 목표(2g 미만) 달성 여부를 검증하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "HYDRATION",
+    "name": "오늘 알코올 0잔으로 하루를 보내기",
+    "description": "오늘 알코올 0잔으로 하루를 보내기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "DIET",
+    "name": "오늘 흰 밥 대신 현미밥·잡곡밥으로 3끼 모두 대체하기",
+    "description": "오늘 흰 밥 대신 현미밥·잡곡밥으로 3끼 모두 대체하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "DIET",
+    "name": "오늘 하루 식단 전체가 식물성 위주·저나트륨·통곡물 원칙에 3끼 모두 부합하기",
+    "description": "오늘 하루 식단 전체가 식물성 위주·저나트륨·통곡물 원칙에 3끼 모두 부합하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "DIET",
+    "name": "오늘 고기·생선·달걀을 1회 섭취할 때 손바닥 크기(약 80g) 이하로 조절하기",
+    "description": "오늘 고기·생선·달걀을 1회 섭취할 때 손바닥 크기(약 80g) 이하로 조절하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "DIET",
+    "name": "오늘 고기·생선·달걀을 1회 섭취할 때 손바닥 크기(약 80g) 이하로 조절하기",
+    "description": "오늘 고기·생선·달걀을 1회 섭취할 때 손바닥 크기(약 80g) 이하로 조절하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "DIET",
+    "name": "오늘 외식 시 국물 요리 대신 구이·찜·나물 반찬 위주로 선택하기",
+    "description": "오늘 외식 시 국물 요리 대신 구이·찜·나물 반찬 위주로 선택하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "오늘 유산소 25분 + 근력 운동 15분으로 총 40분 이상 운동하기",
+    "description": "오늘 유산소 25분 + 근력 운동 15분으로 총 40분 이상 운동하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "오늘 근력 운동 시 스쿼트·런지·플랭크 중 2가지 이상을 각 15회 × 2세트 수행하기",
+    "description": "오늘 근력 운동 시 스쿼트·런지·플랭크 중 2가지 이상을 각 15회 × 2세트 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "오늘 숨이 차고 땀이 나지만 짧은 대화는 가능한 강도로 유산소 운동을 25분 이상 유지하기",
+    "description": "오늘 숨이 차고 땀이 나지만 짧은 대화는 가능한 강도로 유산소 운동을 25분 이상 유지하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "오늘 총 좌식 시간을 4시간 이하로 줄이기",
+    "description": "오늘 총 좌식 시간을 4시간 이하로 줄이기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "오늘 운동 후 쿨다운 스트레칭 5분 + 5분 호흡 안정을 완료하고 다음 운동 일정을 정하기",
+    "description": "오늘 운동 후 쿨다운 스트레칭 5분 + 5분 호흡 안정을 완료하고 다음 운동 일정을 정하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "SLEEP",
+    "name": "오늘 취침 전 이완 루틴(명상·호흡·스트레칭)을 10분 이상 수행하고 침실 환경(18~20°C·소등)을 조성하기",
+    "description": "오늘 취침 전 이완 루틴(명상·호흡·스트레칭)을 10분 이상 수행하고 침실 환경(18~20°C·소등)을 조성하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "SLEEP",
+    "name": "오늘 밤 11시 이전에 취침하고 어제와 ±30분 이내로 맞추기",
+    "description": "오늘 밤 11시 이전에 취침하고 어제와 ±30분 이내로 맞추기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "SLEEP",
+    "name": "오늘 기상 후 어제 수면 시간이 7시간 이상이었는지 확인하기",
+    "description": "오늘 기상 후 어제 수면 시간이 7시간 이상이었는지 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "SLEEP",
+    "name": "오늘 밤 11시 이전에 취침하고 어제와 ±30분 이내로 맞추기",
+    "description": "오늘 밤 11시 이전에 취침하고 어제와 ±30분 이내로 맞추기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "SLEEP",
+    "name": "오늘 낮잠을 15분 이내로 제한하고 취침 전 스마트폰을 30분 이상 내려놓기",
+    "description": "오늘 낮잠을 15분 이내로 제한하고 취침 전 스마트폰을 30분 이상 내려놓기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "STRESS",
+    "name": "오늘 명상·복식 호흡·긍정적 자기 대화를 15분 이상 실천하기",
+    "description": "오늘 명상·복식 호흡·긍정적 자기 대화를 15분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "STRESS",
+    "name": "오늘 스트레스 상황에서 즉각 반응하지 않고 5초간 멈춘 뒤 복식 호흡 후 반응하기",
+    "description": "오늘 스트레스 상황에서 즉각 반응하지 않고 5초간 멈춘 뒤 복식 호흡 후 반응하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "STRESS",
+    "name": "오늘 신장 질환 관련 부정적 생각이 반복될 때 '지금 이 순간'에 집중하는 마음챙김을 10분 이상 실천하기",
+    "description": "오늘 신장 질환 관련 부정적 생각이 반복될 때 '지금 이 순간'에 집중하는 마음챙김을 10분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "STRESS",
+    "name": "오늘 만성 스트레스를 줄이기 위해 명상·복식 호흡·긍정적 자기 대화를 15분 이상 실천하기",
+    "description": "오늘 만성 스트레스를 줄이기 위해 명상·복식 호흡·긍정적 자기 대화를 15분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "INTENSIVE",
+    "stage": 4,
+    "category": "STRESS",
+    "name": "오늘 신장 질환 관리의 심리적 부담을 신뢰하는 사람과 10분 이상 직접 대화로 나누기",
+    "description": "오늘 신장 질환 관리의 심리적 부담을 신뢰하는 사람과 10분 이상 직접 대화로 나누기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "HYDRATION",
+    "name": "오늘 충분한 수분 섭취가 혈압·혈당 조절에 미치는 영향을 다룬 아티클을 읽기",
+    "description": "오늘 충분한 수분 섭취가 혈압·혈당 조절에 미치는 영향을 다룬 아티클을 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "HYDRATION",
+    "name": "오늘 탄산음료·설탕 음료를 0잔으로 줄이고 물·무가당 음료로만 수분 섭취하기",
+    "description": "오늘 탄산음료·설탕 음료를 0잔으로 줄이고 물·무가당 음료로만 수분 섭취하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "HYDRATION",
+    "name": "오늘 카페인 음료(커피·녹차·에너지음료)를 3잔 이하로 제한하기",
+    "description": "오늘 카페인 음료(커피·녹차·에너지음료)를 3잔 이하로 제한하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "HYDRATION",
+    "name": "오늘 혈압 관리를 위해 수분이 충분한지 소변 색깔(연한 노란색)로 확인하기",
+    "description": "오늘 혈압 관리를 위해 수분이 충분한지 소변 색깔(연한 노란색)로 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "HYDRATION",
+    "name": "오늘 아침·점심·저녁 식사 전 물 200mL를 2끼 이상 마시기",
+    "description": "오늘 아침·점심·저녁 식사 전 물 200mL를 2끼 이상 마시기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "DIET",
+    "name": "오늘 나쁜 지방(포화지방)이 혈관 건강을 나쁘게 만드는 이유를 설명한 영상(5분 이내)을 시청하기",
+    "description": "오늘 나쁜 지방(포화지방)이 혈관 건강을 나쁘게 만드는 이유를 설명한 영상(5분 이내)을 시청하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "DIET",
+    "name": "오늘 혈관 건강을 위해 채소·통곡물(현미·귀리 등)을 1끼 이상 식사에 포함하기",
+    "description": "오늘 혈관 건강을 위해 채소·통곡물(현미·귀리 등)을 1끼 이상 식사에 포함하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "DIET",
+    "name": "오늘 혈압 관리를 위해 국·찌개를 절반 이하로 먹거나 국물을 남겨 나트륨 섭취를 줄이기",
+    "description": "오늘 혈압 관리를 위해 국·찌개를 절반 이하로 먹거나 국물을 남겨 나트륨 섭취를 줄이기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "DIET",
+    "name": "오늘 과자·케이크 등 포화지방·트랜스지방이 많은 간식 대신 견과류(30g)나 과일을 선택하기",
+    "description": "오늘 과자·케이크 등 포화지방·트랜스지방이 많은 간식 대신 견과류(30g)나 과일을 선택하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "DIET",
+    "name": "오늘 아침·점심·저녁 3끼를 규칙적인 시간에 먹기",
+    "description": "오늘 아침·점심·저녁 3끼를 규칙적인 시간에 먹기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "오늘 운동이 혈압·혈당·콜레스테롤 개선에 미치는 효과를 다룬 영상(5분 이내)을 시청하기",
+    "description": "오늘 운동이 혈압·혈당·콜레스테롤 개선에 미치는 효과를 다룬 영상(5분 이내)을 시청하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "오늘 엘리베이터 대신 계단을 1회 이상 이용하기",
+    "description": "오늘 엘리베이터 대신 계단을 1회 이상 이용하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "오늘 빠른 걷기 10분 이상 또는 계단 오르기 5층 이상 실천하기",
+    "description": "오늘 빠른 걷기 10분 이상 또는 계단 오르기 5층 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "오늘 1시간마다 자리에서 일어나 5분씩 움직이는 활동을 2회 이상 실천하기",
+    "description": "오늘 1시간마다 자리에서 일어나 5분씩 움직이는 활동을 2회 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "오늘 어제보다 걸음 수가 같거나 더 많도록 의식적으로 움직이기",
+    "description": "오늘 어제보다 걸음 수가 같거나 더 많도록 의식적으로 움직이기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "SLEEP",
+    "name": "오늘 수면 부족이 혈압·혈당·콜레스테롤에 미치는 영향을 설명한 아티클을 읽기",
+    "description": "오늘 수면 부족이 혈압·혈당·콜레스테롤에 미치는 영향을 설명한 아티클을 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "SLEEP",
+    "name": "오늘 밤 12시 이전에 취침하고 어제와 ±30분 이내로 맞추기",
+    "description": "오늘 밤 12시 이전에 취침하고 어제와 ±30분 이내로 맞추기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "SLEEP",
+    "name": "오늘 취침 30분 전 스마트폰·태블릿을 내려놓고 독서·스트레칭·명상 중 1가지로 전환하기",
+    "description": "오늘 취침 30분 전 스마트폰·태블릿을 내려놓고 독서·스트레칭·명상 중 1가지로 전환하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "SLEEP",
+    "name": "오늘 야간 혈압 회복을 위해 침실 온도를 18~20°C로 맞추고 조명을 어둡게 설정해 수면 환경을 조성하기",
+    "description": "오늘 야간 혈압 회복을 위해 침실 온도를 18~20°C로 맞추고 조명을 어둡게 설정해 수면 환경을 조성하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "SLEEP",
+    "name": "오늘 20분 이상 잠들지 못하면 침대에서 일어나 독서·스트레칭을 5~10분 후 다시 눕기",
+    "description": "오늘 20분 이상 잠들지 못하면 침대에서 일어나 독서·스트레칭을 5~10분 후 다시 눕기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "STRESS",
+    "name": "오늘 만성 스트레스가 혈압·혈당·콜레스테롤 수치에 미치는 영향을 다룬 아티클을 읽기",
+    "description": "오늘 만성 스트레스가 혈압·혈당·콜레스테롤 수치에 미치는 영향을 다룬 아티클을 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "STRESS",
+    "name": "오늘 가족이나 친구와 건강 관련 걱정을 5분 이상 직접 대화로 나누기",
+    "description": "오늘 가족이나 친구와 건강 관련 걱정을 5분 이상 직접 대화로 나누기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "STRESS",
+    "name": "오늘 복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 3회 이상 실천하기",
+    "description": "오늘 복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 3회 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "STRESS",
+    "name": "오늘 스트레스를 느꼈을 때 폭식·음주 대신 10분 산책·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "description": "오늘 스트레스를 느꼈을 때 폭식·음주 대신 10분 산책·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 1,
+    "category": "STRESS",
+    "name": "오늘 만성 질환 관리 중 느끼는 걱정을 종이에 한 문장으로 적고 내려놓기",
+    "description": "오늘 만성 질환 관리 중 느끼는 걱정을 종이에 한 문장으로 적고 내려놓기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "HYDRATION",
+    "name": "오늘 물(음료 제외)을 1,500mL 이상 마시기",
+    "description": "오늘 물(음료 제외)을 1,500mL 이상 마시기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "HYDRATION",
+    "name": "오늘 음주 목표를 지켜 알코올을 마시지 않거나 남성 2잔·여성 1잔 이하로 제한하기",
+    "description": "오늘 음주 목표를 지켜 알코올을 마시지 않거나 남성 2잔·여성 1잔 이하로 제한하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "HYDRATION",
+    "name": "오늘 혈압 안정을 위해 카페인 음료를 오후 2시 이전에만 마시고 이후에는 물·허브티로 대체하기",
+    "description": "오늘 혈압 안정을 위해 카페인 음료를 오후 2시 이전에만 마시고 이후에는 물·허브티로 대체하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "HYDRATION",
+    "name": "오늘 아침·점심·저녁 식사 때마다 물 200mL를 함께 마시기(총 600mL)",
+    "description": "오늘 아침·점심·저녁 식사 때마다 물 200mL를 함께 마시기(총 600mL)",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "HYDRATION",
+    "name": "오늘 카페인 음료를 오후 2시 이전에만 마시고 이후에는 물·허브티로 대체하기",
+    "description": "오늘 카페인 음료를 오후 2시 이전에만 마시고 이후에는 물·허브티로 대체하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "DIET",
+    "name": "오늘 식품 구매 시 포화지방·나트륨·당 함량을 1회 이상 확인해 선택에 활용하기",
+    "description": "오늘 식품 구매 시 포화지방·나트륨·당 함량을 1회 이상 확인해 선택에 활용하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "DIET",
+    "name": "오늘 삼겹살·소시지 대신 생선·두부·콩류를 단백질 반찬으로 1회 이상 선택하기",
+    "description": "오늘 삼겹살·소시지 대신 생선·두부·콩류를 단백질 반찬으로 1회 이상 선택하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "DIET",
+    "name": "오늘 흰 밥 대신 잡곡밥·현미밥·귀리밥으로 2끼 이상 대체하기",
+    "description": "오늘 흰 밥 대신 잡곡밥·현미밥·귀리밥으로 2끼 이상 대체하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "DIET",
+    "name": "오늘 국·찌개를 절반 이하로 섭취하거나 싱겁게 조리해 나트륨 2,300mg 미만을 달성하기",
+    "description": "오늘 국·찌개를 절반 이하로 섭취하거나 싱겁게 조리해 나트륨 2,300mg 미만을 달성하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "DIET",
+    "name": "오늘 간식으로 과자·빵 대신 견과류 한 줌(30g) 또는 과일 1개를 선택하기",
+    "description": "오늘 간식으로 과자·빵 대신 견과류 한 줌(30g) 또는 과일 1개를 선택하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "오늘 운동 전 피로·통증이 심하지 않은지 확인하고 이상 없을 때 운동 시작하기",
+    "description": "오늘 운동 전 피로·통증이 심하지 않은지 확인하고 이상 없을 때 운동 시작하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "오늘 빠른 걷기·자전거 등 유산소 운동을 20분 이상 완료하기",
+    "description": "오늘 빠른 걷기·자전거 등 유산소 운동을 20분 이상 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "오늘 스쿼트·팔굽혀펴기 등 근력 운동을 10분 이상 수행하기",
+    "description": "오늘 스쿼트·팔굽혀펴기 등 근력 운동을 10분 이상 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "오늘 운동 전후 워밍업·쿨다운 스트레칭을 각 5분씩 수행하기",
+    "description": "오늘 운동 전후 워밍업·쿨다운 스트레칭을 각 5분씩 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "오늘 운동 중 약간 숨차지만 대화 가능한 강도로 15분 이상 유지하기",
+    "description": "오늘 운동 중 약간 숨차지만 대화 가능한 강도로 15분 이상 유지하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "SLEEP",
+    "name": "오늘 취침 2시간 전에 식사를 마치기",
+    "description": "오늘 취침 2시간 전에 식사를 마치기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "SLEEP",
+    "name": "오늘 밤 12시 이전에 취침했는지, 어제와 ±30분 이내인지 기상 후 확인하기",
+    "description": "오늘 밤 12시 이전에 취침했는지, 어제와 ±30분 이내인지 기상 후 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "SLEEP",
+    "name": "오늘 취침 전 이완 활동(명상·독서·스트레칭)을 10분 이상 수행하기",
+    "description": "오늘 취침 전 이완 활동(명상·독서·스트레칭)을 10분 이상 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "SLEEP",
+    "name": "오늘 낮잠을 15분 이내로 제한하기",
+    "description": "오늘 낮잠을 15분 이내로 제한하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "SLEEP",
+    "name": "오늘 기상 후 어제 수면 시간이 7시간 이상이었는지 확인하기",
+    "description": "오늘 기상 후 어제 수면 시간이 7시간 이상이었는지 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "STRESS",
+    "name": "오늘 만성 질환 관리 부담을 느낄 때 가족 또는 친구와 10분 이상 직접 대화를 나누기",
+    "description": "오늘 만성 질환 관리 부담을 느낄 때 가족 또는 친구와 10분 이상 직접 대화를 나누기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "STRESS",
+    "name": "오늘 복식 호흡 또는 마음챙김 명상을 5분 이상 실시하기",
+    "description": "오늘 복식 호흡 또는 마음챙김 명상을 5분 이상 실시하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "STRESS",
+    "name": "오늘 스트레스를 느낄 때 복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 5분 이상 실천하기",
+    "description": "오늘 스트레스를 느낄 때 복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 5분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "STRESS",
+    "name": "오늘 저녁 하루를 마치며 오늘 느낀 감정(불안·긴장·안도·감사 중 1가지)을 말로 표현하기",
+    "description": "오늘 저녁 하루를 마치며 오늘 느낀 감정(불안·긴장·안도·감사 중 1가지)을 말로 표현하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 2,
+    "category": "STRESS",
+    "name": "오늘 스트레스를 느꼈을 때 폭식·음주 대신 10분 산책·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "description": "오늘 스트레스를 느꼈을 때 폭식·음주 대신 10분 산책·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "HYDRATION",
+    "name": "오늘 운동 전·중·후에 각 150~200mL씩 수분을 보충하기",
+    "description": "오늘 운동 전·중·후에 각 150~200mL씩 수분을 보충하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "HYDRATION",
+    "name": "오늘 카페인 음료를 오전 1잔 이하로 조절하기",
+    "description": "오늘 카페인 음료를 오전 1잔 이하로 조절하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "HYDRATION",
+    "name": "오늘 알코올 0잔으로 하루를 보내기",
+    "description": "오늘 알코올 0잔으로 하루를 보내기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "HYDRATION",
+    "name": "오늘 오전 700mL, 오후 700mL, 저녁 600mL로 나눠 총 2,000mL 이상 마시기",
+    "description": "오늘 오전 700mL, 오후 700mL, 저녁 600mL로 나눠 총 2,000mL 이상 마시기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "HYDRATION",
+    "name": "오늘 알코올 0잔으로 하루를 보내기",
+    "description": "오늘 알코올 0잔으로 하루를 보내기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "DIET",
+    "name": "오늘 채소 반찬 2가지 이상 + 통곡물 또는 생선 1가지 이상을 포함해 2끼 이상 먹기",
+    "description": "오늘 채소 반찬 2가지 이상 + 통곡물 또는 생선 1가지 이상을 포함해 2끼 이상 먹기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "DIET",
+    "name": "오늘 포화지방 식품(삼겹살·버터·가공육) 대신 불포화지방 식품(등 푸른 생선·올리브오일·아보카도)을 1회 이상 선택하기",
+    "description": "오늘 포화지방 식품(삼겹살·버터·가공육) 대신 불포화지방 식품(등 푸른 생선·올리브오일·아보카도)을 1회 이상 선택하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "DIET",
+    "name": "오늘 혈관 건강에 좋은 식품(귀리·보리·사과·콩류)을 1회 이상 섭취하기",
+    "description": "오늘 혈관 건강에 좋은 식품(귀리·보리·사과·콩류)을 1회 이상 섭취하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "DIET",
+    "name": "오늘 포화지방 식품(삼겹살·버터·가공육) 대신 불포화지방 식품(등 푸른 생선·올리브오일)을 1회 이상 선택하기",
+    "description": "오늘 포화지방 식품(삼겹살·버터·가공육) 대신 불포화지방 식품(등 푸른 생선·올리브오일)을 1회 이상 선택하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "DIET",
+    "name": "오늘 붉은 육류 대신 등 푸른 생선(고등어·삼치·연어)을 1회 이상 단백질 반찬으로 선택하기",
+    "description": "오늘 붉은 육류 대신 등 푸른 생선(고등어·삼치·연어)을 1회 이상 단백질 반찬으로 선택하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "오늘 저항 운동(밴드·덤벨·체중)을 20분 이상 수행하기",
+    "description": "오늘 저항 운동(밴드·덤벨·체중)을 20분 이상 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "오늘 유산소 운동 20분 이상을 약간 숨차지만 대화 가능한 강도로 완료하기",
+    "description": "오늘 유산소 운동 20분 이상을 약간 숨차지만 대화 가능한 강도로 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "오늘 걷기·자전거·수영 중 1가지를 30분 이상 완료하기",
+    "description": "오늘 걷기·자전거·수영 중 1가지를 30분 이상 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "오늘 좌식 시간을 전날보다 30분 이상 줄이고 총 좌식 시간을 5시간 이하로 유지하기",
+    "description": "오늘 좌식 시간을 전날보다 30분 이상 줄이고 총 좌식 시간을 5시간 이하로 유지하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "오늘 운동 후 쿨다운 스트레칭 5분을 수행하고 5분간 앉아서 호흡을 안정시키기",
+    "description": "오늘 운동 후 쿨다운 스트레칭 5분을 수행하고 5분간 앉아서 호흡을 안정시키기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "SLEEP",
+    "name": "오늘 취침 전 침실 온도를 18~20°C로 맞추고 커튼·암막으로 빛을 차단하기",
+    "description": "오늘 취침 전 침실 온도를 18~20°C로 맞추고 커튼·암막으로 빛을 차단하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "SLEEP",
+    "name": "오늘 운동을 취침 3시간 이전에 마치기",
+    "description": "오늘 운동을 취침 3시간 이전에 마치기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "SLEEP",
+    "name": "오늘 밤 12시 이전에 취침하고 어제와 ±30분 이내로 맞추기",
+    "description": "오늘 밤 12시 이전에 취침하고 어제와 ±30분 이내로 맞추기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "SLEEP",
+    "name": "오늘 기상 후 피로감 없이 개운하게 일어났는지 확인하기",
+    "description": "오늘 기상 후 피로감 없이 개운하게 일어났는지 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "SLEEP",
+    "name": "오늘 취침 전 침실 온도를 18~20°C로 맞추고 커튼·암막으로 빛을 차단하기",
+    "description": "오늘 취침 전 침실 온도를 18~20°C로 맞추고 커튼·암막으로 빛을 차단하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "STRESS",
+    "name": "오늘 마음챙김 명상을 10분 이상 실천하기",
+    "description": "오늘 마음챙김 명상을 10분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "STRESS",
+    "name": "오늘 만성 질환 관리 스트레스 원인을 통제 가능한 것과 불가능한 것으로 나누고 통제 가능한 것 1가지에 집중하기",
+    "description": "오늘 만성 질환 관리 스트레스 원인을 통제 가능한 것과 불가능한 것으로 나누고 통제 가능한 것 1가지에 집중하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "STRESS",
+    "name": "오늘 스트레스 원인을 통제 가능한 것과 통제 불가능한 것으로 구분하고 통제 가능한 것 1가지에 집중하기",
+    "description": "오늘 스트레스 원인을 통제 가능한 것과 통제 불가능한 것으로 구분하고 통제 가능한 것 1가지에 집중하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "STRESS",
+    "name": "오늘 부정적 감정을 판단 없이 3분간 관찰하는 마음챙김 연습을 1회 이상 하기",
+    "description": "오늘 부정적 감정을 판단 없이 3분간 관찰하는 마음챙김 연습을 1회 이상 하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 3,
+    "category": "STRESS",
+    "name": "오늘 스트레스를 느꼈을 때 복식 호흡 3회 또는 신뢰하는 사람과 5분 대화 중 1가지로 해소하기",
+    "description": "오늘 스트레스를 느꼈을 때 복식 호흡 3회 또는 신뢰하는 사람과 5분 대화 중 1가지로 해소하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "HYDRATION",
+    "name": "오늘 운동 1시간당 500mL 추가 수분을 보충하기",
+    "description": "오늘 운동 1시간당 500mL 추가 수분을 보충하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "HYDRATION",
+    "name": "오늘 설탕 음료·탄산음료를 0잔으로 줄이고 물·무가당 음료만 마시기",
+    "description": "오늘 설탕 음료·탄산음료를 0잔으로 줄이고 물·무가당 음료만 마시기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "HYDRATION",
+    "name": "오늘 운동 1시간당 500mL 추가 수분을 보충하기",
+    "description": "오늘 운동 1시간당 500mL 추가 수분을 보충하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "HYDRATION",
+    "name": "오늘 설탕 음료·탄산음료를 0잔으로 줄이고 물·무가당 음료만 마시기",
+    "description": "오늘 설탕 음료·탄산음료를 0잔으로 줄이고 물·무가당 음료만 마시기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "HYDRATION",
+    "name": "오늘 알코올 0잔으로 하루를 보내기",
+    "description": "오늘 알코올 0잔으로 하루를 보내기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "DIET",
+    "name": "오늘 포화지방·트랜스지방 식품을 완전히 피하고 불포화지방(생선·올리브오일·견과류) 위주로 식사하기",
+    "description": "오늘 포화지방·트랜스지방 식품을 완전히 피하고 불포화지방(생선·올리브오일·견과류) 위주로 식사하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "DIET",
+    "name": "오늘 혈관·혈당 건강에 좋은 식품(귀리·사과·콩류)을 2회 이상 섭취하기",
+    "description": "오늘 혈관·혈당 건강에 좋은 식품(귀리·사과·콩류)을 2회 이상 섭취하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "DIET",
+    "name": "오늘 채소 반찬 2가지 이상 + 통곡물 또는 생선 1가지 이상을 포함해 3끼 모두 먹기",
+    "description": "오늘 채소 반찬 2가지 이상 + 통곡물 또는 생선 1가지 이상을 포함해 3끼 모두 먹기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "DIET",
+    "name": "오늘 외식 시 튀김·패스트푸드 대신 채소·단백질 중심 메뉴를 선택하기",
+    "description": "오늘 외식 시 튀김·패스트푸드 대신 채소·단백질 중심 메뉴를 선택하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "DIET",
+    "name": "오늘 간식으로 과자·빵 대신 견과류 한 줌(30g) 또는 과일 1개를 선택하기",
+    "description": "오늘 간식으로 과자·빵 대신 견과류 한 줌(30g) 또는 과일 1개를 선택하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "오늘 유산소 25분 이상을 숨차지만 대화 가능한 강도로 완료하기",
+    "description": "오늘 유산소 25분 이상을 숨차지만 대화 가능한 강도로 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "오늘 근력 운동 시 스쿼트·런지·플랭크 중 2가지 이상을 각 15회 × 2세트 수행하기",
+    "description": "오늘 근력 운동 시 스쿼트·런지·플랭크 중 2가지 이상을 각 15회 × 2세트 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "오늘 유산소 25분 + 근력 운동 15분으로 총 40분 이상 운동하기",
+    "description": "오늘 유산소 25분 + 근력 운동 15분으로 총 40분 이상 운동하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "오늘 총 좌식 시간을 4시간 이하로 줄이기",
+    "description": "오늘 총 좌식 시간을 4시간 이하로 줄이기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "오늘 운동 후 쿨다운 스트레칭 5분 + 5분 호흡 안정을 완료하고 다음 운동 일정을 정하기",
+    "description": "오늘 운동 후 쿨다운 스트레칭 5분 + 5분 호흡 안정을 완료하고 다음 운동 일정을 정하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "SLEEP",
+    "name": "오늘 취침 전 이완 루틴(명상·호흡·스트레칭)을 15분 이상 수행하기",
+    "description": "오늘 취침 전 이완 루틴(명상·호흡·스트레칭)을 15분 이상 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "SLEEP",
+    "name": "오늘 취침 전 이완 루틴(명상·호흡·스트레칭)을 15분 이상 수행하기",
+    "description": "오늘 취침 전 이완 루틴(명상·호흡·스트레칭)을 15분 이상 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "SLEEP",
+    "name": "오늘 밤 12시 이전에 취침하고 전날과 ±30분 이내로 맞추기",
+    "description": "오늘 밤 12시 이전에 취침하고 전날과 ±30분 이내로 맞추기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "SLEEP",
+    "name": "오늘 기상 후 어제 수면 시간이 7시간 이상이었는지 확인하기",
+    "description": "오늘 기상 후 어제 수면 시간이 7시간 이상이었는지 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "SLEEP",
+    "name": "오늘 낮잠을 15분 이내로 제한해 야간 수면 질을 보호하기",
+    "description": "오늘 낮잠을 15분 이내로 제한해 야간 수면 질을 보호하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "STRESS",
+    "name": "오늘 명상·복식 호흡·긍정적 자기 대화를 15분 이상 실천하기",
+    "description": "오늘 명상·복식 호흡·긍정적 자기 대화를 15분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "STRESS",
+    "name": "오늘 만성 질환 관리의 심리적 부담을 신뢰하는 사람과 10분 이상 직접 대화로 나누기",
+    "description": "오늘 만성 질환 관리의 심리적 부담을 신뢰하는 사람과 10분 이상 직접 대화로 나누기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "STRESS",
+    "name": "오늘 명상·복식 호흡·긍정적 자기 대화를 15분 이상 실천하기",
+    "description": "오늘 명상·복식 호흡·긍정적 자기 대화를 15분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "STRESS",
+    "name": "오늘 스트레스 상황에서 즉각 반응하지 않고 5초간 멈춘 뒤 복식 호흡 후 반응하기",
+    "description": "오늘 스트레스 상황에서 즉각 반응하지 않고 5초간 멈춘 뒤 복식 호흡 후 반응하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DAILY",
+    "stage": 4,
+    "category": "STRESS",
+    "name": "오늘 부정적 생각이 반복될 때 '지금 이 순간'에 집중하는 마음챙김을 10분 이상 실천하기",
+    "description": "오늘 부정적 생각이 반복될 때 '지금 이 순간'에 집중하는 마음챙김을 10분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "HYDRATION",
+    "name": "오늘 건강한 하루 수분 목표(물 기준 약 1.5~2L)와 그 효과를 다룬 콘텐츠를 확인하기",
+    "description": "오늘 건강한 하루 수분 목표(물 기준 약 1.5~2L)와 그 효과를 다룬 콘텐츠를 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "HYDRATION",
+    "name": "오늘 탄산음료·설탕 음료를 0잔으로 줄이고 물·무가당 음료로만 수분 섭취하기",
+    "description": "오늘 탄산음료·설탕 음료를 0잔으로 줄이고 물·무가당 음료로만 수분 섭취하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "HYDRATION",
+    "name": "오늘 카페인 음료(커피·녹차)를 3잔 이하로 조절하고 나머지는 물로 대체하기",
+    "description": "오늘 카페인 음료(커피·녹차)를 3잔 이하로 조절하고 나머지는 물로 대체하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "HYDRATION",
+    "name": "오늘 물 마시는 습관을 점검하기 위해 소변 색깔이 연한 노란색인지 확인하기",
+    "description": "오늘 물 마시는 습관을 점검하기 위해 소변 색깔이 연한 노란색인지 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "HYDRATION",
+    "name": "오늘 수분 섭취 습관 형성을 위해 식사 전 물 한 잔(200mL)을 마시는 루틴을 2끼 이상 실천하기",
+    "description": "오늘 수분 섭취 습관 형성을 위해 식사 전 물 한 잔(200mL)을 마시는 루틴을 2끼 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "DIET",
+    "name": "오늘 균형 잡힌 식사와 초가공식품의 차이를 다룬 아티클이나 인포그래픽을 확인하기",
+    "description": "오늘 균형 잡힌 식사와 초가공식품의 차이를 다룬 아티클이나 인포그래픽을 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "DIET",
+    "name": "오늘 균형 잡힌 식사를 위해 다양한 색깔의 채소를 1끼 이상 식사에 포함하기",
+    "description": "오늘 균형 잡힌 식사를 위해 다양한 색깔의 채소를 1끼 이상 식사에 포함하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "DIET",
+    "name": "오늘 나트륨 과다 섭취를 예방하기 위해 국물 요리는 건더기 위주로 먹고 국물을 남기기",
+    "description": "오늘 나트륨 과다 섭취를 예방하기 위해 국물 요리는 건더기 위주로 먹고 국물을 남기기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "DIET",
+    "name": "오늘 과자·쿠키 대신 과일 또는 견과류 1회 분량(약 30g)을 간식으로 선택하기",
+    "description": "오늘 과자·쿠키 대신 과일 또는 견과류 1회 분량(약 30g)을 간식으로 선택하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "DIET",
+    "name": "오늘 아침·점심·저녁 3끼를 규칙적인 시간에 먹기",
+    "description": "오늘 아침·점심·저녁 3끼를 규칙적인 시간에 먹기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "오늘 WHO 권장 주간 운동량(중등도 150분)을 다룬 영상(5분 이내)을 시청하기",
+    "description": "오늘 WHO 권장 주간 운동량(중등도 150분)을 다룬 영상(5분 이내)을 시청하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "오늘 엘리베이터 대신 계단을 1회 이상 이용하기",
+    "description": "오늘 엘리베이터 대신 계단을 1회 이상 이용하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "오늘 가벼운 걷기 또는 스트레칭을 10분 이상 하기",
+    "description": "오늘 가벼운 걷기 또는 스트레칭을 10분 이상 하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "오늘 1시간마다 자리에서 일어나 스트레칭·이동을 2회 이상 하기",
+    "description": "오늘 1시간마다 자리에서 일어나 스트레칭·이동을 2회 이상 하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "오늘 어제보다 걸음 수가 같거나 더 많도록 의식적으로 움직이기",
+    "description": "오늘 어제보다 걸음 수가 같거나 더 많도록 의식적으로 움직이기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "SLEEP",
+    "name": "오늘 수면이 면역력·피로 회복에 미치는 영향을 다룬 영상(5분 이내)이나 아티클을 확인하기",
+    "description": "오늘 수면이 면역력·피로 회복에 미치는 영향을 다룬 영상(5분 이내)이나 아티클을 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "SLEEP",
+    "name": "오늘 밤 12시 이전에 취침하고 어제와 ±30분 이내로 맞추기",
+    "description": "오늘 밤 12시 이전에 취침하고 어제와 ±30분 이내로 맞추기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "SLEEP",
+    "name": "오늘 밤 12시 이전에 취침하기",
+    "description": "오늘 밤 12시 이전에 취침하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "SLEEP",
+    "name": "오늘 취침 전 침실 온도를 18~20°C로 맞추고 암막·소등 상태를 만들기",
+    "description": "오늘 취침 전 침실 온도를 18~20°C로 맞추고 암막·소등 상태를 만들기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "SLEEP",
+    "name": "오늘 20분 이상 잠들지 못하면 침대에서 일어나 독서·스트레칭을 5~10분 후 다시 눕기",
+    "description": "오늘 20분 이상 잠들지 못하면 침대에서 일어나 독서·스트레칭을 5~10분 후 다시 눕기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "STRESS",
+    "name": "오늘 만성 스트레스가 혈압·혈당·면역력에 미치는 영향을 다룬 영상(5분 이내)을 시청하기",
+    "description": "오늘 만성 스트레스가 혈압·혈당·면역력에 미치는 영향을 다룬 영상(5분 이내)을 시청하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "STRESS",
+    "name": "오늘 편한 사람(가족·친구·동료)과 5분 이상 직접 대화를 나누기",
+    "description": "오늘 편한 사람(가족·친구·동료)과 5분 이상 직접 대화를 나누기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "STRESS",
+    "name": "오늘 스트레스 받은 상황 및 감정을 종이에 작성하기",
+    "description": "오늘 스트레스 받은 상황 및 감정을 종이에 작성하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "STRESS",
+    "name": "오늘 일상 스트레스를 느낄 때 복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 3회 이상 실천하기",
+    "description": "오늘 일상 스트레스를 느낄 때 복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 3회 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 1,
+    "category": "STRESS",
+    "name": "오늘 스트레스를 느꼈을 때 폭식·음주 대신 10분 산책·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "description": "오늘 스트레스를 느꼈을 때 폭식·음주 대신 10분 산책·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "HYDRATION",
+    "name": "오늘 물(음료 제외)을 1,500mL 이상 마시기",
+    "description": "오늘 물(음료 제외)을 1,500mL 이상 마시기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "HYDRATION",
+    "name": "오늘 음주 목표를 지켜 알코올을 마시지 않거나 남성 2잔·여성 1잔 이하로 제한하기",
+    "description": "오늘 음주 목표를 지켜 알코올을 마시지 않거나 남성 2잔·여성 1잔 이하로 제한하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "HYDRATION",
+    "name": "오늘 카페인 음료를 오후 2시 이후에는 마시지 않는 습관을 실천하기",
+    "description": "오늘 카페인 음료를 오후 2시 이후에는 마시지 않는 습관을 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "HYDRATION",
+    "name": "오늘 아침·점심·저녁 식사 전 물 200mL를 먼저 마시기(총 600mL)",
+    "description": "오늘 아침·점심·저녁 식사 전 물 200mL를 먼저 마시기(총 600mL)",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "HYDRATION",
+    "name": "오늘 카페인 음료를 오후 2시 이전에만 마시고 이후에는 물·허브티로 대체하기",
+    "description": "오늘 카페인 음료를 오후 2시 이전에만 마시고 이후에는 물·허브티로 대체하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "DIET",
+    "name": "오늘 식품 구매 시 포장 뒷면의 나트륨·당 함량을 1회 이상 확인해 선택에 활용하기",
+    "description": "오늘 식품 구매 시 포장 뒷면의 나트륨·당 함량을 1회 이상 확인해 선택에 활용하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "DIET",
+    "name": "오늘 채소·과일을 2회 이상 섭취하고 동물성 단백질 1회 제공량을 80g 이하로 조절하기",
+    "description": "오늘 채소·과일을 2회 이상 섭취하고 동물성 단백질 1회 제공량을 80g 이하로 조절하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "DIET",
+    "name": "오늘 흰 밥 대신 잡곡·현미로 2끼 이상 대체하기",
+    "description": "오늘 흰 밥 대신 잡곡·현미로 2끼 이상 대체하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "DIET",
+    "name": "오늘 조리 시 소금을 줄이고 하루 나트륨 섭취를 2,000mg 수준으로 낮추기",
+    "description": "오늘 조리 시 소금을 줄이고 하루 나트륨 섭취를 2,000mg 수준으로 낮추기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "DIET",
+    "name": "오늘 간식으로 과자·빵 대신 견과류 한 줌(30g) 또는 과일 1개를 선택하기",
+    "description": "오늘 간식으로 과자·빵 대신 견과류 한 줌(30g) 또는 과일 1개를 선택하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "오늘 운동 전 피로·통증이 심하지 않은지 확인하고 이상 없을 때 운동 시작하기",
+    "description": "오늘 운동 전 피로·통증이 심하지 않은지 확인하고 이상 없을 때 운동 시작하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "오늘 빠른 걷기·자전거 등 유산소 운동을 20분 이상 완료하기",
+    "description": "오늘 빠른 걷기·자전거 등 유산소 운동을 20분 이상 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "오늘 스쿼트·팔굽혀펴기·플랭크 등 근력 운동을 10분 이상 수행하기",
+    "description": "오늘 스쿼트·팔굽혀펴기·플랭크 등 근력 운동을 10분 이상 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "오늘 운동 전후 워밍업·쿨다운 스트레칭을 각 5분씩 수행하기",
+    "description": "오늘 운동 전후 워밍업·쿨다운 스트레칭을 각 5분씩 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "오늘 운동 중 약간 숨차지만 대화 가능한 강도로 15분 이상 유지하기",
+    "description": "오늘 운동 중 약간 숨차지만 대화 가능한 강도로 15분 이상 유지하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "SLEEP",
+    "name": "오늘 취침 2시간 전에 식사를 마치기",
+    "description": "오늘 취침 2시간 전에 식사를 마치기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "SLEEP",
+    "name": "오늘 밤 12시 이전에 취침하고 기상 시간도 어제와 ±30분 이내로 맞추기",
+    "description": "오늘 밤 12시 이전에 취침하고 기상 시간도 어제와 ±30분 이내로 맞추기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "SLEEP",
+    "name": "오늘 취침 전 본인만의 이완 루틴(독서·스트레칭·음악 감상)을 10분 이상 수행하기",
+    "description": "오늘 취침 전 본인만의 이완 루틴(독서·스트레칭·음악 감상)을 10분 이상 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "SLEEP",
+    "name": "오늘 낮잠을 15분 이내로 제한하기",
+    "description": "오늘 낮잠을 15분 이내로 제한하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "SLEEP",
+    "name": "오늘 기상 후 어제 수면 시간이 7시간 이상이었는지 확인하기",
+    "description": "오늘 기상 후 어제 수면 시간이 7시간 이상이었는지 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "STRESS",
+    "name": "오늘 스트레스를 느낄 때 가족·친구와 10분 이상 직접 대화를 나누기",
+    "description": "오늘 스트레스를 느낄 때 가족·친구와 10분 이상 직접 대화를 나누기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "STRESS",
+    "name": "오늘 복식 호흡 또는 마음챙김 명상을 5분 이상 실시하기",
+    "description": "오늘 복식 호흡 또는 마음챙김 명상을 5분 이상 실시하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "STRESS",
+    "name": "오늘 스트레스를 느낄 때 복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 5분 이상 실천하기",
+    "description": "오늘 스트레스를 느낄 때 복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 5분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "STRESS",
+    "name": "오늘 저녁 하루를 마치며 오늘 느낀 감정(불안·긴장·안도·감사 중 1가지)을 말로 표현하기",
+    "description": "오늘 저녁 하루를 마치며 오늘 느낀 감정(불안·긴장·안도·감사 중 1가지)을 말로 표현하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 2,
+    "category": "STRESS",
+    "name": "오늘 스트레스를 느꼈을 때 폭식·음주 대신 10분 산책·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "description": "오늘 스트레스를 느꼈을 때 폭식·음주 대신 10분 산책·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "HYDRATION",
+    "name": "오늘 수분 섭취량을 시간대별로 분산해 총 2,000mL를 달성하기",
+    "description": "오늘 수분 섭취량을 시간대별로 분산해 총 2,000mL를 달성하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "HYDRATION",
+    "name": "오늘 운동 전·중·후에 각 150~200mL씩 수분을 나눠 보충하기",
+    "description": "오늘 운동 전·중·후에 각 150~200mL씩 수분을 나눠 보충하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "HYDRATION",
+    "name": "오늘 카페인 음료를 오전 1잔으로 제한하고 오후 12시 이후에는 물·허브티만 마시기",
+    "description": "오늘 카페인 음료를 오전 1잔으로 제한하고 오후 12시 이후에는 물·허브티만 마시기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "HYDRATION",
+    "name": "오늘 알코올 0잔으로 하루를 보내기",
+    "description": "오늘 알코올 0잔으로 하루를 보내기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "HYDRATION",
+    "name": "오늘 오전 700mL, 오후 700mL, 저녁 600mL로 나눠 총 2,000mL 이상 마시기",
+    "description": "오늘 오전 700mL, 오후 700mL, 저녁 600mL로 나눠 총 2,000mL 이상 마시기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "DIET",
+    "name": "오늘 채소 반찬 2가지 이상 + 통곡물 또는 과일을 1가지 이상 포함해 2끼 이상 먹기",
+    "description": "오늘 채소 반찬 2가지 이상 + 통곡물 또는 과일을 1가지 이상 포함해 2끼 이상 먹기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "DIET",
+    "name": "오늘 붉은 육류 대신 생선·두부·콩류를 단백질 공급원으로 1회 이상 선택하기",
+    "description": "오늘 붉은 육류 대신 생선·두부·콩류를 단백질 공급원으로 1회 이상 선택하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "DIET",
+    "name": "오늘 국·김치·소스류를 절반 이하로 줄여 나트륨 2,300mg 미만을 달성하기",
+    "description": "오늘 국·김치·소스류를 절반 이하로 줄여 나트륨 2,300mg 미만을 달성하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "DIET",
+    "name": "오늘 혈관 건강에 좋은 식품(귀리·사과·콩류)을 1회 이상 섭취하기",
+    "description": "오늘 혈관 건강에 좋은 식품(귀리·사과·콩류)을 1회 이상 섭취하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "DIET",
+    "name": "오늘 포화지방이 많은 삼겹살·버터·가공육 대신 생선·두부·콩류를 단백질 반찬으로 1회 이상 선택하기",
+    "description": "오늘 포화지방이 많은 삼겹살·버터·가공육 대신 생선·두부·콩류를 단백질 반찬으로 1회 이상 선택하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "오늘 저항 운동(밴드·덤벨·체중)을 20분 이상 수행하기",
+    "description": "오늘 저항 운동(밴드·덤벨·체중)을 20분 이상 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "오늘 유산소 운동 20분 이상을 약간 숨차지만 대화 가능한 강도로 완료하기",
+    "description": "오늘 유산소 운동 20분 이상을 약간 숨차지만 대화 가능한 강도로 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "오늘 걷기·자전거·수영 중 1가지를 30분 이상 완료하기",
+    "description": "오늘 걷기·자전거·수영 중 1가지를 30분 이상 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "오늘 좌식 시간을 전날보다 30분 이상 줄이고 총 좌식 시간을 5시간 이하로 유지하기",
+    "description": "오늘 좌식 시간을 전날보다 30분 이상 줄이고 총 좌식 시간을 5시간 이하로 유지하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "오늘 운동 후 쿨다운 스트레칭 5분을 수행하고 5분간 앉아서 호흡을 안정시키기",
+    "description": "오늘 운동 후 쿨다운 스트레칭 5분을 수행하고 5분간 앉아서 호흡을 안정시키기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "SLEEP",
+    "name": "오늘 기상 후 피로감 없이 개운하게 일어났는지 확인하기",
+    "description": "오늘 기상 후 피로감 없이 개운하게 일어났는지 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "SLEEP",
+    "name": "오늘 운동을 취침 3시간 이전에 마치기",
+    "description": "오늘 운동을 취침 3시간 이전에 마치기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "SLEEP",
+    "name": "오늘 기상 후 피로감 없이 개운하게 일어났는지, 밤사이 잠에서 깬 횟수가 2회 이하였는지 확인하기",
+    "description": "오늘 기상 후 피로감 없이 개운하게 일어났는지, 밤사이 잠에서 깬 횟수가 2회 이하였는지 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "SLEEP",
+    "name": "오늘 밤 11시 이전에 취침하고 어제와 ±30분 이내로 맞추기",
+    "description": "오늘 밤 11시 이전에 취침하고 어제와 ±30분 이내로 맞추기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "SLEEP",
+    "name": "오늘 낮잠을 15분 이내로 제한해 야간 수면 질을 보호하기",
+    "description": "오늘 낮잠을 15분 이내로 제한해 야간 수면 질을 보호하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "STRESS",
+    "name": "오늘 마음챙김 명상을 10분 이상 실천하기",
+    "description": "오늘 마음챙김 명상을 10분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "STRESS",
+    "name": "오늘 일상 스트레스 원인을 통제 가능한 것과 불가능한 것으로 나누고 통제 가능한 것 1가지에 집중하기",
+    "description": "오늘 일상 스트레스 원인을 통제 가능한 것과 불가능한 것으로 나누고 통제 가능한 것 1가지에 집중하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "STRESS",
+    "name": "오늘 스트레스 원인을 통제 가능한 것과 통제 불가능한 것으로 구분하고 통제 가능한 것 1가지에 집중하기",
+    "description": "오늘 스트레스 원인을 통제 가능한 것과 통제 불가능한 것으로 구분하고 통제 가능한 것 1가지에 집중하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "STRESS",
+    "name": "오늘 부정적 감정을 판단 없이 3분간 관찰하는 마음챙김 연습을 1회 이상 하기",
+    "description": "오늘 부정적 감정을 판단 없이 3분간 관찰하는 마음챙김 연습을 1회 이상 하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 3,
+    "category": "STRESS",
+    "name": "오늘 스트레스를 느꼈을 때 복식 호흡 3회 또는 신뢰하는 사람과 5분 대화 중 1가지로 해소하기",
+    "description": "오늘 스트레스를 느꼈을 때 복식 호흡 3회 또는 신뢰하는 사람과 5분 대화 중 1가지로 해소하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "HYDRATION",
+    "name": "오늘 운동 중 탈수 예방과 회복을 위해 1시간 운동당 500mL 추가 수분을 보충하기",
+    "description": "오늘 운동 중 탈수 예방과 회복을 위해 1시간 운동당 500mL 추가 수분을 보충하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "HYDRATION",
+    "name": "오늘 설탕 음료·탄산음료를 0잔으로 줄이고 물·무가당 음료만 마시기",
+    "description": "오늘 설탕 음료·탄산음료를 0잔으로 줄이고 물·무가당 음료만 마시기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "HYDRATION",
+    "name": "오늘 오전 700mL, 오후 700mL, 저녁 600mL로 나눠 총 2,000mL 이상 마시기",
+    "description": "오늘 오전 700mL, 오후 700mL, 저녁 600mL로 나눠 총 2,000mL 이상 마시기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "HYDRATION",
+    "name": "오늘 설탕 음료·탄산음료·에너지음료를 마시지 않기",
+    "description": "오늘 설탕 음료·탄산음료·에너지음료를 마시지 않기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "HYDRATION",
+    "name": "오늘 알코올을 마시지 않기",
+    "description": "오늘 알코올을 마시지 않기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "DIET",
+    "name": "오늘 소금 대신 허브·향신료만 사용해 나트륨 목표 2,000mg 미만을 달성하기",
+    "description": "오늘 소금 대신 허브·향신료만 사용해 나트륨 목표 2,000mg 미만을 달성하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "DIET",
+    "name": "오늘 식물성 단백질(콩·두부·렌틸) 식품을 1회 이상 섭취하기",
+    "description": "오늘 식물성 단백질(콩·두부·렌틸) 식품을 1회 이상 섭취하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "DIET",
+    "name": "오늘 채소 반찬 2가지 이상 + 통곡물 또는 생선 1가지 이상을 포함해 3끼 모두 먹기",
+    "description": "오늘 채소 반찬 2가지 이상 + 통곡물 또는 생선 1가지 이상을 포함해 3끼 모두 먹기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "DIET",
+    "name": "오늘 외식 시 메뉴를 고를 때 튀김·패스트푸드 대신 채소·단백질 중심 메뉴를 선택하기",
+    "description": "오늘 외식 시 메뉴를 고를 때 튀김·패스트푸드 대신 채소·단백질 중심 메뉴를 선택하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "DIET",
+    "name": "오늘 나트륨 섭취를 줄이기 위해 국·찌개를 절반만 먹거나 국물을 남기기",
+    "description": "오늘 나트륨 섭취를 줄이기 위해 국·찌개를 절반만 먹거나 국물을 남기기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "오늘 숨이 차고 땀이 나지만 짧은 대화는 가능한 강도로 유산소 운동을 25분 이상 완료하기",
+    "description": "오늘 숨이 차고 땀이 나지만 짧은 대화는 가능한 강도로 유산소 운동을 25분 이상 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "오늘 근력 운동 시 스쿼트·런지·플랭크 중 2가지 이상을 각 15회 × 2세트 수행하기",
+    "description": "오늘 근력 운동 시 스쿼트·런지·플랭크 중 2가지 이상을 각 15회 × 2세트 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "오늘 유산소 25분 + 근력 운동 15분으로 총 40분 이상 운동하기",
+    "description": "오늘 유산소 25분 + 근력 운동 15분으로 총 40분 이상 운동하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "오늘 총 좌식 시간을 4시간 이하로 줄이기",
+    "description": "오늘 총 좌식 시간을 4시간 이하로 줄이기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "오늘 운동 후 쿨다운 스트레칭 5분 + 5분 호흡 안정을 완료하고 다음 운동 일정을 정하기",
+    "description": "오늘 운동 후 쿨다운 스트레칭 5분 + 5분 호흡 안정을 완료하고 다음 운동 일정을 정하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "SLEEP",
+    "name": "오늘 취침 전 이완 루틴(복식 호흡·근육 이완·스트레칭)을 15분 이상 수행하기",
+    "description": "오늘 취침 전 이완 루틴(복식 호흡·근육 이완·스트레칭)을 15분 이상 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "SLEEP",
+    "name": "오늘 취침 전 이완 루틴(명상·호흡·스트레칭)을 15분 이상 수행하기",
+    "description": "오늘 취침 전 이완 루틴(명상·호흡·스트레칭)을 15분 이상 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "SLEEP",
+    "name": "오늘 밤 12시 이전에 취침하고 전날과 ±30분 이내로 맞추기",
+    "description": "오늘 밤 12시 이전에 취침하고 전날과 ±30분 이내로 맞추기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "SLEEP",
+    "name": "오늘 기상 후 어제 수면 시간이 7시간 이상이었는지 확인하기",
+    "description": "오늘 기상 후 어제 수면 시간이 7시간 이상이었는지 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "SLEEP",
+    "name": "오늘 낮잠을 15분 이내로 제한해 야간 수면 질을 보호하기",
+    "description": "오늘 낮잠을 15분 이내로 제한해 야간 수면 질을 보호하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "STRESS",
+    "name": "오늘 명상·복식 호흡·긍정적 자기 대화를 15분 이상 실천하기",
+    "description": "오늘 명상·복식 호흡·긍정적 자기 대화를 15분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "STRESS",
+    "name": "오늘 일상의 좋은 점 3가지를 떠올리며 감사 일기를 마음속으로 정리하기",
+    "description": "오늘 일상의 좋은 점 3가지를 떠올리며 감사 일기를 마음속으로 정리하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "STRESS",
+    "name": "오늘 스트레스 상황에서 즉각 반응하지 않고 5초간 멈춘 뒤 복식 호흡 후 반응하기",
+    "description": "오늘 스트레스 상황에서 즉각 반응하지 않고 5초간 멈춘 뒤 복식 호흡 후 반응하기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "STRESS",
+    "name": "오늘 가족·친구·커뮤니티와 10분 이상 직접 대화를 나누기",
+    "description": "오늘 가족·친구·커뮤니티와 10분 이상 직접 대화를 나누기",
+    "duration_days": 1
+  },
+  {
+    "track": "WELLNESS",
+    "stage": 4,
+    "category": "STRESS",
+    "name": "오늘 부정적 생각이 반복될 때 '지금 이 순간'에 집중하는 마음챙김을 10분 이상 실천하기",
+    "description": "오늘 부정적 생각이 반복될 때 '지금 이 순간'에 집중하는 마음챙김을 10분 이상 실천하기",
+    "duration_days": 1
+  }
+]

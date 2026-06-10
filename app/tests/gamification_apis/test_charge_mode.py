@@ -31,7 +31,7 @@ async def _make_uc(user: User, last_checkin: date) -> UserChallenge:
         category=ChallengeCategory.HYDRATION,
         description="물",
         duration_days=7,
-        track=ChallengeTrack.A,
+        track=ChallengeTrack.WELLNESS,
         stage=1,
     )
     return await UserChallenge.create(
