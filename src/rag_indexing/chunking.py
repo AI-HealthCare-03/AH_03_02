@@ -194,6 +194,109 @@ def _track_for(doc_type: str, source: str) -> str:
     return cfg.TRACK_COMMON
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+# N.N.N 항목 분할 (241212 진료지침 3개 섹션 전용)
+# ─────────────────────────────────────────────────────────────────────────────
+# "- 4.2.1." / "- 6.5.3." 등 행 선두의 번호 항목을 감지하는 패턴
+_ITEM_BOUNDARY_RE = re.compile(r"(?:^|\n)(\s*-\s*\d+\.\d+\.\d+\.)", re.MULTILINE)
+_ITEM_NO_RE = re.compile(r"^\s*-\s*(\d+\.\d+\.\d+)\.")
+# 권고문 문장 끝(마침표 + 선택적 공백 + 줄바꿈) 감지 — 이후 텍스트는 근거 서술
+# (?!\s*-) : 다음 줄이 또 다른 항목(- N.N.N.)이면 제외
+_REC_END_RE = re.compile(r"\.\s*\n(?!\s*-)")
+
+
+def _item_track_for(text: str) -> str:
+    """텍스트 첫 행의 N.N.N 번호로 track 결정. 매핑에 없으면 common."""
+    m = _ITEM_NO_RE.match(text.lstrip())
+    if m:
+        return cfg.SECTION_ITEM_TRACK_MAP.get(m.group(1), cfg.TRACK_COMMON)
+    return cfg.TRACK_COMMON
+
+
+def _emit_split_numbered_section(
+    *,
+    parents: list,
+    children: list,
+    text: str,
+    source: str,
+    doc_type: str,
+    language: str,
+    h1: str,
+    h2: str,
+    parent_counter: list,
+    page: int | None = None,
+) -> None:
+    """N.N.N 번호 기반 항목 분할 + 트랙 태깅.
+
+    "- N.N.N." 패턴 위치를 경계로 텍스트를 항목별로 나눈다.
+    번호 없는 서술부(preamble/narrative)는 common 폴백.
+    N.N.N. 패턴이 없는 청크(설명 서술)도 common으로 통과.
+    """
+    boundaries = [m.start() for m in _ITEM_BOUNDARY_RE.finditer(text)]
+
+    if not boundaries:
+        # N.N.N. 없음 → common 폴백
+        _emit_parent_children(
+            parents=parents, children=children,
+            text=text, source=source, doc_type=doc_type,
+            language=language, h1=h1, h2=h2,
+            parent_counter=parent_counter, page=page,
+            track=cfg.TRACK_COMMON,
+        )
+        return
+
+    # 첫 번째 항목 이전 서술 (preamble)
+    if boundaries[0] > 0:
+        preamble = text[: boundaries[0]].strip()
+        if len(preamble) >= _MIN_CHUNK_CHARS:
+            _emit_parent_children(
+                parents=parents, children=children,
+                text=preamble, source=source, doc_type=doc_type,
+                language=language, h1=h1, h2=h2,
+                parent_counter=parent_counter, page=page,
+                track=cfg.TRACK_COMMON,
+            )
+
+    # 각 N.N.N 항목
+    for i, pos in enumerate(boundaries):
+        end = boundaries[i + 1] if i + 1 < len(boundaries) else len(text)
+        # boundary가 '\n'으로 시작하면 그 문자를 건너뜀
+        item_start = pos + 1 if text[pos] == "\n" else pos
+        item_text = text[item_start:end].strip()
+        if len(item_text) < _MIN_CHUNK_CHARS:
+            continue
+        item_track = _item_track_for(item_text)
+        # 권고문 뒤에 붙은 근거 서술을 common으로 분리
+        # 권고문은 첫 문장(마침표 + \n)으로 끝남. 이후 서술은 track 무관 근거 텍스트.
+        para_m = _REC_END_RE.search(item_text, 20)  # 최소 20자 이후(항목 마커 스킵)
+        if para_m and len(item_text[para_m.end() :].strip()) >= _MIN_CHUNK_CHARS:
+            head = item_text[: para_m.start() + 1].strip()  # 마침표 포함
+            tail = item_text[para_m.end() :].strip()
+            if len(head) >= _MIN_CHUNK_CHARS:
+                _emit_parent_children(
+                    parents=parents, children=children,
+                    text=head, source=source, doc_type=doc_type,
+                    language=language, h1=h1, h2=h2,
+                    parent_counter=parent_counter, page=page,
+                    track=item_track,
+                )
+            _emit_parent_children(
+                parents=parents, children=children,
+                text=tail, source=source, doc_type=doc_type,
+                language=language, h1=h1, h2=h2,
+                parent_counter=parent_counter, page=page,
+                track=cfg.TRACK_COMMON,
+            )
+        else:
+            _emit_parent_children(
+                parents=parents, children=children,
+                text=item_text, source=source, doc_type=doc_type,
+                language=language, h1=h1, h2=h2,
+                parent_counter=parent_counter, page=page,
+                track=item_track,
+            )
+
+
 def _parent_id(source: str, h1: str, h2: str, idx: int) -> str:
     """source+헤더+parent 순번으로 결정적 parent_id 생성."""
     key = f"{source}|{h1}|{h2}|{idx}"
@@ -304,19 +407,36 @@ def chunk_pdf(path: Path) -> tuple[list, list]:
             if g_h2:
                 last_h2 = g_h2
             effective_h2 = g_h2 or last_h2
-            _emit_parent_children(
-                parents=parents,
-                children=children,
-                text=grp.page_content,
-                source=source,
-                doc_type=doc_type,
-                language=language,
-                h1=g_h1 or last_h1,
-                h2=effective_h2,
-                parent_counter=parent_counter,
-                page=page_no,
-                track=file_track,  # 파일 단위 고정값 — h2 소제목에 흔들리지 않음
-            )
+            # 241212 진료지침 3개 섹션(3.3/4.2/6.5)은 N.N.N 항목별 분할 + 트랙 태깅
+            if source == cfg.SECTION_TRACK_SPLIT_SOURCE and any(
+                effective_h2.startswith(p) for p in cfg.SECTION_TRACK_SPLIT_H2_PREFIXES
+            ):
+                _emit_split_numbered_section(
+                    parents=parents,
+                    children=children,
+                    text=grp.page_content,
+                    source=source,
+                    doc_type=doc_type,
+                    language=language,
+                    h1=g_h1 or last_h1,
+                    h2=effective_h2,
+                    parent_counter=parent_counter,
+                    page=page_no,
+                )
+            else:
+                _emit_parent_children(
+                    parents=parents,
+                    children=children,
+                    text=grp.page_content,
+                    source=source,
+                    doc_type=doc_type,
+                    language=language,
+                    h1=g_h1 or last_h1,
+                    h2=effective_h2,
+                    parent_counter=parent_counter,
+                    page=page_no,
+                    track=file_track,  # 파일 단위 고정값 — h2 소제목에 흔들리지 않음
+                )
     return parents, children
 
 
