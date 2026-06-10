@@ -53,29 +53,7 @@ function EgfrGauge({ value }: { value: number | null }) {
   );
 }
 
-// KDIGO 단계별 임상 라벨 — 강한 의료 권고 표현 X (CLAUDE.md §0). G3 이상에서만 색상 강조.
-const CKD_STAGE_INFO: Record<string, { label: string; color: string }> = {
-  G1: { label: "정상 (eGFR ≥ 90)", color: "#059669" },
-  G2: { label: "경미한 감소 (60~89)", color: "#059669" },
-  G3A: { label: "중등도 감소 (45~59)", color: "#D97706" },
-  G3a: { label: "중등도 감소 (45~59)", color: "#D97706" },
-  G3B: { label: "중등도 감소 (30~44)", color: "#D97706" },
-  G3b: { label: "중등도 감소 (30~44)", color: "#D97706" },
-  G4: { label: "심한 감소 (15~29)", color: "#DC2626" },
-  G5: { label: "신부전 (< 15)", color: "#DC2626" },
-};
-
-function RiskGauge({
-  score,
-  calculating,
-  ckdStage,
-  egfr,
-}: {
-  score: number | null;
-  calculating?: boolean;
-  ckdStage?: string | null;
-  egfr?: number | null;
-}) {
+function RiskGauge({ score, calculating }: { score: number | null; calculating?: boolean }) {
   if (score === null)
     return (
       <div className="flex h-[360px] flex-col items-center justify-center gap-2 text-sm text-text-muted">
@@ -94,36 +72,22 @@ function RiskGauge({
   // 임계값을 분포에 맞춰 조정 — 30/60% 기준은 모델이 도달 불가능한 영역.
   const color = score < 1 ? "#059669" : score < 3 ? "#D97706" : "#DC2626";
   const level = score < 1 ? "낮음" : score < 3 ? "주의" : "위험";
-  // 게이지 채움 = raw 비율 그대로 (정직 표시). 모델 한계로 작게 나오는 값이라
-  // 시각 임팩트는 KDIGO 단계 카드와 색상으로 보완.
+  // 게이지 채움 = raw 비율 그대로 (표시 숫자와 일치, 정직 표시).
   const fillDeg = score * 3.6;
-  const stageInfo = ckdStage ? CKD_STAGE_INFO[ckdStage] : null;
   return (
-    <div className="relative flex flex-col items-center justify-center gap-2 p-4 rounded-md border border-border bg-bg" style={{ height: 360 }}>
+    <div className="relative flex flex-col items-center justify-center gap-3 p-4 rounded-md border border-border bg-bg" style={{ height: 360 }}>
       <span className="absolute right-3 top-3 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">예상값 · 진단 아님</span>
       <div
-        className="relative flex h-[180px] w-[180px] items-center justify-center rounded-full"
+        className="relative flex h-[220px] w-[220px] items-center justify-center rounded-full"
         style={{ background: `conic-gradient(${color} ${fillDeg}deg, #E5E7EB ${fillDeg}deg)` }}
       >
-        <div className="flex h-[150px] w-[150px] flex-col items-center justify-center rounded-full bg-bg">
-          <span className="text-4xl font-bold leading-none" style={{ color }}>{score.toFixed(1)}%</span>
-          <span className="mt-1 text-sm font-semibold text-text-secondary">{level}</span>
+        <div className="flex h-[184px] w-[184px] flex-col items-center justify-center rounded-full bg-bg">
+          <span className="text-5xl font-bold leading-none" style={{ color }}>{score.toFixed(1)}%</span>
+          <span className="mt-1 text-base font-semibold text-text-secondary">{level}</span>
         </div>
       </div>
-      <p className="text-sm font-bold text-text-primary">CKD 위험도</p>
-
-      {/* KDIGO 임상 단계 카드 — 모델 raw 위험도(작은 %) 한계를 임상 지표로 보완 */}
-      {stageInfo && (
-        <div className="w-full rounded-sm border px-3 py-1.5" style={{ borderColor: stageInfo.color, backgroundColor: `${stageInfo.color}15` }}>
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="text-xs font-bold" style={{ color: stageInfo.color }}>KDIGO {ckdStage}</span>
-            {egfr != null && <span className="text-[10px] text-text-muted">eGFR {egfr.toFixed(0)}</span>}
-          </div>
-          <p className="mt-0.5 text-[11px] leading-tight" style={{ color: stageInfo.color }}>{stageInfo.label}</p>
-        </div>
-      )}
-
-      <p className="text-[10px] text-text-muted">※ 예상값 (의료 진단 아님)</p>
+      <p className="text-base font-bold text-text-primary">CKD 위험도</p>
+      <p className="text-xs text-text-muted">※ 예상값 (의료 진단 아님)</p>
     </div>
   );
 }
@@ -379,8 +343,6 @@ export function DashboardPage() {
             <RiskGauge
               score={h?.ckd_risk_score != null ? h.ckd_risk_score * 100 : null}
               calculating={!!h && h.ckd_risk_score == null}
-              ckdStage={h?.ckd_stage ?? null}
-              egfr={h?.egfr_estimated ?? null}
             />
           </div>
           <EggWidget />
