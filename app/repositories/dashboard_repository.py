@@ -5,12 +5,13 @@ from app.models.lifestyle_survey import LifestyleSurvey
 
 class DashboardRepository:
     async def get_latest_health_check(self, user_id: int) -> HealthCheck | None:
-        return await HealthCheck.filter(user_id=user_id).order_by("-checked_date").first()
+        # 같은 checked_date에 여러 건이면 가장 최근(id 큰 것) 우선 — PR #37 리포트 정렬 패턴 일관 적용
+        return await HealthCheck.filter(user_id=user_id).order_by("-checked_date", "-id").first()
 
     async def get_egfr_trend(self, user_id: int, limit: int = 12) -> list[HealthCheck]:
         return (
             await HealthCheck.filter(user_id=user_id, egfr_estimated__not_isnull=True)
-            .order_by("-checked_date")
+            .order_by("-checked_date", "-id")
             .limit(limit)
         )
 
@@ -32,4 +33,4 @@ class DashboardRepository:
         }
 
     async def get_latest_lifestyle_survey(self, user_id: int) -> LifestyleSurvey | None:
-        return await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date").first()
+        return await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date", "-id").first()
