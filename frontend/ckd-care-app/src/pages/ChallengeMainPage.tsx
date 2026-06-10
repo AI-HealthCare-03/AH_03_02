@@ -75,9 +75,11 @@ export function ChallengeMainPage() {
     queryClient.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
   }
 
-  // challenge.id → 내 user_challenge 매핑
+  // challenge.id → 내 user_challenge 매핑 (ACTIVE 상태만 — ABANDONED/COMPLETED 제외)
   const ucByChallenge = new Map<number, UserChallenge>();
-  myChallenges.forEach((uc) => ucByChallenge.set(uc.challenge_id, uc));
+  myChallenges
+    .filter((uc) => uc.status === "ACTIVE")
+    .forEach((uc) => ucByChallenge.set(uc.challenge_id, uc));
 
   const today = todayStr();
   const rowsAll: ChallengeRow[] = challenges.map((c) => {
@@ -154,19 +156,23 @@ export function ChallengeMainPage() {
     if (!track) return;
     setError("");
     try {
-      const mt = await challengeApi.updateMyTrack(track, stage);
-      setMyTrack(mt);
-      setActiveCat(mt.categories[0]?.category ?? null);
-      const [cl, list] = await Promise.all([
-        challengeApi.dailyChecklist(),
-        challengeApi.listByTrackStage(mt.track, mt.stage),
-      ]);
-      setChecklist(cl.items);
-      setChallenges(list.items);
+      await challengeApi.updateMyTrack(track, stage);
+      setActiveCat(null);   // 새 트랙 첫 카테고리로 재설정 유도
       setView("main");
+      await loadAll();  // myTrack·checklist·challenges·myChallenges 전체 재로드로 정합
     } catch (e) {
       setError(e instanceof Error ? e.message : "트랙 변경 실패");
     }
+  }
+
+  // 온보딩 뷰 — 데이터 불필요, 로딩보다 먼저 렌더
+  if (view === "onboard") {
+    return (
+      <div className="flex min-h-screen flex-col bg-bg-alt">
+        <ScreenLabel label="11 · 챌린지 온보딩" />
+        <OnboardView onStart={finishOnboard} />
+      </div>
+    );
   }
 
   if (loading) {
@@ -179,15 +185,25 @@ export function ChallengeMainPage() {
     );
   }
 
-  // 온보딩 뷰
-  if (view === "onboard") {
+  // 로드 실패 시 에러 화면 조기 반환
+  if (error && !myTrack) {
     return (
       <div className="flex min-h-screen flex-col bg-bg-alt">
-        <ScreenLabel label="11 · 챌린지 온보딩" />
-        <OnboardView onStart={finishOnboard} />
+        <ScreenLabel label="11 · 챌린지" />
+        <TopNav />
+        <main className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
+          <p className="text-sm text-danger">{error}</p>
+          <button
+            onClick={() => { setError(""); setLoading(true); loadAll(); }}
+            className="rounded-md border border-accent px-4 py-2 text-sm text-accent hover:bg-accent hover:text-bg"
+          >
+            다시 시도
+          </button>
+        </main>
       </div>
     );
   }
+
   // 트랙 선택 뷰
   if (view === "track" && myTrack) {
     return (
