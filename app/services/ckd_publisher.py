@@ -89,3 +89,52 @@ async def publish_ckd_job(
         },
     )
     logger.info("ckd 예측 job 발행 hc=%s", health_check_id)
+
+
+async def republish_for_latest_health_check(user_id: int) -> int | None:
+    """사용자의 최근 검진을 기준으로 ckd job 재발행 (설문 갱신 트리거용).
+
+    설문 데이터가 모델 입력의 약 절반(생활습관·진단력·가족력)을 차지하므로,
+    설문 변경 시 최신 검진의 SHAP/AI 가이드를 다시 굽는다.
+
+    반환: 재발행한 health_check_id (검진 없으면 None).
+    """
+    from app.models.health_check import HealthCheck
+    from app.models.users import User
+
+    hc = await HealthCheck.filter(user_id=user_id).order_by("-checked_date", "-id").first()
+    if hc is None:
+        return None
+    user = await User.get(id=user_id)
+
+    today = date.today()
+    user_age = today.year - user.birthday.year
+    if (today.month, today.day) < (user.birthday.month, user.birthday.day):
+        user_age -= 1
+
+    # HealthCheck 모델 → publish_ckd_job이 기대하는 dto 어댑터 (Pydantic 검증 우회)
+    dto = HealthCheckCreateRequest.model_construct(
+        checked_date=hc.checked_date,
+        systolic_bp=hc.systolic_bp,
+        diastolic_bp=hc.diastolic_bp,
+        fasting_glucose=hc.fasting_glucose,
+        creatinine=hc.creatinine,
+        total_cholesterol=hc.total_cholesterol,
+        hdl_cholesterol=hc.hdl_cholesterol,
+        triglycerides=hc.triglycerides,
+        weight=hc.weight,
+        height=hc.height,
+        waist_circumference=hc.waist_circumference,
+        dialysis_type=hc.dialysis_type,
+    )
+    await publish_ckd_job(
+        health_check_id=hc.id,
+        user_id=user_id,
+        user_age=user_age,
+        user_gender=user.gender,
+        checked_date=hc.checked_date,
+        bmi=hc.bmi,
+        egfr=hc.egfr_estimated,
+        dto=dto,
+    )
+    return hc.id

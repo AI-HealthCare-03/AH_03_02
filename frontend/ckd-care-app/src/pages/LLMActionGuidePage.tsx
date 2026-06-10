@@ -19,6 +19,7 @@ import {
   ShapItem1,
   LifestyleShapItem,
   LifestyleItem,
+  LifestyleDomainSummary,
   PeerDistribution,
   ClinicalItem,
   ReportMeta,
@@ -673,68 +674,65 @@ function ClinicalDetailTable({ items }: { items: ClinicalItem[] }) {
   );
 }
 
-// ===== 생활습관 핵심 요약 카드 =====
-// NOTE: 백엔드에 domain 필드가 아직 없어 식이/운동/기타 도메인 분류는 생략.
-//       improve / maintain 그룹 기준으로만 표시.
-function LifestyleSummaryCard({ items }: { items: LifestyleItem[] }) {
-  const improveItems = items.filter((it) => it.group === "improve");
-  const maintainItems = items.filter((it) => it.group === "maintain");
+// ===== 생활습관 핵심 요약 카드 (도메인별: 식이/운동/기타) =====
+function LifestyleSummaryCard({
+  items,
+  domainSummary,
+}: {
+  items: LifestyleItem[];
+  domainSummary: LifestyleDomainSummary[];
+}) {
+  if (items.length === 0 || domainSummary.length === 0) return null;
 
-  if (items.length === 0) return null;
+  const improveOf = (domain: string) =>
+    items.filter((it) => it.domain === domain && it.group === "improve");
 
   return (
     <div className="flex flex-col gap-[12px] rounded-lg border border-border bg-bg p-[16px] shadow-sm">
-      {/* 제목 + 요약 카운트 */}
-      <div className="flex flex-wrap items-center gap-[8px]">
-        <p className="text-sm font-bold text-text-primary">건강 상태 핵심 요약</p>
-        <span
-          className="rounded-full px-[8px] py-[2px] text-xs font-semibold"
-          style={{ backgroundColor: "#fee2e2", color: "#DC2626" }}
-        >
-          개선 필요 {improveItems.length}개
-        </span>
-        <span
-          className="rounded-full px-[8px] py-[2px] text-xs font-semibold"
-          style={{ backgroundColor: "#dcfce7", color: "#16A34A" }}
-        >
-          잘 관리됨 {maintainItems.length}개
-        </span>
-      </div>
-
-      {/* 개선 필요 섹션 */}
-      {improveItems.length > 0 && (
-        <div className="flex flex-col gap-[6px]">
-          <p className="text-xs font-semibold" style={{ color: "#DC2626" }}>개선이 필요한 항목</p>
-          <ul className="flex flex-col gap-[6px]">
-            {improveItems.map((it) => (
-              <li key={it.feature} className="flex items-start gap-[8px]">
-                <span className="mt-[5px] h-[6px] w-[6px] shrink-0 rounded-full bg-[#DC2626]" />
-                <span className="text-sm leading-[1.6] text-text-secondary">
-                  <span className="font-medium text-text-primary">{it.label}</span>
-                  {it.action ? ` — ${it.action}` : ""}
+      <p className="text-sm font-bold text-text-primary">생활습관 핵심 요약</p>
+      <div className="flex flex-col gap-[10px]">
+        {domainSummary.map((d) => {
+          const improveItems = improveOf(d.domain);
+          return (
+            <div key={d.domain} className="flex flex-col gap-[6px]">
+              <div className="flex flex-wrap items-center gap-[8px]">
+                <span className="text-sm font-semibold text-text-primary">{d.domain_label}</span>
+                <span
+                  className="rounded-full px-[8px] py-[2px] text-xs font-semibold"
+                  style={
+                    improveItems.length > 0
+                      ? { backgroundColor: "#fee2e2", color: "#DC2626" }
+                      : { backgroundColor: "#dcfce7", color: "#16A34A" }
+                  }
+                >
+                  {improveItems.length > 0 ? `개선 필요 ${improveItems.length}개` : "양호"}
                 </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* 잘 관리됨 섹션 */}
-      {maintainItems.length > 0 && (
-        <div className="flex flex-col gap-[4px]">
-          <p className="text-xs font-semibold" style={{ color: "#16A34A" }}>잘 관리되고 있는 항목</p>
-          <p className="text-sm leading-[1.6] text-text-secondary">
-            {maintainItems.map((it) => it.label).join(" · ")}
-          </p>
-        </div>
-      )}
+                <span className="text-sm leading-[1.6] text-text-secondary">{d.summary}</span>
+              </div>
+              {improveItems.length > 0 && (
+                <ul className="flex flex-col gap-[4px] pl-[10px]">
+                  {improveItems.map((it) => (
+                    <li key={it.feature} className="flex items-start gap-[8px]">
+                      <span className="mt-[6px] h-[5px] w-[5px] shrink-0 rounded-full bg-[#DC2626]" />
+                      <span className="text-sm leading-[1.6] text-text-secondary">
+                        <span className="font-medium text-text-primary">{it.label}</span>
+                        {it.action ? ` — ${it.action}` : ""}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
 // ===== 생활습관 상세 분석표 — 촘촘한 테이블 스타일 =====
-// NOTE: 백엔드에 domain 필드가 아직 없어 카테고리별 분류는 생략.
-//       improve(개선 필요) 그룹 먼저, maintain(잘 관리) 그룹 다음 순서로 표시.
+// NOTE: 도메인별(식이/운동/기타) 분류는 위 LifestyleSummaryCard가 담당.
+//       이 표는 improve(개선 필요) 그룹 먼저, maintain(잘 관리) 그룹 순서로 전체 항목 표시.
 function LifestyleDetailTable({ items }: { items: LifestyleItem[] }) {
   const [openRows, setOpenRows] = useState<Set<string>>(new Set());
 
@@ -1038,6 +1036,8 @@ export function LLMActionGuidePage() {
 
   // ===== 생활습관 상세 항목 (Phase C — lifestyle_items) =====
   const lifestyleItems: LifestyleItem[] = report?.lifestyle_items ?? [];
+  // ===== 생활습관 도메인 요약 (Phase B — lifestyle_domain_summary) =====
+  const lifestyleDomainSummary: LifestyleDomainSummary[] = report?.lifestyle_domain_summary ?? [];
 
   // ===== AI 가이드 텍스트 =====
   const aiGuide = report?.ai_guide ?? "";
@@ -1177,7 +1177,10 @@ export function LLMActionGuidePage() {
 
                 {/* Phase C: 생활습관 핵심 요약 카드 */}
                 {lifestyleItems.length > 0 && (
-                  <LifestyleSummaryCard items={lifestyleItems} />
+                  <LifestyleSummaryCard
+                    items={lifestyleItems}
+                    domainSummary={lifestyleDomainSummary}
+                  />
                 )}
 
                 {/* Phase C: 생활습관 상세 분석표 */}

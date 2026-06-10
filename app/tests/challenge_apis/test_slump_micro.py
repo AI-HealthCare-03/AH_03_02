@@ -35,7 +35,7 @@ async def _set_last_checkin(user_id: int, days_ago: int | None) -> None:
     challenge = await Challenge.create(
         name="물 마시기",
         category=ChallengeCategory.HYDRATION,
-        track=ChallengeTrack.A,
+        track=ChallengeTrack.WELLNESS,
         stage=1,
         duration_days=7,
         description="hydration",

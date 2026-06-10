@@ -99,6 +99,16 @@ export interface LifestyleItem {
   status_level: "good" | "info" | "caution" | "warnLight" | "danger";
   group: "improve" | "maintain";
   action: string;
+  domain: string; // diet | exercise | etc (Phase B)
+}
+
+// ===== 생활습관 도메인 분리 타입 (Phase B) =====
+
+export interface LifestyleDomainSummary {
+  domain: string;
+  domain_label: string;
+  improve_count: number;
+  summary: string;
 }
 
 export interface ReportMeta {
@@ -124,6 +134,7 @@ export interface ReportResponse {
   model1_summary?: string;
   clinical_items?: ClinicalItem[];
   lifestyle_items?: LifestyleItem[];
+  lifestyle_domain_summary?: LifestyleDomainSummary[]; // 도메인별 생활습관 요약 (Phase B)
   report_meta?: ReportMeta | null;
 }
 

@@ -13,11 +13,16 @@ from app.dtos.challenge import (
     ChallengeResponse,
     CheckinAwardResponse,
     CheckInResponse,
+    DailyChecklistItemResponse,
+    DailyChecklistResponse,
     EggUpdateResponse,
     EmotionDay,
     HeatmapDay,
     HeatmapResponse,
     JoinChallengeRequest,
+    MyTrackResponse,
+    TrackCategoryInfo,
+    UpdateMyTrackRequest,
     UserChallengeListResponse,
     UserChallengeResponse,
     WeeklyEmotionResponse,
@@ -31,42 +36,229 @@ from app.models.challenge import (
     UserChallenge,
     UserChallengeStatus,
 )
-from app.models.health_check import AppGroup
-from app.repositories.challenge_repository import ChallengeRepository, UserChallengeRepository
+from app.repositories.challenge_repository import (
+    ChallengeRepository,
+    DailyChecklistLogRepository,
+    HealthCheckSnapshotRepository,
+    LifestyleSurveySnapshotRepository,
+    UserChallengeProfileRepository,
+    UserChallengeRepository,
+)
+from app.services.challenge_reference import (
+    CATEGORY_LABEL,
+    REQUIRED_CHECKLIST,
+    STAGE_LABEL,
+    TRACK_CATEGORIES,
+    TRACK_LABEL,
+    assign_track,
+)
 from app.services.charge_mode import ChargeModeService
 from app.services.eggs import EggService
 from app.services.notification import NotificationService
 from app.services.points import PointService
 from app.services.streak_protect import StreakProtectService
 
-_GROUP_TO_TRACK: dict[AppGroup, ChallengeTrack] = {
-    AppGroup.G1: ChallengeTrack.A,
-    AppGroup.G2: ChallengeTrack.A,
-    AppGroup.G3: ChallengeTrack.B,
-    AppGroup.G4: ChallengeTrack.B,
+# AppGroup(G1~G4 StrEnum) → assign_track 입력 문자열(A/B/C/D) 변환 테이블.
+# 근거: app/services/health_check.py:622 주석 및 M1_GROUP_TITLE 키 규약.
+_APP_GROUP_TO_LETTER: dict[str, str] = {
+    "G1": "A",  # 신장 집중 관리군 (eGFR < 60)
+    "G2": "B",  # 신장 위험 관리군 (eGFR >= 60 + 임상 마커)
+    "G3": "C",  # 신장 사전 관리군 (모델 위험신호)
+    "G4": "D",  # 건강 습관 형성군 (정상)
 }
+
+
+def _app_group_to_letter(app_group_value: str | None) -> str | None:
+    """AppGroup StrEnum 값(G1~G4)을 assign_track 입력(A~D)으로 변환."""
+    if app_group_value is None:
+        return None
+    return _APP_GROUP_TO_LETTER.get(app_group_value)
+
+
+def _build_my_track_response(profile) -> MyTrackResponse:
+    """UserChallengeProfile 객체 → MyTrackResponse DTO 변환 헬퍼."""
+    track_key = profile.track.value if hasattr(profile.track, "value") else str(profile.track)
+    categories = [
+        TrackCategoryInfo(
+            category=cat,
+            label=CATEGORY_LABEL.get(cat, cat),
+        )
+        for cat in TRACK_CATEGORIES.get(track_key, [])
+    ]
+    return MyTrackResponse(
+        track=profile.track,
+        track_label=TRACK_LABEL.get(track_key, track_key),
+        stage=profile.stage,
+        stage_label=STAGE_LABEL.get(profile.stage, str(profile.stage)),
+        auto_assigned=profile.auto_assigned,
+        categories=categories,
+    )
 
 
 class ChallengeService:
     def __init__(self) -> None:
         self._repo = ChallengeRepository()
         self._user_repo = UserChallengeRepository()
+        self._profile_repo = UserChallengeProfileRepository()
+        self._checklist_repo = DailyChecklistLogRepository()
+        self._hc_repo = HealthCheckSnapshotRepository()
+        self._survey_repo = LifestyleSurveySnapshotRepository()
         self._notif = NotificationService()
         self._points = PointService()
         self._eggs = EggService()
         self._charge = ChargeModeService()
 
-    async def list_challenges(self, app_group: AppGroup | None) -> ChallengeListResponse:
-        """사용자 App 그룹에 맞는 챌린지 목록 반환. 그룹 미입력 시 빈 목록."""
-        if app_group is None:
+    # ── 트랙 자동배정 · 조회 ──────────────────────────────────────────────────
+
+    async def get_my_track(self, user_id: int) -> MyTrackResponse:
+        """사용자 트랙 조회: 기존 프로필 반환 또는 자동 배정 후 생성.
+
+        배정 흐름:
+        1. 최신 HealthCheck + LifestyleSurvey 조회
+        2. assign_track 으로 트랙 계산
+        3. UserChallengeProfile 존재 여부 확인
+           - 없음 → 계산된 트랙으로 신규 생성 (auto_assigned=True)
+           - 있음 + auto_assigned=True → 재계산 결과 반영(갱신)
+           - 있음 + auto_assigned=False → 사용자 선택 유지(반환)
+        """
+        hc = await self._hc_repo.get_latest(user_id)
+        survey = await self._survey_repo.get_latest(user_id)
+
+        # assign_track 입력값 추출
+        app_group_letter = _app_group_to_letter(hc.app_group.value if hc and hc.app_group else None)
+        ckd_diagnosed: bool = bool(survey.ckd_diagnosed) if survey else False
+        dialysis_type_val: str | None = hc.dialysis_type.value if hc and hc.dialysis_type else None
+        egfr: float | None = hc.egfr_estimated if hc else None
+
+        computed_track: ChallengeTrack = assign_track(
+            app_group=app_group_letter,
+            ckd_diagnosed=ckd_diagnosed,
+            dialysis_type=dialysis_type_val,
+            egfr=egfr,
+        )
+
+        profile = await self._profile_repo.get_by_user(user_id)
+        if profile is None:
+            # 신규 사용자: 자동배정 결과로 프로필 생성
+            profile = await self._profile_repo.upsert(
+                user_id=user_id,
+                track=computed_track,
+                stage=1,
+                auto_assigned=True,
+            )
+        elif profile.auto_assigned:
+            # 자동배정 상태: 재계산 결과 반영 (트랙만 갱신, stage는 유지)
+            profile = await self._profile_repo.upsert(
+                user_id=user_id,
+                track=computed_track,
+                stage=profile.stage,
+                auto_assigned=True,
+            )
+        # auto_assigned=False인 경우: 사용자가 수동으로 선택한 트랙 유지
+
+        return _build_my_track_response(profile)
+
+    async def update_my_track(self, user_id: int, dto: UpdateMyTrackRequest) -> MyTrackResponse:
+        """트랙·스테이지 수동 변경. auto_assigned=False 로 사용자 선택 고정."""
+        profile = await self._profile_repo.upsert(
+            user_id=user_id,
+            track=dto.track,
+            stage=dto.stage,
+            auto_assigned=False,
+        )
+        return _build_my_track_response(profile)
+
+    # ── 챌린지 목록 (트랙·스테이지 기반) ─────────────────────────────────────
+
+    async def list_challenges(
+        self,
+        track: ChallengeTrack | None = None,
+        stage: int | None = None,
+    ) -> ChallengeListResponse:
+        """트랙·스테이지에 맞는 챌린지 목록 반환.
+
+        track 미지정 시 빈 목록.
+        stage 지정 시 해당 스테이지만, 미지정 시 트랙 전체.
+        """
+        if track is None:
             return ChallengeListResponse(total=0, items=[])
 
-        track = _GROUP_TO_TRACK[app_group]
-        items = await self._repo.list_by_track(track)
+        if stage is not None:
+            items = await self._repo.list_by_track_and_stage(track, stage)
+        else:
+            items = await self._repo.list_by_track(track)
+
         return ChallengeListResponse(
             total=len(items),
             items=[ChallengeResponse.model_validate(c) for c in items],
         )
+
+    # ── 필수 체크리스트 ───────────────────────────────────────────────────────
+
+    async def get_daily_checklist(self, user_id: int, today: date) -> DailyChecklistResponse:
+        """오늘의 필수 체크리스트 조회.
+
+        사용자 프로필 트랙의 REQUIRED_CHECKLIST(4항목) + 오늘 DailyChecklistLog 상태 반영.
+        프로필이 없으면 WELLNESS 기본 트랙으로 처리.
+        """
+        profile = await self._profile_repo.get_by_user(user_id)
+        if profile is None:
+            track = ChallengeTrack.WELLNESS
+        else:
+            track = profile.track
+
+        track_key = track.value if hasattr(track, "value") else str(track)
+        checklist_items = REQUIRED_CHECKLIST.get(track_key, [])
+
+        # 오늘 이미 체크된 항목 조회
+        logs = await self._checklist_repo.list_by_date(user_id, today)
+        checked_map: dict[str, bool] = {log.item_key: log.checked for log in logs}
+
+        items = [
+            DailyChecklistItemResponse(
+                item_key=item_key,
+                text=text,
+                checked=checked_map.get(item_key, False),
+            )
+            for item_key, text in checklist_items
+        ]
+
+        return DailyChecklistResponse(date=today, track=track, items=items)
+
+    async def toggle_daily_checklist(self, user_id: int, item_key: str, today: date) -> DailyChecklistItemResponse:
+        """필수 체크리스트 항목 토글.
+
+        item_key가 사용자 트랙의 REQUIRED_CHECKLIST 키가 아니면 400.
+        있으면 checked 토글, 없으면 checked=True 로 생성.
+        """
+        profile = await self._profile_repo.get_by_user(user_id)
+        if profile is None:
+            track = ChallengeTrack.WELLNESS
+        else:
+            track = profile.track
+
+        track_key = track.value if hasattr(track, "value") else str(track)
+        valid_keys = {k for k, _ in REQUIRED_CHECKLIST.get(track_key, [])}
+
+        if item_key not in valid_keys:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"유효하지 않은 체크리스트 항목입니다: {item_key}",
+            )
+
+        log = await self._checklist_repo.upsert_toggle(user_id, today, item_key)
+
+        # 항목 text 조회 (REQUIRED_CHECKLIST에서 검색)
+        checklist_items = REQUIRED_CHECKLIST.get(track_key, [])
+        text = next((t for k, t in checklist_items if k == item_key), item_key)
+
+        return DailyChecklistItemResponse(
+            item_key=log.item_key,
+            text=text,
+            checked=log.checked,
+        )
+
+    # ── 챌린지 참여 ──────────────────────────────────────────────────────────
 
     async def join_challenge(self, user_id: int, dto: JoinChallengeRequest) -> UserChallengeResponse:
         challenge = await self._repo.get_by_id(dto.challenge_id)
@@ -97,6 +289,8 @@ class ChallengeService:
             total=total,
             items=[UserChallengeResponse.model_validate(uc) for uc in items],
         )
+
+    # ── 체크인 ───────────────────────────────────────────────────────────────
 
     async def checkin(
         self, user_challenge_id: int, user_id: int, today: date, emotion: CheckinEmotion | None = None
@@ -195,6 +389,8 @@ class ChallengeService:
             ),
         )
 
+    # ── 히트맵 ───────────────────────────────────────────────────────────────
+
     async def get_heatmap(self, user_id: int, weeks: int = 26) -> HeatmapResponse:
         """챌린지 잔디 히트맵용 일별 체크인 카운트.
 
@@ -238,6 +434,8 @@ class ChallengeService:
 
         return HeatmapResponse(weeks=weeks, today=today, days=days, max_count=max_count)
 
+    # ── 카테고리 진행률 ───────────────────────────────────────────────────────
+
     async def get_category_progress(self, user_id: int) -> CategoryProgressResponse:
         """카테고리 5종별 active 챌린지 평균 진행률 (REQ-DASH-001 ⑥)."""
         active_list = await self._user_repo.list_active_by_user(user_id)
@@ -276,6 +474,8 @@ class ChallengeService:
             )
         return CategoryProgressResponse(items=items)
 
+    # ── 주간 감정 ─────────────────────────────────────────────────────────────
+
     async def get_weekly_emotion(self, user_id: int) -> WeeklyEmotionResponse:
         """최근 7일 감정 기록 (REQ-DASH-001 ⑤ 감정 듀얼 축)."""
         from datetime import timedelta
@@ -291,6 +491,8 @@ class ChallengeService:
             days.append(EmotionDay(date=cur, emotion=by_date.get(cur)))
             cur += timedelta(days=1)
         return WeeklyEmotionResponse(days=days)
+
+    # ── 체크인 롤백 (내부 헬퍼) ──────────────────────────────────────────────
 
     async def _rollback_today_checkin(self, uc: UserChallenge, challenge: Challenge, today: date) -> int:
         """오늘 체크인 1건 롤백: 당일 지급 포인트 회수 + 카운트(total·streak·last_date) 롤백.
