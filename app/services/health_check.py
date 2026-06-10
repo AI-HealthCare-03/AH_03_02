@@ -6,6 +6,7 @@ from app.dtos.health_check import (
     HealthCheckCreateRequest,
     HealthCheckListResponse,
     HealthCheckResponse,
+    LifestyleDomainSummary,
     LifestyleItem,
     ReportMeta,
     ReportResponse,
@@ -17,17 +18,21 @@ from app.models.users import Gender, User
 from app.repositories.health_check_repository import HealthCheckRepository
 from app.services import ckd_publisher
 from app.services.clinical_reference import (
+    DOMAIN_LABEL,
+    DOMAIN_ORDER,
     M1_CAT_ORDER,
     M1_CATEGORY,
     M1_DESC,
     M1_DISEASE,
     M1_LABEL,
+    build_domain_summary_text,
     m1_direction,
     m1_format,
     m1_group_message,
     m1_group_title,
     m1_normal_range,
     m1_status,
+    m2_domain,
     m2_improve_action,
     m2_in_normal,
     m2_label,
@@ -573,9 +578,31 @@ class HealthCheckService:
                     status_level=status_level,
                     group=group,
                     action=action,
+                    domain=m2_domain(feature),
                 )
             )
         return items
+
+    @staticmethod
+    def _build_lifestyle_domain_summary(
+        items: list[LifestyleItem],
+    ) -> list[LifestyleDomainSummary]:
+        """생활습관 항목을 도메인별로 묶어 핵심요약 생성. 항상 DOMAIN_ORDER 3개.
+
+        improve 그룹 라벨을 모아 한 줄 요약. 개선항목 0건 도메인은 '양호합니다'.
+        """
+        summaries: list[LifestyleDomainSummary] = []
+        for domain in DOMAIN_ORDER:
+            improve_labels = [it.label for it in items if it.domain == domain and it.group == "improve"]
+            summaries.append(
+                LifestyleDomainSummary(
+                    domain=domain,
+                    domain_label=DOMAIN_LABEL[domain],
+                    improve_count=len(improve_labels),
+                    summary=build_domain_summary_text(improve_labels),
+                )
+            )
+        return summaries
 
     @staticmethod
     def _build_report_meta(hc: HealthCheck, user: User, ls: LifestyleSurvey | None) -> ReportMeta:
@@ -675,6 +702,7 @@ class HealthCheckService:
 
         clinical_items = self._build_clinical_items(hc, ls, gender_int)
         lifestyle_items = self._build_lifestyle_items(hc, ls, gender_int)
+        lifestyle_domain_summary = self._build_lifestyle_domain_summary(lifestyle_items)
         report_meta = self._build_report_meta(hc, user, ls)
 
         return ReportResponse(
@@ -686,5 +714,6 @@ class HealthCheckService:
             model1_summary=summary,
             clinical_items=clinical_items,
             lifestyle_items=lifestyle_items,
+            lifestyle_domain_summary=lifestyle_domain_summary,
             report_meta=report_meta,
         )
