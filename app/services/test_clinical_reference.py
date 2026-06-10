@@ -5,6 +5,7 @@ clinical_reference.py 단위 테스트
 """
 
 from app.services.clinical_reference import (
+    build_domain_summary_text,
     m1_direction,
     m1_format,
     m1_group_message,
@@ -12,6 +13,7 @@ from app.services.clinical_reference import (
     m1_normal_range,
     m1_status,
     m1_unit,
+    m2_domain,
     m2_improve_action,
     m2_in_normal,
     m2_label,
@@ -397,3 +399,40 @@ class TestM2Messages:
     def test_normal_range_waist_female(self):
         result = m2_normal_range("waist_cm", gender=0)
         assert result == "85 미만"
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# 모델2 — m2_domain
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+class TestM2Domain:
+    def test_diet_features(self):
+        for f in ["bmi", "waist_cm", "hdl_cholesterol", "ldl_cholesterol", "triglycerides"]:
+            assert m2_domain(f) == "diet"
+
+    def test_exercise_features(self):
+        for f in ["sitting_hours", "walking_days", "moderate_days", "vigorous_days"]:
+            assert m2_domain(f) == "exercise"
+
+    def test_etc_feature(self):
+        assert m2_domain("smoking_current") == "etc"
+
+    def test_unknown_defaults_etc(self):
+        assert m2_domain("unknown_feature") == "etc"
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# build_domain_summary_text
+# ──────────────────────────────────────────────────────────────────────────────
+
+
+class TestBuildDomainSummaryText:
+    def test_empty_is_good(self):
+        assert build_domain_summary_text([]) == "양호합니다"
+
+    def test_single_label(self):
+        assert build_domain_summary_text(["중성지방"]) == "중성지방 관리가 필요합니다"
+
+    def test_multiple_labels(self):
+        assert build_domain_summary_text(["LDL 콜레스테롤", "중성지방"]) == "LDL 콜레스테롤·중성지방 관리가 필요합니다"

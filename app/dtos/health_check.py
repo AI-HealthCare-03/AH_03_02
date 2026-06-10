@@ -127,6 +127,16 @@ class LifestyleItem(BaseModel):
     status_level: str
     group: str  # improve | maintain
     action: str = ""  # 개선 시 행동 제안 (improve 항목)
+    domain: str = ""  # diet | exercise | etc (Phase B)
+
+
+class LifestyleDomainSummary(BaseModel):
+    """생활습관 도메인별 핵심요약 (Phase B). 항상 식이/운동/기타 3개."""
+
+    domain: str  # diet | exercise | etc
+    domain_label: str  # 식이 | 운동 | 기타
+    improve_count: int  # 해당 도메인 개선 필요 항목 수
+    summary: str  # 규칙 기반 한 줄
 
 
 class ReportMeta(BaseModel):
@@ -155,4 +165,5 @@ class ReportResponse(BaseSerializerModel):
     # ── A2: 임상·생활습관 상세표 + 리포트 메타 (순수 추가, 기존 필드 불변) ──
     clinical_items: list[ClinicalItem] = []
     lifestyle_items: list[LifestyleItem] = []
+    lifestyle_domain_summary: list[LifestyleDomainSummary] = []  # Phase B: 도메인별 요약
     report_meta: ReportMeta | None = None
