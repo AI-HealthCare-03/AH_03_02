@@ -130,6 +130,7 @@ AGE_GROUP_PEDIATRIC = "pediatric"
 TRACK_NON_DIALYSIS = "non_dialysis"
 TRACK_HEMODIALYSIS = "hemodialysis"
 TRACK_PERITONEAL = "peritoneal"
+TRACK_DIALYSIS = "dialysis"  # 혈액·복막 구분 없는 투석 공통 (신규 — N.N.N 분할 결과)
 TRACK_COMMON = "common"
 
 # 파일명 부분 문자열 → track (doc_type=nutrition 파일에만 적용)
@@ -166,9 +167,28 @@ PAYLOAD_FIELDS = [
     "parent_id",  # child → parent 조회 키
     "chunk_idx",
     "age_group",  # adult | pediatric (uploader 가 부착 — P1-4)
-    "track",  # non_dialysis | hemodialysis | peritoneal | common (chunking 단계 부착)
+    "track",  # non_dialysis | hemodialysis | peritoneal | dialysis | common (chunking 단계 부착)
     "text",  # 원문 (uploader 가 부착 — 검색 결과 반환용)
 ]
+
+# ─────────────────────────────────────────────
+# N.N.N 분할 대상 (241212 진료지침 3개 섹션 전용)
+#   chunk_pdf 이 이 섹션에 진입하면 N.N.N 항목별로 분할하고 항목 번호로 track을 부여.
+#   나머지 청크는 무수정.
+# ─────────────────────────────────────────────
+SECTION_TRACK_SPLIT_SOURCE = "241212_당뇨병콩팥병 진료지침"
+SECTION_TRACK_SPLIT_H2_PREFIXES = ("3.3.", "4.2.", "6.5.")
+SECTION_ITEM_TRACK_MAP: dict = {
+    "3.3.1": TRACK_NON_DIALYSIS,  # 투석 전 환자 HbA1c 목표 7% 미만
+    "3.3.2": TRACK_COMMON,  # 개별화 기준 (트랙 무관)
+    "3.3.3": TRACK_DIALYSIS,  # 투석 중 HbA1c 목표 불확실
+    "4.2.1": TRACK_NON_DIALYSIS,  # 비투석 단백질 0.8 g/kg
+    "4.2.2": TRACK_DIALYSIS,  # 투석 단백질 1.0–1.2 g/kg
+    "6.5.1": TRACK_COMMON,  # 혈청지질검사 적응증 (트랙 무관)
+    "6.5.2": TRACK_NON_DIALYSIS,  # 투석 전 스타틴 처방
+    "6.5.3": TRACK_DIALYSIS,  # 투석 중 스타틴 신규처방 불필요
+    "6.5.4": TRACK_DIALYSIS,  # 투석 시작 시 기존 스타틴 유지
+}
 
 # ─────────────────────────────────────────────
 # 재현성

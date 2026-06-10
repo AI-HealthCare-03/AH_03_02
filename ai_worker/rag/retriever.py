@@ -64,7 +64,13 @@ def retrieve(
 
     must_conditions: list = [FieldCondition(key="age_group", match=MatchValue(value=age_group))]
     if track:
-        must_conditions.append(FieldCondition(key="track", match=MatchAny(any=[track, "common"])))
+        # hemodialysis/peritoneal → 해당 트랙 + dialysis(투석 공통) + common
+        # non_dialysis           → non_dialysis + common (dialysis 의도적 제외)
+        if track in cfg.DIALYSIS_SUBTRACKS:
+            allowed = [track, cfg.TRACK_DIALYSIS, cfg.TRACK_COMMON]
+        else:
+            allowed = [track, cfg.TRACK_COMMON]
+        must_conditions.append(FieldCondition(key="track", match=MatchAny(any=allowed)))
     flt = Filter(must=must_conditions)
     _t = time.perf_counter()
     hits = client.query_points(

@@ -45,3 +45,15 @@ MAX_GEN_RETRY = 2
 # LLM 폴백 (검색 실패 시 차등 라우팅 — medical 검증)
 # ─────────────────────────────────────────────
 FALLBACK_MAX_TOKENS = 500  # 폴백 답변 길이 제한 (긴 답변일수록 환각·위험정보 노출↑)
+
+# ─────────────────────────────────────────────
+# track 값 (= src/rag_indexing/config.TRACK_* — 양쪽 동기화 유지)
+# ─────────────────────────────────────────────
+TRACK_NON_DIALYSIS = "non_dialysis"
+TRACK_HEMODIALYSIS = "hemodialysis"
+TRACK_PERITONEAL = "peritoneal"
+TRACK_DIALYSIS = "dialysis"  # 혈액·복막 구분 없는 투석 공통
+TRACK_COMMON = "common"
+
+# hemodialysis/peritoneal 검색 시 dialysis(투석 공통) 도 포함할 트랙 집합
+DIALYSIS_SUBTRACKS: frozenset = frozenset({TRACK_HEMODIALYSIS, TRACK_PERITONEAL})
