@@ -68,17 +68,21 @@ function RiskGauge({ score, calculating }: { score: number | null; calculating?:
         )}
       </div>
     );
-  const color = score < 30 ? "#059669" : score < 60 ? "#D97706" : "#DC2626";
-  const level = score < 30 ? "낮음" : score < 60 ? "중간" : "높음";
+  // 모델1 sigmoid 출력 분포: 학습셋 양성 1.04% (memory §800). 실측 0~10% 범위.
+  // 임계값을 분포에 맞춰 조정 — 30/60% 기준은 모델이 도달 불가능한 영역.
+  const color = score < 1 ? "#059669" : score < 3 ? "#D97706" : "#DC2626";
+  const level = score < 1 ? "낮음" : score < 3 ? "주의" : "위험";
+  // 게이지 채움: 0~5% 스케일(5%에서 풀 채움). 정상 환자는 1/5 미만, 위험 환자는 거의 풀 채움.
+  const fillDeg = Math.min(score / 5, 1) * 360;
   return (
     <div className="relative flex flex-col items-center justify-center gap-3 p-4 rounded-md border border-border bg-bg" style={{ height: 360 }}>
       <span className="absolute right-3 top-3 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">예상값 · 진단 아님</span>
       <div
         className="relative flex h-[220px] w-[220px] items-center justify-center rounded-full"
-        style={{ background: `conic-gradient(${color} ${score * 3.6}deg, #E5E7EB ${score * 3.6}deg)` }}
+        style={{ background: `conic-gradient(${color} ${fillDeg}deg, #E5E7EB ${fillDeg}deg)` }}
       >
         <div className="flex h-[184px] w-[184px] flex-col items-center justify-center rounded-full bg-bg">
-          <span className="text-5xl font-bold leading-none" style={{ color }}>{Math.round(score)}%</span>
+          <span className="text-5xl font-bold leading-none" style={{ color }}>{score.toFixed(1)}%</span>
           <span className="mt-1 text-base font-semibold text-text-secondary">{level}</span>
         </div>
       </div>

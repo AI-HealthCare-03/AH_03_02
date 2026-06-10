@@ -73,7 +73,8 @@ class LifestyleSurveyRepository:
         return total, items
 
     async def get_latest(self, user_id: int) -> LifestyleSurvey | None:
-        return await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date").first()
+        # 같은 surveyed_date에 여러 건이면 가장 최근(id 큰 것) — upsert 시 옛 row 덮어쓰기 방지
+        return await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date", "-id").first()
 
     async def get_by_id(self, survey_id: int, user_id: int) -> LifestyleSurvey | None:
         return await LifestyleSurvey.get_or_none(id=survey_id, user_id=user_id)
