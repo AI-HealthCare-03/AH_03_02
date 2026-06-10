@@ -78,7 +78,8 @@ function RiskGauge({ score, calculating }: { score: number | null; calculating?:
         style={{ background: `conic-gradient(${color} ${score * 3.6}deg, #E5E7EB ${score * 3.6}deg)` }}
       >
         <div className="flex h-[184px] w-[184px] flex-col items-center justify-center rounded-full bg-bg">
-          <span className="text-5xl font-bold leading-none" style={{ color }}>{Math.round(score)}%</span>
+          {/* 리포트 선별점수(소수1자리, round(x*100,1))와 표시 일치 — 정수면 정수로, 소수면 1자리로 */}
+          <span className="text-5xl font-bold leading-none" style={{ color }}>{Number(score.toFixed(1))}%</span>
           <span className="mt-1 text-base font-semibold text-text-secondary">{level}</span>
         </div>
       </div>
