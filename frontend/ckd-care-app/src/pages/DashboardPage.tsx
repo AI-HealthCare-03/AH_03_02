@@ -415,22 +415,9 @@ export function DashboardPage() {
           </div>
         )}
 
-        {/* 빠른 이동 버튼 (항상 표시) */}
-        <div className="mt-[24px] flex gap-[12px]">
-          <Link to="/manual-input" className="rounded-md border border-border bg-bg px-[16px] py-[8px] text-sm text-text-secondary hover:bg-bg-alt">
-            + 검진 수치 입력
-          </Link>
-          <Link to="/health-check-history" className="rounded-md border border-border bg-bg px-[16px] py-[8px] text-sm text-text-secondary hover:bg-bg-alt">
-            검진 이력 보기
-          </Link>
-          <Link to="/lifestyle-survey" className="rounded-md border border-border bg-bg px-[16px] py-[8px] text-sm text-text-secondary hover:bg-bg-alt">
-            + 생활습관 설문
-          </Link>
-        </div>
-
         {!h && !loading && (
-          <div className="mt-[12px] rounded-md border border-dashed border-border bg-bg p-[24px] text-center">
-            <p className="text-sm text-text-muted">아직 검진 데이터가 없습니다. 위 버튼으로 입력해보세요.</p>
+          <div className="mt-[24px] rounded-md border border-dashed border-border bg-bg p-[24px] text-center">
+            <p className="text-sm text-text-muted">아직 검진 데이터가 없습니다. 상단 "검진 이력 관리"에서 첫 검진을 입력해보세요.</p>
           </div>
         )}
 
