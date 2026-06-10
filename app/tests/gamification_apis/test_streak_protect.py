@@ -41,7 +41,7 @@ async def _make_uc(
         category=ChallengeCategory.HYDRATION,
         description="물",
         duration_days=7,
-        track=ChallengeTrack.A,
+        track=ChallengeTrack.WELLNESS,
         stage=1,
     )
     today = date.today()

@@ -30,7 +30,7 @@ async def _seed_and_join(client: AsyncClient, token: str) -> int:
         category=ChallengeCategory.EXERCISE,
         description="테스트용",
         duration_days=7,
-        track=ChallengeTrack.A,
+        track=ChallengeTrack.WELLNESS,
         stage=1,
     )
     resp = await client.post(

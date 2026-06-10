@@ -32,7 +32,7 @@ async def _make_challenge() -> Challenge:
         category=ChallengeCategory.HYDRATION,
         description="매일 물 1.5L 이상",
         duration_days=7,
-        track=ChallengeTrack.A,
+        track=ChallengeTrack.WELLNESS,
         stage=1,
     )
 
