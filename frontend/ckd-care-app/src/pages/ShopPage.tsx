@@ -116,7 +116,7 @@ export function ShopPage() {
       <ScreenLabel label="상점 (REQ-CHAL-004)" />
       <TopNav />
       <main className="flex flex-1 flex-col p-[32px]">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-bold text-text-primary">상점</h1>
           <div className="flex items-center gap-[12px]">
             <div className="flex items-center gap-[6px] rounded-md bg-amber-50 px-[12px] py-[6px]">
@@ -157,7 +157,7 @@ export function ShopPage() {
                 </div>
               </div>
             )}
-            <div className="grid grid-cols-2 gap-[12px]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px]">
               {items.map((item) => {
                 const owned = qtyOf(item.code);
                 const isCapped = item.maxQty !== undefined && owned >= item.maxQty;

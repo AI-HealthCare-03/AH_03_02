@@ -111,7 +111,7 @@ export function LoginPage() {
     <div className="flex min-h-screen flex-col bg-bg-alt">
       <ScreenLabel label="01 · 로그인 (REQ-AUTH-01)" />
       <main className="flex flex-1 items-center justify-center p-[32px]">
-        <div className="flex w-[440px] flex-col gap-[24px] rounded-lg border border-border bg-bg p-[40px]">
+        <div className="flex w-full max-w-[440px] flex-col gap-[24px] rounded-lg border border-border bg-bg p-[24px] sm:p-[40px]">
           <div className="flex flex-col items-center gap-[8px]">
             <h1 className="text-2xl font-bold text-text-primary">CKD CARE</h1>
             <p className="text-sm text-text-secondary text-center">

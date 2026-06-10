@@ -114,7 +114,7 @@ export function RadialMiniWidget() {
   return (
     <div className="rounded-md border border-border bg-bg p-4">
       <p className="mb-3 text-sm font-bold text-text-primary">카테고리별 진행률</p>
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
         {items.map((it) => (
           <RadialMini key={it.category} data={it} />
         ))}

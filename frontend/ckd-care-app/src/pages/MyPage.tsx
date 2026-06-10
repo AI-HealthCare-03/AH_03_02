@@ -74,9 +74,9 @@ export function MyPage() {
     <div className="flex min-h-screen flex-col bg-bg-alt">
       <ScreenLabel label="04 · 마이페이지 (REQ-USR-01)" />
       <TopNav />
-      <main className="flex flex-1 items-start justify-center gap-[32px] p-[32px]">
+      <main className="flex flex-1 flex-col items-start gap-[32px] p-[32px] md:flex-row md:justify-center">
         {/* 왼쪽: 프로필 + 메뉴 */}
-        <div className="flex w-[360px] flex-col gap-[16px]">
+        <div className="flex w-full flex-col gap-[16px] md:w-[360px]">
           {/* 프로필 카드 */}
           <div className="flex flex-col items-center gap-[12px] rounded-md border border-border bg-bg p-[24px]">
             <div className="flex h-[80px] w-[80px] items-center justify-center rounded-full bg-accent/20">
@@ -124,7 +124,7 @@ export function MyPage() {
         </div>
 
         {/* 오른쪽: 패널 */}
-        <div className="flex w-[480px] flex-col gap-[16px]">
+        <div className="flex w-full flex-col gap-[16px] md:w-[480px]">
           {panel === "logout" && (
             <div className="flex flex-col items-center gap-[24px] rounded-md border border-border bg-bg p-[40px]">
               <LogOut size={48} className="text-text-muted" />
