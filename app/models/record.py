@@ -55,3 +55,22 @@ class WeightLog(models.Model):
         table = "weight_logs"
         unique_together = [("user", "log_date")]
         ordering = ["-log_date"]
+
+
+class SleepLog(models.Model):
+    """날짜별 1회 수면 기록 (기상일 기준, 수정 가능)."""
+
+    id = fields.BigIntField(primary_key=True)
+    user = fields.ForeignKeyField("models.User", related_name="sleep_logs")
+    log_date = fields.DateField(description="기상일 (전날밤 취침→오늘 기상)")
+    bed_time = fields.TimeField()
+    wake_time = fields.TimeField()
+    wake_count = fields.IntField(default=0, description="수면 중 깬 횟수 0~3 (3=3회 이상)")
+    duration_min = fields.IntField(description="수면 시간(분) — 자정 넘김 자동 계산")
+    created_at = fields.DatetimeField(auto_now_add=True)
+    updated_at = fields.DatetimeField(auto_now=True)
+
+    class Meta:
+        table = "sleep_logs"
+        unique_together = [("user", "log_date")]
+        ordering = ["-log_date"]
