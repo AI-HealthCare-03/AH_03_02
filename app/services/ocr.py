@@ -494,6 +494,64 @@ def _map_tokens_by_position(page_raws: list[list[dict]], mapped: dict[str, dict]
         _map_height_weight_pair_token(labels, pairs, mapped)
 
 
+_NEXT_ROW_LABELS = ("중성지방", "저밀도", "트리글리세라이드")  # HDL 행 다음에 오는 라벨 — 셀 경계
+
+
+def _fallback_hdl_strict_row(page_raws: list[list[dict]], mapped: dict[str, dict]) -> None:
+    """PDF 검진 결과지 '고밀도 콜레스테롤(mg/dL)' 행 전용 룰 (옵션 D).
+
+    두 줄 셀(고밀도 / 콜레스테롤(mg/dL))로 y범위가 커서 인접 행 숫자를 흡수하는
+    문제를 차단:
+    - '고밀도' 토큰 발견 (같은 행에 판정 단어 없음 = 진짜 라벨 라인)
+    - 그 토큰 아래의 첫 '중성지방'·'저밀도' 라벨 y_top까지를 셀 y_bot
+    - 셀 y범위 안의 우측 첫 단독 숫자 = HDL 값
+    - 60이상 같은 합성 토큰은 _PURE_NUMBER_RE에 안 잡혀 자동 제외
+    """
+    if "hdl_cholesterol" in mapped:
+        return
+    for page_raw in page_raws:
+        items = _extract_token_items(page_raw)
+        if not items:
+            continue
+        if _try_hdl_strict_row(items, mapped):
+            return
+
+
+def _try_hdl_strict_row(items: list[dict], mapped: dict[str, dict]) -> bool:
+    """한 페이지 안에서 옵션 D 룰 시도. 성공 시 True."""
+    kw_tokens = [it for it in items if it["text"].strip() == "고밀도"]
+    if not kw_tokens:
+        return False
+    # 검진 결과지 확인 — 같은 페이지에 콜레스테롤 라벨이 존재해야
+    if not any("콜레스테롤" in it["text"] for it in items):
+        return False
+    nums = [{**it, "value": float(it["text"])} for it in items if _PURE_NUMBER_RE.fullmatch(it["text"])]
+    bad_words = ("낮은", "의심", "고위험", "전단계", "이상자", "유질환자")
+    for kt in kw_tokens:
+        # 판정 라인의 "고밀도" 제외
+        if any(any(w in it["text"] for w in bad_words) for it in items if it is not kt and _same_row(kt, it)):
+            continue
+        # 다음 행 라벨(중성지방·저밀도) y_top — 셀 아래 경계
+        next_y_tops = [
+            it["y_top"] for it in items if any(k in it["text"] for k in _NEXT_ROW_LABELS) and it["y_top"] > kt["y_bot"]
+        ]
+        if not next_y_tops:
+            continue
+        cell_y_bot = min(next_y_tops)
+        # 셀 y범위 안 + 라벨 우측 단독 숫자
+        candidates = [n for n in nums if n["x"] > kt["x"] and kt["y_top"] <= n["y_mid"] < cell_y_bot]
+        if not candidates:
+            continue
+        best = min(candidates, key=lambda n: n["x"])
+        mapped["hdl_cholesterol"] = {
+            "value": best["value"],
+            "confidence": round(min(kt["conf"], best["conf"]), 3),
+            "source_text": f"{kt['text']} → {best['text']}",
+        }
+        return True
+    return False
+
+
 def _fallback_split_cholesterol(page_raws: list[list[dict]], mapped: dict[str, dict]) -> None:
     """단독 '고밀도' 토큰이 라벨 매칭에 실패한 경우 HDL 보강.
 
@@ -545,9 +603,10 @@ def _try_fallback_one_page(items: list[dict], field: str, kw: str, mapped: dict[
         y_bot = max(kt["y_bot"], ct["y_bot"])
         anchor_x = max(kt["x"], ct["x"])
         candidates = [n for n in nums if n["x"] > anchor_x and y_top <= n["y_mid"] <= y_bot]
-        if not candidates:
+        # 후보가 정확히 1개일 때만 매핑 — 여러 개면 모호하므로 비워둠 (잘못된 매핑보다 빈칸이 안전)
+        if len(candidates) != 1:
             continue
-        best = min(candidates, key=lambda n: n["x"])
+        best = candidates[0]
         mapped[field] = {
             "value": best["value"],
             "confidence": round(min(kt["conf"], ct["conf"], best["conf"]), 3),
@@ -752,7 +811,9 @@ async def extract_text(*, file_bytes: bytes, content_type: str, filename: str) -
     mapped = _map_lines_to_health_fields(lines)
     # 라인 매핑이 못 잡은 필드는 토큰 좌표 기반 페어 매칭으로 보강
     _map_tokens_by_position(page_raws, mapped)
-    # 분리된 "고밀도/저밀도" + "콜레스테롤(mg/dL)" 토큰 fallback (회귀 0 — mapped에 없을 때만 발동)
+    # PDF 검진 결과지 '고밀도 콜레스테롤(mg/dL)' 두 줄 셀 전용 룰 (옵션 D) — 가장 정교
+    _fallback_hdl_strict_row(page_raws, mapped)
+    # 분리된 "고밀도" + "콜레스테롤(mg/dL)" 토큰 일반 fallback (옵션 D가 못 잡았을 때만)
     _fallback_split_cholesterol(page_raws, mapped)
 
     logger.info(
