@@ -100,7 +100,7 @@ export function AppointmentCalendarPage() {
     onSuccess: () => {
       invalidate();
       setEditId(null);
-      setForm((f) => ({ ...f, appt_time: "", hospital: "", note: "" }));
+      setForm((f) => ({ ...f, appt_type: "CHECKUP", appt_time: "", hospital: "", note: "" }));
     },
   });
 
@@ -270,7 +270,7 @@ export function AppointmentCalendarPage() {
               <button
                 onClick={() => {
                   setEditId(null);
-                  setForm((f) => ({ ...f, appt_time: "", hospital: "", note: "" }));
+                  setForm((f) => ({ ...f, appt_type: "CHECKUP", appt_time: "", hospital: "", note: "" }));
                 }}
                 className="rounded-lg border border-border px-3 py-2 text-sm text-text-muted"
               >
