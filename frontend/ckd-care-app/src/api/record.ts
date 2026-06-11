@@ -63,6 +63,25 @@ export interface WeightHistory {
   items: { date: string; weight_kg: number }[];
 }
 
+// ── 수면 기록 타입 ──
+export interface SleepToday {
+  date: string;
+  bed_time: string | null;
+  wake_time: string | null;
+  wake_count: number | null;
+  duration_min: number | null;
+  goal_met: boolean;
+  has_record: boolean;
+}
+export interface LogSleepResponse {
+  today: SleepToday;
+  auto_checkin: AutoCheckin;
+}
+export interface SleepHistory {
+  days: number;
+  items: { date: string; duration_min: number }[];
+}
+
 export const recordApi = {
   // 오늘 수분 섭취 현황 조회
   getWaterToday: () => api.get<WaterToday>("/records/water/today"),
@@ -89,4 +108,14 @@ export const recordApi = {
   // 체중 추이
   getWeightHistory: (days = 7) =>
     api.get<WeightHistory>(`/records/weight/history?days=${days}`),
+  // 오늘 수면 조회
+  getSleepToday: () => api.get<SleepToday>("/records/sleep/today"),
+  // 수면 기록/수정 (upsert) — bed_time/wake_time = "HH:MM"
+  logSleep: (bed_time: string, wake_time: string, wake_count: number) =>
+    api.put<LogSleepResponse>("/records/sleep", { bed_time, wake_time, wake_count }),
+  // 오늘 수면 삭제
+  deleteSleep: () => api.delete<SleepToday>("/records/sleep"),
+  // 수면 추이
+  getSleepHistory: (days = 7) =>
+    api.get<SleepHistory>(`/records/sleep/history?days=${days}`),
 };

@@ -7,10 +7,15 @@ from app.dtos.record import (
     AddWaterRequest,
     AddWaterResponse,
     AutoCheckinResult,
+    LogSleepRequest,
+    LogSleepResponse,
     LogWeightRequest,
     LogWeightResponse,
     SetSettingsRequest,
     SettingsResponse,
+    SleepHistoryItem,
+    SleepHistoryResponse,
+    SleepTodayResponse,
     WaterEntryItem,
     WaterHistoryItem,
     WaterHistoryResponse,
@@ -28,11 +33,19 @@ from app.models.challenge import (
 )
 from app.repositories.record_repository import (
     RecordSettingsRepository,
+    SleepLogRepository,
     WaterIntakeRepository,
     WeightLogRepository,
 )
 from app.services.challenge import ChallengeService
-from app.services.record_reference import default_goal_ml, goal_type_for, warning_level, weight_warning_level
+from app.services.record_reference import (
+    SLEEP_GOAL_MIN,
+    compute_sleep_minutes,
+    default_goal_ml,
+    goal_type_for,
+    warning_level,
+    weight_warning_level,
+)
 
 _DISCLAIMER = "참고용 수치이며 의료적 진단을 대체하지 않습니다. 이상 시 담당 의료진에게 연락하세요."
 
@@ -42,6 +55,7 @@ class RecordService:
         self._water = WaterIntakeRepository()
         self._settings = RecordSettingsRepository()
         self._weight = WeightLogRepository()
+        self._sleep = SleepLogRepository()
         self._challenge = ChallengeService()
 
     async def _resolve_goal(self, user_id: int) -> tuple[int, str]:
@@ -155,25 +169,27 @@ class RecordService:
         auto = await self._maybe_auto_checkin_record(user_id, today)
         return LogWeightResponse(today=today_resp, auto_checkin=auto)
 
-    async def _maybe_auto_checkin_record(self, user_id: int, today: date) -> AutoCheckinResult:
-        """오늘 기록 시 ACTIVE RECORD 카테고리 챌린지 체크인.
-
-        전체 try/except 로 감싸 체크인 실패해도 체중 기록은 성공 유지.
-        """
+    async def _maybe_auto_checkin_category(
+        self, user_id: int, today: date, category: ChallengeCategory
+    ) -> AutoCheckinResult:
+        """오늘 기록 시 해당 카테고리 ACTIVE 챌린지 체크인 (try/except graceful)."""
         try:
             uc = await UserChallenge.filter(
                 user_id=user_id,
                 status=UserChallengeStatus.ACTIVE,
-                challenge__category=ChallengeCategory.RECORD,
+                challenge__category=category,
             ).first()
             if uc is None:
-                return AutoCheckinResult(performed=False, reason="no_record_challenge")
+                return AutoCheckinResult(performed=False, reason="no_challenge")
             if uc.last_checkin_date == today:
                 return AutoCheckinResult(performed=False, reason="already_checked_in")
             await self._challenge.checkin(uc.id, user_id, today)
             return AutoCheckinResult(performed=True, reason="logged")
         except Exception:
             return AutoCheckinResult(performed=False, reason="checkin_skipped")
+
+    async def _maybe_auto_checkin_record(self, user_id: int, today: date) -> AutoCheckinResult:
+        return await self._maybe_auto_checkin_category(user_id, today, ChallengeCategory.RECORD)
 
     async def delete_weight(self, user_id: int, today: date) -> WeightTodayResponse:
         await self._weight.delete_by_date(user_id, today)
@@ -185,3 +201,40 @@ class RecordService:
         rows = await self._weight.recent(user_id, since)
         items = [WeightHistoryItem(date=r.log_date, weight_kg=float(r.weight_kg)) for r in rows]
         return WeightHistoryResponse(days=days, items=items)
+
+    # ── 수면 기록 ────────────────────────────────────────────────────────────
+
+    async def _build_sleep_today(self, user_id: int, today: date) -> SleepTodayResponse:
+        rec = await self._sleep.get_by_date(user_id, today)
+        return SleepTodayResponse(
+            date=today,
+            bed_time=(rec.bed_time if rec else None),
+            wake_time=(rec.wake_time if rec else None),
+            wake_count=(rec.wake_count if rec else None),
+            duration_min=(rec.duration_min if rec else None),
+            goal_met=(rec is not None and rec.duration_min >= SLEEP_GOAL_MIN),
+            has_record=rec is not None,
+        )
+
+    async def get_sleep_today(self, user_id: int, today: date) -> SleepTodayResponse:
+        return await self._build_sleep_today(user_id, today)
+
+    async def log_sleep(self, user_id: int, today: date, dto: LogSleepRequest) -> LogSleepResponse:
+        duration = compute_sleep_minutes(dto.bed_time, dto.wake_time)
+        bed_s = f"{dto.bed_time.hour:02d}:{dto.bed_time.minute:02d}"
+        wake_s = f"{dto.wake_time.hour:02d}:{dto.wake_time.minute:02d}"
+        await self._sleep.upsert(user_id, today, bed_s, wake_s, dto.wake_count, duration)
+        today_resp = await self._build_sleep_today(user_id, today)
+        auto = await self._maybe_auto_checkin_category(user_id, today, ChallengeCategory.SLEEP)
+        return LogSleepResponse(today=today_resp, auto_checkin=auto)
+
+    async def delete_sleep(self, user_id: int, today: date) -> SleepTodayResponse:
+        await self._sleep.delete_by_date(user_id, today)
+        return await self._build_sleep_today(user_id, today)
+
+    async def get_sleep_history(self, user_id: int, today: date, days: int) -> SleepHistoryResponse:
+        days = max(1, min(days, 30))
+        since = today - timedelta(days=days - 1)
+        rows = await self._sleep.recent(user_id, since)
+        items = [SleepHistoryItem(date=r.log_date, duration_min=r.duration_min) for r in rows]
+        return SleepHistoryResponse(days=days, items=items)

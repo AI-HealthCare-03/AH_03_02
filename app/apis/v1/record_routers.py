@@ -8,10 +8,14 @@ from app.dependencies.security import get_request_user
 from app.dtos.record import (
     AddWaterRequest,
     AddWaterResponse,
+    LogSleepRequest,
+    LogSleepResponse,
     LogWeightRequest,
     LogWeightResponse,
     SetSettingsRequest,
     SettingsResponse,
+    SleepHistoryResponse,
+    SleepTodayResponse,
     WaterHistoryResponse,
     WaterTodayResponse,
     WeightHistoryResponse,
@@ -116,4 +120,42 @@ async def weight_history(
     days: int = Query(7, ge=1, le=90),
 ) -> Response:
     result = await service.get_weight_history(user_id=user.id, today=date.today(), days=days)
+    return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+@record_router.get("/sleep/today", response_model=SleepTodayResponse, status_code=status.HTTP_200_OK)
+async def get_sleep_today(
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[RecordService, Depends(RecordService)],
+) -> Response:
+    result = await service.get_sleep_today(user_id=user.id, today=date.today())
+    return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+@record_router.put("/sleep", response_model=LogSleepResponse, status_code=status.HTTP_200_OK)
+async def log_sleep(
+    body: LogSleepRequest,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[RecordService, Depends(RecordService)],
+) -> Response:
+    result = await service.log_sleep(user_id=user.id, today=date.today(), dto=body)
+    return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+@record_router.delete("/sleep", response_model=SleepTodayResponse, status_code=status.HTTP_200_OK)
+async def delete_sleep(
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[RecordService, Depends(RecordService)],
+) -> Response:
+    result = await service.delete_sleep(user_id=user.id, today=date.today())
+    return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+@record_router.get("/sleep/history", response_model=SleepHistoryResponse, status_code=status.HTTP_200_OK)
+async def sleep_history(
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[RecordService, Depends(RecordService)],
+    days: int = Query(7, ge=1, le=30),
+) -> Response:
+    result = await service.get_sleep_history(user_id=user.id, today=date.today(), days=days)
     return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
