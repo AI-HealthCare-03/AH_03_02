@@ -20,6 +20,7 @@ TORTOISE_APP_MODELS = [
     "app.models.admin_action_log",
     "app.models.safety_event",
     "app.models.user_consent",
+    "app.models.record",
 ]
 
 TORTOISE_ORM = {
