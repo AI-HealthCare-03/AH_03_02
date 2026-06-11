@@ -79,13 +79,16 @@ export function ChallengeMainPage() {
     queryClient.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
   }
 
-  // challenge.id → 내 user_challenge 매핑 (ACTIVE 상태만 — ABANDONED/COMPLETED 제외)
+  // challenge.id → 내 user_challenge 매핑
+  // ACTIVE(진행 중) + 오늘 체크인한 COMPLETED 를 포함한다.
+  // 선택 챌린지 대부분이 duration_days=1("오늘 …하기") 이라 체크인 1회에 즉시 COMPLETED 된다.
+  // ACTIVE 만 매핑하면 오늘 완료한 챌린지가 '미체크'로 보여 원이 빈 채로 남는다.
+  // 과거에 완료한 분(last_checkin_date != today)과 ABANDONED 는 제외.
+  const today = todayStr();
   const ucByChallenge = new Map<number, UserChallenge>();
   myChallenges
-    .filter((uc) => uc.status === "ACTIVE")
+    .filter((uc) => uc.status === "ACTIVE" || (uc.status === "COMPLETED" && uc.last_checkin_date === today))
     .forEach((uc) => ucByChallenge.set(uc.challenge_id, uc));
-
-  const today = todayStr();
   const rowsAll: ChallengeRow[] = challenges.map((c) => {
     const uc = ucByChallenge.get(c.id);
     return {
