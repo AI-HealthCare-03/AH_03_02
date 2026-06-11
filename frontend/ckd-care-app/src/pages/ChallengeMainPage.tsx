@@ -286,7 +286,7 @@ export function ChallengeMainPage() {
 
         {/* 수분 섭취 기록 */}
         <div className="px-5 pt-2">
-          <WaterTrackingCard />
+          <WaterTrackingCard onAutoCheckin={() => { void loadAll(); }} />
         </div>
 
         {/* 선택 챌린지 — 카테고리 탭 + 목록 */}

@@ -13,7 +13,7 @@ const DRINKS: { type: DrinkType; label: string }[] = [
   { type: "OTHER", label: "기타" },
 ];
 
-export function WaterTrackingCard() {
+export function WaterTrackingCard({ onAutoCheckin }: { onAutoCheckin?: () => void }) {
   const qc = useQueryClient();
   // 자동 체크인 완료 시 인라인 메시지 표시용 상태 (toast 유틸 없음)
   const [autoCheckinMsg, setAutoCheckinMsg] = useState<string | null>(null);
@@ -26,7 +26,7 @@ export function WaterTrackingCard() {
   // react-query 캐시 무효화 (수분 기록 + 챌린지 자동 체크인 반영)
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["record", "water"] });
-    qc.invalidateQueries({ queryKey: ["challenge"] });
+    qc.invalidateQueries({ queryKey: ["challenges"] }); // 복수형 키로 수정 (dashboard 위젯 등 반영)
   };
 
   const addMut = useMutation({
@@ -38,6 +38,8 @@ export function WaterTrackingCard() {
         // toast 유틸 없음 — 3초 인라인 메시지로 대체
         setAutoCheckinMsg("🎉 목표 달성! HYDRATION 체크인 완료");
         setTimeout(() => setAutoCheckinMsg(null), 3000);
+        // 부모 페이지(ChallengeMainPage)의 명령형 상태도 갱신
+        onAutoCheckin?.();
       }
     },
   });
