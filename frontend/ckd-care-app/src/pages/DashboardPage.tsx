@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 import { Tag } from "../components/Tag";
 import { Card } from "../components/Card";
 import { EggWidget } from "../components/EggWidget";
+import { WelcomeModal } from "../components/WelcomeModal";
 import { HeatmapWidget } from "../components/HeatmapWidget";
 import { RadialMiniWidget } from "../components/RadialMiniWidget";
 import { WeeklyProgressWidget } from "../components/WeeklyProgressWidget";
@@ -196,13 +197,19 @@ const LIFESTYLE_LABEL: Record<string, string> = {
   LOW: "낮음", MODERATE: "보통", HIGH: "높음",
 };
 
+// 사용자별 환영 모달 노출 — sessionStorage라 같은 탭 새로고침엔 유지, 로그아웃 시 AuthContext가 비움
+// → 효과: 로그인할 때마다 1회 노출 / 새로고침·페이지 이동 시 안 뜸 / 검진·설문 입력 후엔 데이터 조건에 걸려 어차피 안 뜸
+const welcomeSeenKey = (userId: number) => `welcome_seen_${userId}`;
+
 export function DashboardPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [attendanceLoading, setAttendanceLoading] = useState(false);
   const [attendanceMsg, setAttendanceMsg] = useState("");
   const [slump, setSlump] = useState<SlumpStatusResponse | null>(null);
   const [warningRed, setWarningRed] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   // React Query로 대시보드 요약 데이터 관리
   // refetchInterval: CKD 위험도가 아직 계산 중(null)이면 4초마다 자동 재조회 (비동기 worker 완료 대기)
@@ -229,6 +236,24 @@ export function DashboardPage() {
     const t = setTimeout(() => setWarningRed(true), 8000);
     return () => clearTimeout(t);
   }, []);
+
+  // 첫 로그인 환영 모달 — 검진·설문 둘 다 없고 같은 세션에 안 본 사용자에게 1회
+  useEffect(() => {
+    if (!summary || !user) return;
+    if (summary.latest_health || summary.latest_lifestyle) return;
+    if (sessionStorage.getItem(welcomeSeenKey(user.id)) === "true") return;
+    setShowWelcome(true);
+  }, [summary, user]);
+
+  function dismissWelcome() {
+    if (user) sessionStorage.setItem(welcomeSeenKey(user.id), "true");
+    setShowWelcome(false);
+  }
+
+  function startCheckupFromWelcome() {
+    dismissWelcome();
+    navigate("/checkup-input");
+  }
 
   async function handleAttendance() {
     setAttendanceLoading(true);
@@ -264,6 +289,13 @@ export function DashboardPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-bg-alt">
+      {showWelcome && (
+        <WelcomeModal
+          userName={user?.name}
+          onStartCheckup={startCheckupFromWelcome}
+          onSkip={dismissWelcome}
+        />
+      )}
       <ScreenLabel label="10 · 대시보드 (REQ-DASH-01)" />
       <TopNav />
       <main className="flex flex-1 flex-col p-[32px]">
