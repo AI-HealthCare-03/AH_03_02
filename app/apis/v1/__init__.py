@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.apis.v1.admin_routers import admin_router
+from app.apis.v1.appointment_routers import appointment_router
 from app.apis.v1.auth_routers import auth_router
 from app.apis.v1.challenge_routers import challenge_router, user_challenge_router
 from app.apis.v1.chat_routers import chat_router
@@ -33,4 +34,5 @@ v1_routers.include_router(attendance_router)
 v1_routers.include_router(chat_router)
 v1_routers.include_router(record_router)
 v1_routers.include_router(lab_router)
+v1_routers.include_router(appointment_router)
 v1_routers.include_router(admin_router)
