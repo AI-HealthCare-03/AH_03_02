@@ -11,6 +11,7 @@ from app.apis.v1.health_check_routers import health_check_router
 from app.apis.v1.lifestyle_survey_routers import lifestyle_survey_router
 from app.apis.v1.notification_routers import notification_router
 from app.apis.v1.points_routers import attendance_router, points_router
+from app.apis.v1.record_routers import record_router
 from app.apis.v1.user_routers import user_router
 
 v1_routers = APIRouter(prefix="/api/v1")
@@ -29,4 +30,5 @@ v1_routers.include_router(inventory_router)
 v1_routers.include_router(points_router)
 v1_routers.include_router(attendance_router)
 v1_routers.include_router(chat_router)
+v1_routers.include_router(record_router)
 v1_routers.include_router(admin_router)
