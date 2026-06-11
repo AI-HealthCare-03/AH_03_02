@@ -396,6 +396,102 @@ def _map_lines_to_health_fields(lines: list[dict]) -> dict[str, dict]:
     return mapped
 
 
+_PURE_NUMBER_RE = re.compile(r"^\d+(?:\.\d+)?$")
+_SKIP_TOKEN_WORDS = (
+    "이상",
+    "미만",
+    "이하",
+    "초과",
+    "정상",
+    "의심",
+    "주의",
+    "□",
+    "■",
+    "유질환자",
+    "전단계",
+    "낮은",
+    "고위험",
+    "이상자",
+    "장애",
+)
+
+
+def _classify_tokens(items: list[dict]) -> tuple[list[tuple[str, dict]], list[dict], list[dict]]:
+    """토큰을 (라벨 후보, 단독 숫자, 페어 패턴)으로 분류."""
+    labels: list[tuple[str, dict]] = []
+    numbers: list[dict] = []
+    pairs: list[dict] = []
+    for it in items:
+        text = it["text"]
+        pm = _PAIR_PATTERN.fullmatch(text)
+        if pm:
+            pairs.append({**it, "v1": float(pm.group(1)), "v2": float(pm.group(2))})
+            continue
+        if _PURE_NUMBER_RE.fullmatch(text):
+            numbers.append({**it, "value": float(text)})
+            continue
+        if any(w in text for w in _SKIP_TOKEN_WORDS):
+            continue
+        field = _find_matching_field(text)
+        if field is not None:
+            labels.append((field, it))
+    return labels, numbers, pairs
+
+
+def _same_row(a: dict, b: dict, factor: float = 0.6) -> bool:
+    """두 토큰이 같은 표 행인지 — y_mid 차이가 평균 토큰 높이의 factor 이내."""
+    ref = max(a["y_bot"] - a["y_top"], b["y_bot"] - b["y_top"])
+    return ref > 0 and abs(a["y_mid"] - b["y_mid"]) <= ref * factor
+
+
+def _map_labels_with_numbers(labels: list[tuple[str, dict]], numbers: list[dict], mapped: dict[str, dict]) -> None:
+    """일반 라벨 → 같은 행 우측 가장 가까운 단독 숫자 토큰 매핑."""
+    for field, lt in labels:
+        if field in mapped:
+            continue
+        candidates = [nt for nt in numbers if nt["x"] > lt["x"] and _same_row(lt, nt)]
+        if not candidates:
+            continue
+        best = min(candidates, key=lambda nt: nt["x"] - lt["x"])
+        mapped[field] = {
+            "value": best["value"],
+            "confidence": round(min(lt["conf"], best["conf"]), 3),
+            "source_text": f"{lt['text']} → {best['text']}",
+        }
+
+
+def _map_height_weight_pair_token(labels: list[tuple[str, dict]], pairs: list[dict], mapped: dict[str, dict]) -> None:
+    """키 라벨 + 같은 행 페어 토큰("172 / 68")으로 height·weight 동시 매핑."""
+    if "height" in mapped and "weight" in mapped:
+        return
+    height_lt = next((lt for f, lt in labels if f == "height"), None)
+    if height_lt is None:
+        return
+    for pt in pairs:
+        if not _same_row(height_lt, pt):
+            continue
+        src = f"{height_lt['text']} → {pt['text']}"
+        if "height" not in mapped:
+            mapped["height"] = {"value": pt["v1"], "confidence": round(pt["conf"], 3), "source_text": src}
+        if "weight" not in mapped:
+            mapped["weight"] = {"value": pt["v2"], "confidence": round(pt["conf"], 3), "source_text": src}
+        return
+
+
+def _map_tokens_by_position(page_raws: list[list[dict]], mapped: dict[str, dict]) -> None:
+    """토큰 좌표 기반 페어 매칭 — 라벨의 같은 행 + 우측 가장 가까운 숫자 토큰 매핑.
+
+    라인 단위 매핑이 못 잡은 필드 보강. boundingPoly 좌표가 없으면 noop.
+    """
+    for page_raw in page_raws:
+        items = _extract_token_items(page_raw)
+        if not items:
+            continue
+        labels, numbers, pairs = _classify_tokens(items)
+        _map_labels_with_numbers(labels, numbers, mapped)
+        _map_height_weight_pair_token(labels, pairs, mapped)
+
+
 def _split_pdf_pages(pdf_bytes: bytes) -> list[bytes]:
     """다중 페이지 PDF → 페이지별 단일 페이지 PDF bytes 리스트.
 
@@ -589,6 +685,8 @@ async def extract_text(*, file_bytes: bytes, content_type: str, filename: str) -
     for page_raw in page_raws:
         lines.extend(_group_into_lines(page_raw))
     mapped = _map_lines_to_health_fields(lines)
+    # 라인 매핑이 못 잡은 필드는 토큰 좌표 기반 페어 매칭으로 보강
+    _map_tokens_by_position(page_raws, mapped)
 
     logger.info(
         "Clova OCR 추출 성공 pages=%d fields=%d lines=%d mapped=%d low_conf=%d errors=%d mapped_keys=%s",
