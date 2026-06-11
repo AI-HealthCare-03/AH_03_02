@@ -492,6 +492,68 @@ def _map_tokens_by_position(page_raws: list[list[dict]], mapped: dict[str, dict]
         _map_height_weight_pair_token(labels, pairs, mapped)
 
 
+def _fallback_split_cholesterol(page_raws: list[list[dict]], mapped: dict[str, dict]) -> None:
+    """단독 '고밀도'·'저밀도' 토큰이 라벨 매칭에 실패한 경우 보강 (회귀 0).
+
+    Clova가 "고밀도 콜레스테롤(mg/dL)" 셀을 두 토큰으로 쪼개는 경우,
+    "고밀도" 단독 토큰 + 인접한 "콜레스테롤(mg/dL)" 토큰 + 같은 행 우측 단독 숫자를
+    엄격한 조건으로 결합해 매핑.
+
+    안전 장치:
+    - hdl/ldl이 이미 mapped면 절대 발동 안 함
+    - "콜레스테롤" 토큰에 단위(mg/dL) 키워드 필수 — 판정 라인의 "콜레스테롤"은 단위 없어 제외
+    - "낮은"·"의심" 토큰이 같은 행에 있으면 발동 중단 — 판정 라인 가로채기 차단
+    """
+    targets = [("hdl_cholesterol", "고밀도"), ("ldl_cholesterol", "저밀도")]
+    for field, kw in targets:
+        if field in mapped:
+            continue
+        for page_raw in page_raws:
+            items = _extract_token_items(page_raw)
+            if not items:
+                continue
+            if _try_fallback_one_page(items, field, kw, mapped):
+                break
+
+
+def _try_fallback_one_page(items: list[dict], field: str, kw: str, mapped: dict[str, dict]) -> bool:
+    """한 페이지 안에서 단독 키워드 토큰 fallback 시도. 매핑 성공 시 True."""
+    kw_tokens = [it for it in items if it["text"].strip() == kw]
+    if not kw_tokens:
+        return False
+    # 콜레스테롤 + 단위 키워드 토큰만 (판정 라인의 단순 "콜레스테롤" 제외)
+    cho_tokens = [it for it in items if "콜레스테롤" in it["text"] and any(u in it["text"] for u in _LABEL_UNIT_HINTS)]
+    if not cho_tokens:
+        return False
+    nums = [{**it, "value": float(it["text"])} for it in items if _PURE_NUMBER_RE.fullmatch(it["text"])]
+    bad_words = ("낮은", "의심", "고위험", "전단계", "이상자", "유질환자")
+    for kt in kw_tokens:
+        # 같은 행에 판정 단어가 있으면 가로채기 위험 → skip
+        if any(any(w in it["text"] for w in bad_words) for it in items if it is not kt and _same_row(kt, it)):
+            continue
+        # 같은 행 또는 즉시 다음 행에 "콜레스테롤(mg/dL)" 토큰
+        h = kt["y_bot"] - kt["y_top"]
+        ct = next(
+            (c for c in cho_tokens if abs(c["y_mid"] - kt["y_mid"]) <= h * 1.5 and c["x"] > kt["x"]),
+            None,
+        )
+        if ct is None:
+            continue
+        # 라벨 페어 우측 + 같은 행(둘 중 하나의 y) 첫 단독 숫자
+        anchor_x = max(kt["x"], ct["x"])
+        candidates = [n for n in nums if n["x"] > anchor_x and (_same_row(kt, n) or _same_row(ct, n))]
+        if not candidates:
+            continue
+        best = min(candidates, key=lambda n: n["x"] - anchor_x)
+        mapped[field] = {
+            "value": best["value"],
+            "confidence": round(min(kt["conf"], ct["conf"], best["conf"]), 3),
+            "source_text": f"{kt['text']} {ct['text']} → {best['text']}",
+        }
+        return True
+    return False
+
+
 def _split_pdf_pages(pdf_bytes: bytes) -> list[bytes]:
     """다중 페이지 PDF → 페이지별 단일 페이지 PDF bytes 리스트.
 
@@ -687,6 +749,8 @@ async def extract_text(*, file_bytes: bytes, content_type: str, filename: str) -
     mapped = _map_lines_to_health_fields(lines)
     # 라인 매핑이 못 잡은 필드는 토큰 좌표 기반 페어 매칭으로 보강
     _map_tokens_by_position(page_raws, mapped)
+    # 분리된 "고밀도/저밀도" + "콜레스테롤(mg/dL)" 토큰 fallback (회귀 0 — mapped에 없을 때만 발동)
+    _fallback_split_cholesterol(page_raws, mapped)
 
     logger.info(
         "Clova OCR 추출 성공 pages=%d fields=%d lines=%d mapped=%d low_conf=%d errors=%d mapped_keys=%s",
