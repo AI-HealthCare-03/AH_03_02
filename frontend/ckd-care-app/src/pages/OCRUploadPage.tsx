@@ -164,13 +164,6 @@ export function OCRUploadPage() {
           </div>
         </div>
 
-        {/* 직접 입력 링크 */}
-        <button
-          onClick={() => navigate("/manual-input")}
-          className="mt-[24px] text-sm font-bold text-info hover:underline"
-        >
-          OCR 없이 직접 입력하기 →
-        </button>
       </main>
     </div>
   );

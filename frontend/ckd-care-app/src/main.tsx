@@ -42,6 +42,7 @@ import { RAGChatbotPage } from "./pages/RAGChatbotPage";
 import { SimulationPage } from "./pages/SimulationPage";
 import { CheckupHistoryPage } from "./pages/CheckupHistoryPage";
 import { CheckupManagementPage } from "./pages/CheckupManagementPage";
+import { CheckupInputMethodPage } from "./pages/CheckupInputMethodPage";
 import { LifestyleSurveyHistoryPage } from "./pages/LifestyleSurveyHistoryPage";
 import { LifestyleManagementPage } from "./pages/LifestyleManagementPage";
 import { EmergencyGuardPage } from "./pages/EmergencyGuardPage";
@@ -97,6 +98,7 @@ function AppRoutes() {
       <Route path="/rag-chatbot" element={<PrivateRoute><RAGChatbotPage /></PrivateRoute>} />
       <Route path="/simulation" element={<PrivateRoute><SimulationPage /></PrivateRoute>} />
       <Route path="/checkup-management" element={<PrivateRoute><CheckupManagementPage /></PrivateRoute>} />
+      <Route path="/checkup-input" element={<PrivateRoute><CheckupInputMethodPage /></PrivateRoute>} />
       <Route path="/lifestyle-management" element={<PrivateRoute><LifestyleManagementPage /></PrivateRoute>} />
       <Route path="/checkup-history" element={<PrivateRoute><CheckupHistoryPage /></PrivateRoute>} />
       <Route path="/health-check-history" element={<PrivateRoute><CheckupHistoryPage /></PrivateRoute>} />
