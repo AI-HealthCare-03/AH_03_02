@@ -172,7 +172,7 @@ export interface OCRLine {
 }
 
 export interface OCRResponse {
-  engine: "clova" | "stub";
+  engine: "clova" | "stub" | "pypdf";
   filename: string;
   fields: OCRField[];
   lines?: OCRLine[];

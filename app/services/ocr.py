@@ -693,8 +693,41 @@ def _parse_clova_response(resp: httpx.Response) -> list[dict]:
     return fields_raw
 
 
+def _extract_pdf_text_lines(pdf_bytes: bytes) -> tuple[list[dict], int] | None:
+    """텍스트 기반 PDF에서 pypdf로 직접 라인 추출.
+
+    OCR을 거치지 않고 PDF에 내장된 텍스트를 그대로 읽기 때문에 docx→PDF 같은
+    텍스트 기반 PDF는 100% 정확. 이미지 기반(스캔본) PDF는 추출 텍스트가 비어
+    None 반환 → Clova OCR로 fallback.
+
+    반환: (lines, page_count) 또는 None
+    """
+    try:
+        reader = PdfReader(io.BytesIO(pdf_bytes))
+        page_count = len(reader.pages)
+        all_text_parts: list[str] = []
+        for page in reader.pages:
+            all_text_parts.append(page.extract_text() or "")
+        full = "\n".join(all_text_parts)
+        # 100자 미만이면 스캔본 PDF로 추정 — Clova fallback
+        if len(full.strip()) < 100:
+            return None
+        lines: list[dict] = []
+        for line in full.splitlines():
+            stripped = line.strip()
+            if stripped:
+                # PDF 직접 추출은 OCR confidence 개념 없음 → 1.0 (확실)
+                lines.append({"text": stripped, "confidence": 1.0})
+        if not lines:
+            return None
+        return lines, page_count
+    except Exception as exc:  # noqa: BLE001 — pypdf 다양한 예외(손상·암호화·폰트 인코딩 등) 모두 fallback
+        logger.warning("pypdf 텍스트 추출 실패: %s", type(exc).__name__)
+        return None
+
+
 async def extract_text(*, file_bytes: bytes, content_type: str, filename: str) -> dict:
-    """Clova OCR API 호출 → 텍스트·신뢰도 추출."""
+    """OCR 추출 — 텍스트 기반 PDF는 pypdf 직접 추출, 그 외는 Clova OCR."""
     invoke_url = os.getenv("CLOVA_OCR_INVOKE_URL")
     secret_key = os.getenv("CLOVA_OCR_SECRET_KEY")
     if not invoke_url or not secret_key:
@@ -712,6 +745,32 @@ async def extract_text(*, file_bytes: bytes, content_type: str, filename: str) -
 
     # 파일 매직 바이트 검증 — content_type만 신뢰하지 않음 (확장자만 .pdf로 바꾼 docx 등 차단)
     _validate_magic_bytes(file_bytes, image_format)
+
+    # PDF는 pypdf 직접 추출 우선 시도 (텍스트 기반이면 OCR보다 100% 정확)
+    if image_format == "pdf":
+        direct = _extract_pdf_text_lines(file_bytes)
+        if direct is not None:
+            direct_lines, pdf_pages = direct
+            mapped = _map_lines_to_health_fields(direct_lines)
+            fields = [{"text": ln["text"], "confidence": 1.0} for ln in direct_lines]
+            logger.info(
+                "PDF 직접 추출(pypdf) 성공 pages=%d lines=%d mapped=%d mapped_keys=%s",
+                pdf_pages,
+                len(direct_lines),
+                len(mapped),
+                ",".join(sorted(mapped.keys())) or "(none)",
+            )
+            return {
+                "engine": "pypdf",
+                "filename": filename or "checkup",
+                "fields": fields,
+                "lines": direct_lines,
+                "mapped": mapped,
+                "low_confidence_count": 0,
+                "page_count": pdf_pages,
+                "page_errors": [],
+            }
+        logger.info("PDF 직접 추출 실패(스캔본 추정) → Clova OCR fallback")
 
     # 다중 페이지 PDF는 페이지별로 분리해 Clova에 순차 호출 (General OCR이 다중 페이지에서 400 거절 사례 있음)
     pages = _split_pdf_pages(file_bytes) if image_format == "pdf" else [file_bytes]
