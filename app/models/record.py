@@ -37,3 +37,21 @@ class RecordSettings(models.Model):
 
     class Meta:
         table = "record_settings"
+
+
+class WeightLog(models.Model):
+    """날짜별 1회 체중 기록 (수정 가능 = upsert)."""
+
+    id = fields.BigIntField(primary_key=True)
+    user = fields.ForeignKeyField("models.User", related_name="weight_logs")
+    log_date = fields.DateField()
+    weight_kg = fields.DecimalField(max_digits=4, decimal_places=1, description="체중 (kg, 소수 1자리)")
+    note = fields.TextField(null=True)
+    measured_at = fields.DatetimeField(auto_now=True, description="마지막 입력 시각")
+    created_at = fields.DatetimeField(auto_now_add=True)
+    updated_at = fields.DatetimeField(auto_now=True)
+
+    class Meta:
+        table = "weight_logs"
+        unique_together = [("user", "log_date")]
+        ordering = ["-log_date"]
