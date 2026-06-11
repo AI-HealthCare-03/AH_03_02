@@ -37,12 +37,12 @@ _LOW_CONFIDENCE_THRESHOLD = 0.85
 
 # ManualInputPage form 필드 → 키워드 매핑.
 # LDL은 시스템에서 사용하지 않으므로 제외.
-# HDL은 결합형 "고밀도 콜레스테롤"만 사용 — 단독 "고밀도" 토큰이 잘못된 행 숫자를 매핑하는 문제 방지
-# (단독 토큰은 fallback에서 안전 조건 만족 시에만 처리).
+# HDL은 _FIELD_KEYWORDS에서 빠짐 — 라인 그룹화가 HDL 행과 다른 행을 잘못 묶을 때
+# 라인 매핑이 잘못된 숫자(예: HDL=120=중성지방 값)를 매핑하는 경로 차단.
+# HDL은 _fallback_hdl_strict_row(옵션 D)가 셀 경계 기반으로 정확히 매핑.
 _FIELD_KEYWORDS: list[tuple[str, list[str]]] = [
     ("fasting_glucose", ["공복혈당", "혈당", "glucose"]),
     ("creatinine", ["크레아티닌", "creatinine"]),
-    ("hdl_cholesterol", ["HDL", "고밀도 콜레스테롤"]),
     ("total_cholesterol", ["총콜레스테롤", "총 콜레스테롤", "콜레스테롤"]),
     ("triglycerides", ["중성지방", "트리글리세라이드"]),
     ("systolic_bp", ["수축기", "최고혈압"]),
@@ -282,12 +282,17 @@ def _find_matching_field(text: str) -> str | None:
     """라인 텍스트에서 매칭되는 검진 필드명 반환. 우선순위 첫 매치.
 
     판정·체크박스 라인(□ 정상·의심 등)은 진짜 라벨 가로채기 방지를 위해 제외.
+    total_cholesterol는 같은 라인에 "고밀도"·"저밀도"가 있으면 매칭 안 함 —
+    HDL/LDL 행이 total로 잘못 매핑되는 경로 차단.
     """
     if _is_ruling_line(text):
         return None
     upper = text.upper()
+    has_hdl_ldl_kw = "고밀도" in text or "저밀도" in text
     for field, keywords in _FIELD_KEYWORDS:
         if any(kw in text or kw.upper() in upper for kw in keywords):
+            if field == "total_cholesterol" and has_hdl_ldl_kw:
+                continue
             return field
     return None
 
@@ -518,19 +523,20 @@ def _fallback_hdl_strict_row(page_raws: list[list[dict]], mapped: dict[str, dict
 
 
 def _try_hdl_strict_row(items: list[dict], mapped: dict[str, dict]) -> bool:
-    """한 페이지 안에서 옵션 D 룰 시도. 성공 시 True."""
-    kw_tokens = [it for it in items if it["text"].strip() == "고밀도"]
+    """한 페이지 안에서 옵션 D 룰 시도. 성공 시 True.
+
+    kw_tokens: "고밀도" 포함 토큰 (단독 또는 결합형 "고밀도 콜레스테롤(mg/dL)" 모두 인정).
+    단 토큰 텍스트 자체에 판정 단어("낮은"·"의심" 등)가 있으면 진짜 라벨 아님 → 제외.
+    같은 행 다른 토큰 검사는 안 함 — HDL 행 우측 판정 컬럼에 판정 단어가 정상 존재.
+    """
+    bad_words = ("낮은", "의심", "고위험", "전단계", "이상자", "유질환자")
+    kw_tokens = [it for it in items if "고밀도" in it["text"] and not any(b in it["text"] for b in bad_words)]
     if not kw_tokens:
         return False
-    # 검진 결과지 확인 — 같은 페이지에 콜레스테롤 라벨이 존재해야
     if not any("콜레스테롤" in it["text"] for it in items):
         return False
     nums = [{**it, "value": float(it["text"])} for it in items if _PURE_NUMBER_RE.fullmatch(it["text"])]
-    bad_words = ("낮은", "의심", "고위험", "전단계", "이상자", "유질환자")
     for kt in kw_tokens:
-        # 판정 라인의 "고밀도" 제외
-        if any(any(w in it["text"] for w in bad_words) for it in items if it is not kt and _same_row(kt, it)):
-            continue
         # 다음 행 라벨(중성지방·저밀도) y_top — 셀 아래 경계
         next_y_tops = [
             it["y_top"] for it in items if any(k in it["text"] for k in _NEXT_ROW_LABELS) and it["y_top"] > kt["y_bot"]
