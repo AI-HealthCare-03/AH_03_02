@@ -70,7 +70,9 @@ def retrieve(
             allowed = [track, cfg.TRACK_DIALYSIS, cfg.TRACK_COMMON]
         else:
             allowed = [track, cfg.TRACK_COMMON]
-        must_conditions.append(FieldCondition(key="track", match=MatchAny(any=allowed)))
+    else:
+        allowed = [cfg.TRACK_COMMON]  # track 미상 → 트랙 중립(common) 청크만
+    must_conditions.append(FieldCondition(key="track", match=MatchAny(any=allowed)))
     flt = Filter(must=must_conditions)
     _t = time.perf_counter()
     hits = client.query_points(

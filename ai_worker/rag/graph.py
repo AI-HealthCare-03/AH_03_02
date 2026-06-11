@@ -58,6 +58,7 @@ def build_graph():
         ("fallback_post_guard", nodes.fallback_post_guard_node),
         ("referral_notice", nodes.referral_notice_node),
         ("scope_notice", nodes.scope_notice_node),
+        ("no_evidence_notice", nodes.no_evidence_notice_node),
     ]:
         b.add_node(name, _timed(name, fn))
 
@@ -91,11 +92,12 @@ def build_graph():
         nodes.fallback_router,
         {
             "blocked": END,
-            "fallback_generate": "fallback_generate",
+            "no_evidence_notice": "no_evidence_notice",
             "referral": "referral_notice",
             "scope": "scope_notice",
         },
     )
+    b.add_edge("no_evidence_notice", END)
     b.add_edge("fallback_generate", "fallback_post_guard")
     b.add_edge("fallback_post_guard", END)
     b.add_edge("referral_notice", END)
