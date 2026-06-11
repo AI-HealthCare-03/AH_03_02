@@ -47,7 +47,7 @@ function MetricCard({ m }: { m: MetricOverview }) {
         <span className={"text-xl font-bold " + (out ? "text-warning" : "text-text-primary")}>
           {m.latest !== null ? m.latest.toFixed(m.decimals) : "—"}
         </span>
-        {m.delta !== null && (
+        {m.delta !== null && m.delta !== 0 && (
           <span className={"text-xs " + (m.delta > 0 ? "text-warning" : "text-success")}>
             {m.delta > 0 ? "▲" : "▼"} {Math.abs(m.delta).toFixed(m.decimals)}
           </span>
