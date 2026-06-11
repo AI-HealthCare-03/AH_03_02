@@ -77,7 +77,7 @@ export function WelcomeModal({ userName, onStartCheckup, onSkip }: Props) {
             onClick={onSkip}
             className="rounded-md border border-border px-[16px] py-[10px] text-sm text-text-primary hover:bg-bg-alt"
           >
-            나중에 둘러보기
+            나중에 입력하고 둘러보기
           </button>
           <button
             onClick={onStartCheckup}
