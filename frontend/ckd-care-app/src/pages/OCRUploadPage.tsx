@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CloudUpload, Clock, ShieldCheck, FileImage, X } from "lucide-react";
+import { CloudUpload, Clock, FileImage, X } from "lucide-react";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 import { BtnPrimary } from "../components/BtnPrimary";
@@ -155,12 +155,6 @@ export function OCRUploadPage() {
           <div className="flex items-center gap-[8px]">
             <Clock size={16} className="shrink-0 text-text-secondary" />
             <p className="text-sm text-text-secondary">처리 시간: 약 5~30초</p>
-          </div>
-          <div className="flex items-center gap-[8px]">
-            <ShieldCheck size={16} className="shrink-0 text-text-secondary" />
-            <p className="text-sm text-text-secondary">
-              개인정보가 포함된 결과지는 직접 입력을 권장합니다. 데모용 가짜 이미지로 시연하세요.
-            </p>
           </div>
         </div>
 
