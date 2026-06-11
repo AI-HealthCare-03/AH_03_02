@@ -121,8 +121,14 @@ class SlumpService:
         if not await User.exists(id=user_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="등록된 계정이 없습니다.")
         last_date = await _last_activity_date(user_id)
-        days_since = (today - last_date).days if last_date is not None else SLUMP_THRESHOLD_DAYS
-        is_slump = days_since >= SLUMP_THRESHOLD_DAYS
+        # 활동 이력이 한 번도 없는 신규 사용자는 슬럼프 X — 가입 직후 곧장 카드 노출 차단
+        # (직전 로직은 None일 때 days_since를 임계값으로 설정해 무조건 슬럼프로 잡혔음)
+        if last_date is None:
+            days_since = 0
+            is_slump = False
+        else:
+            days_since = (today - last_date).days
+            is_slump = days_since >= SLUMP_THRESHOLD_DAYS
         micro = pick_today_micro(today)
         already_done = await SlumpMicroLog.exists(user_id=user_id, micro_code=micro.code, log_date=today)
         return {
