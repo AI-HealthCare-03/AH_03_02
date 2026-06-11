@@ -188,7 +188,7 @@ export function ChallengeMainPage() {
     setStageSaving(true);
     setStageError(null);
     try {
-      await challengeApi.updateMyTrack(myTrack.track, stage);
+      await challengeApi.updateMyTrack(stage);
       setView("main");
       await loadAll();
       const label = STAGES.find((s) => s.num === stage)?.label ?? `S${stage}`;

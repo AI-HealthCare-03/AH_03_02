@@ -121,25 +121,26 @@ def stage_label(stage: int) -> str:
 def assign_track(
     app_group: str | None,
     ckd_diagnosed: bool,
-    dialysis_type: str | None,
     egfr: float | None,
 ) -> ChallengeTrack:
-    """CKD 진단 여부·투석 유형·eGFR·앱 그룹(A/B/C/D)으로 트랙을 자동배정.
+    """CKD 진단 여부·eGFR·앱 그룹(A/B/C/D)으로 트랙을 자동배정.
 
-    배정 우선순위:
-    1. CKD 진단자
-       - 투석/이식 중 또는 eGFR < 15  → DIALYSIS 트랙
-       - 그 외 보존기                  → CKD 트랙
-    2. 미진단자 (서비스 관리 대상)
-       - A 그룹 (신장 집중 관리군)     → INTENSIVE 트랙
-       - B·C 그룹 (위험·사전 관리군)   → DAILY 트랙
-       - D 그룹 또는 미분류             → WELLNESS 트랙
+    PDF '트랙 배정 로직 정의서'(2026-06-11) 의사코드 기준.
+    트랙은 가입 시 설문·임상 수치로 자동 배정되며 사용자가 변경할 수 없다.
+
+    배정 순서 (우선순위):
+    1. CKD 진단자 — 진단=예면 무조건 분기, 스크리닝(2단계)으로 내려가지 않음
+       - eGFR < 15             → DIALYSIS 트랙 (투석·이식, 의료진 배정)
+       - eGFR >= 15 또는 미입력 → CKD 트랙 (비투석 보존기, 의료진 배정)
+    2. 미진단자 스크리닝 (서비스 관리 대상)
+       - A 그룹 (신장 집중 관리군)   → INTENSIVE 트랙
+       - B·C 그룹 (위험·사전 관리군) → DAILY 트랙
+       - D 그룹 또는 미분류           → WELLNESS 트랙 (fallback)
     """
     if ckd_diagnosed:
-        # 투석 중이거나 말기 신부전(eGFR < 15)
-        if dialysis_type in ("hemodialysis", "peritoneal", "transplant") or (egfr is not None and egfr < 15):
+        # 말기 신부전(eGFR < 15) → 투석·이식. 그 외(≥15·미입력)는 비투석 보존기.
+        if egfr is not None and egfr < 15:
             return ChallengeTrack.DIALYSIS
-        # 투석 전 보존기 CKD
         return ChallengeTrack.CKD
 
     # 미진단 = 서비스 관리 대상 (app_group 기반 배정)
@@ -147,5 +148,5 @@ def assign_track(
         return ChallengeTrack.INTENSIVE
     if app_group in ("B", "C"):
         return ChallengeTrack.DAILY
-    # D 그룹 또는 검진 전 미분류 기본값
+    # D 그룹 또는 검진 전 미분류 기본값(fallback)
     return ChallengeTrack.WELLNESS
