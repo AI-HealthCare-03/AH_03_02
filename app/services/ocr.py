@@ -52,8 +52,31 @@ _FIELD_KEYWORDS: list[tuple[str, list[str]]] = [
 
 # 혈압 "130/85" 패턴
 _BP_PATTERN = re.compile(r"(\d{2,3})\s*/\s*(\d{2,3})")
+# 키+몸무게 슬래시 패턴 "172 / 68" (소수 허용)
+_PAIR_PATTERN = re.compile(r"(\d{2,3}(?:\.\d+)?)\s*/\s*(\d{2,3}(?:\.\d+)?)")
 # 숫자 (소수 허용)
 _NUMBER_PATTERN = re.compile(r"\d+(?:\.\d+)?")
+
+# 판정·체크박스·정상범위 표현 — 이런 라인은 진짜 라벨이 아니라 정상/의심 판정·설명이라
+# 키워드 매칭에서 제외 (예: "□ 낮은 고밀도 콜레스테롤 의심"이 진짜 라벨 가로채는 문제 차단).
+_RULING_WORDS = (
+    "□",
+    "■",  # 체크박스
+    "정상",
+    "의심",
+    "필요",
+    "주의",
+    "없음",
+    "비해당",
+    "유질환자",
+    "전단계",
+    "낮은",
+    "고위험",
+    "이상자",
+    "장애",
+    "고콜레스테롤혈증",
+    "고중성지방혈증",
+)
 
 # 파일 매직 바이트 — content_type만 신뢰하지 않고 실제 파일 시그니처 검증
 # (사용자가 docx를 .pdf로 잘못 저장한 케이스 등을 친절한 한국어 에러로 변환)
@@ -88,17 +111,43 @@ def _group_into_lines(fields_raw: list[dict]) -> list[dict]:
 
 
 def _try_map_blood_pressure(text: str, conf: float, mapped: dict[str, dict]) -> bool:
-    """혈압 패턴(130/85)을 SBP·DBP로 매핑. 매핑 성공 시 True."""
+    """혈압 패턴(130/85)을 SBP·DBP로 매핑. 매핑 성공 시 True.
+
+    조건: "혈압"·"BP" 키워드 또는 "mmHg" 단위 포함 + 슬래시 패턴.
+    판정 라인(예: "수축기 120-139 또는 이완기 80-89")은 제외.
+    """
+    if _is_ruling_line(text):
+        return False
     bp_match = _BP_PATTERN.search(text)
     if not bp_match:
         return False
-    if "혈압" not in text and "BP" not in text.upper():
+    upper = text.upper()
+    if "혈압" not in text and "BP" not in upper and "MMHG" not in upper:
         return False
     sbp, dbp = int(bp_match.group(1)), int(bp_match.group(2))
     if "systolic_bp" not in mapped:
         mapped["systolic_bp"] = {"value": sbp, "confidence": conf, "source_text": text}
     if "diastolic_bp" not in mapped:
         mapped["diastolic_bp"] = {"value": dbp, "confidence": conf, "source_text": text}
+    return True
+
+
+def _try_map_height_weight_pair(text: str, conf: float, mapped: dict[str, dict]) -> bool:
+    """'키(cm) 및 몸무게(kg) 172 / 68' 처럼 같은 라인에 height·weight 둘 다 있는 경우 동시 매핑."""
+    if _is_ruling_line(text):
+        return False
+    has_h = any(k in text for k in ("키", "신장"))
+    has_w = any(k in text for k in ("몸무게", "체중"))
+    if not (has_h and has_w):
+        return False
+    m = _PAIR_PATTERN.search(text)
+    if not m:
+        return False
+    h, w = float(m.group(1)), float(m.group(2))
+    if "height" not in mapped:
+        mapped["height"] = {"value": h, "confidence": conf, "source_text": text}
+    if "weight" not in mapped:
+        mapped["weight"] = {"value": w, "confidence": conf, "source_text": text}
     return True
 
 
@@ -117,8 +166,18 @@ def _is_value_line(text: str) -> bool:
     return True
 
 
+def _is_ruling_line(text: str) -> bool:
+    """판정·체크박스·정상범위 설명 라인 판단. 진짜 라벨이 아니므로 키워드 매칭 제외."""
+    return any(w in text for w in _RULING_WORDS)
+
+
 def _find_matching_field(text: str) -> str | None:
-    """라인 텍스트에서 매칭되는 검진 필드명 반환. 우선순위 첫 매치."""
+    """라인 텍스트에서 매칭되는 검진 필드명 반환. 우선순위 첫 매치.
+
+    판정·체크박스 라인(□ 정상·의심 등)은 진짜 라벨 가로채기 방지를 위해 제외.
+    """
+    if _is_ruling_line(text):
+        return None
     upper = text.upper()
     for field, keywords in _FIELD_KEYWORDS:
         if any(kw in text or kw.upper() in upper for kw in keywords):
@@ -152,6 +211,7 @@ def _try_map_with_lookahead(lines: list[dict], idx: int, mapped: dict[str, dict]
     한국 검진 결과지는 보통 "공복혈당(mg/dL)\\n92\\n100미만\\n정상" 처럼
     라벨/값/범위/판정이 별도 라인이라 같은 라인 매칭만으론 잡지 못함.
     이 함수는 다음 _LOOKAHEAD_LINES 안의 첫 "값 라인"을 찾아 매핑.
+    혈압 키워드 라인은 슬래시 패턴(118/76)을 인접 라인에서 별도로 찾아 SBP·DBP 동시 매핑.
     """
     line = lines[idx]
     text = line["text"]
@@ -160,10 +220,23 @@ def _try_map_with_lookahead(lines: list[dict], idx: int, mapped: dict[str, dict]
     pending_field = _try_map_keyword(text, conf, mapped)
     if pending_field is None:
         return  # 같은 라인 매칭 성공 또는 키워드 자체 없음
+    is_bp = pending_field in ("systolic_bp", "diastolic_bp")
     # 2) 같은 라인엔 키워드만 있었음 → 다음 라인들에서 첫 "값 라인" 찾기
     for j in range(idx + 1, min(idx + 1 + _LOOKAHEAD_LINES, len(lines))):
         next_line = lines[j]
         next_text = next_line["text"]
+        next_conf = min(conf, next_line["confidence"])
+        # 혈압 라인이면 슬래시 패턴(118/76)을 직접 잡아 SBP·DBP 동시 매핑
+        if is_bp and not _is_ruling_line(next_text):
+            bp_m = _BP_PATTERN.search(next_text)
+            if bp_m:
+                sbp, dbp = int(bp_m.group(1)), int(bp_m.group(2))
+                src = f"{text} → {next_text}"
+                if "systolic_bp" not in mapped:
+                    mapped["systolic_bp"] = {"value": sbp, "confidence": next_conf, "source_text": src}
+                if "diastolic_bp" not in mapped:
+                    mapped["diastolic_bp"] = {"value": dbp, "confidence": next_conf, "source_text": src}
+                return
         # 다른 키워드 라인을 만나면 중단 (양식 셀이 바뀜)
         if _find_matching_field(next_text) is not None:
             break
@@ -172,7 +245,7 @@ def _try_map_with_lookahead(lines: list[dict], idx: int, mapped: dict[str, dict]
             if num_match:
                 mapped[pending_field] = {
                     "value": float(num_match.group()),
-                    "confidence": min(conf, next_line["confidence"]),
+                    "confidence": next_conf,
                     "source_text": f"{text} → {next_text}",
                 }
                 return
@@ -186,8 +259,13 @@ def _map_lines_to_health_fields(lines: list[dict]) -> dict[str, dict]:
     """
     mapped: dict[str, dict] = {}
     for idx, line in enumerate(lines):
+        text = line["text"]
+        conf = line["confidence"]
+        # 키+몸무게 같은 라인 ("키(cm) 및 몸무게(kg) 172 / 68") 우선
+        if _try_map_height_weight_pair(text, conf, mapped):
+            continue
         # 혈압 "130/85" 우선 처리
-        if _try_map_blood_pressure(line["text"], line["confidence"], mapped):
+        if _try_map_blood_pressure(text, conf, mapped):
             continue
         # 같은 라인 또는 인접 라인에서 매핑
         _try_map_with_lookahead(lines, idx, mapped)
@@ -395,13 +473,14 @@ async def extract_text(*, file_bytes: bytes, content_type: str, filename: str) -
     mapped = _map_lines_to_health_fields(lines)
 
     logger.info(
-        "Clova OCR 추출 성공 pages=%d fields=%d lines=%d mapped=%d low_conf=%d errors=%d",
+        "Clova OCR 추출 성공 pages=%d fields=%d lines=%d mapped=%d low_conf=%d errors=%d mapped_keys=%s",
         page_count,
         len(fields),
         len(lines),
         len(mapped),
         low_count,
         len(page_errors),
+        ",".join(sorted(mapped.keys())) or "(none)",
     )
     return {
         "engine": "clova",
