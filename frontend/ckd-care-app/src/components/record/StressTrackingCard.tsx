@@ -88,7 +88,7 @@ export function StressTrackingCard({
   }
 
   const chartData = (history?.counts ?? []).map((c) => ({
-    label: LABEL[c.emotion],
+    label: LABEL[c.emotion] ?? c.emotion, // 미지정 태그도 원문 표시(조용한 깨짐 방지)
     count: c.count,
   }));
 
@@ -166,7 +166,7 @@ export function StressTrackingCard({
               key={k}
               className="rounded-full bg-bg-alt px-2 py-0.5 text-text-secondary"
             >
-              {LABEL[k]}
+              {LABEL[k] ?? k}
             </span>
           ))}
         </div>
