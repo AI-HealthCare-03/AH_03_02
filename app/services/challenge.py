@@ -281,6 +281,14 @@ class ChallengeService:
 
         existing = await self._user_repo.get_active(user_id, dto.challenge_id)
         if existing is not None:
+            # 해제(ABANDONED)했던 챌린지를 다시 선택 → 재활성화(ACTIVE 복귀, 이력 유지).
+            # 같은 (user, challenge)에 행이 하나라 새로 create하면 unique 충돌 → 기존 행 재사용.
+            if existing.status == UserChallengeStatus.ABANDONED:
+                existing.status = UserChallengeStatus.ACTIVE
+                existing.started_at = dto.started_at
+                await self._user_repo.save(existing)
+                await self._notif.notify_challenge_joined(user_id, challenge.name, existing.id)
+                return UserChallengeResponse.model_validate(existing)
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="이미 참여 중인 챌린지입니다.")
 
         uc = await self._user_repo.create(

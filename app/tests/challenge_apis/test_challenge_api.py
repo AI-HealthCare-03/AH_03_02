@@ -136,6 +136,26 @@ class TestJoinChallengeAPI(TestCase):
             )
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
+    async def test_rejoin_after_abandon_reactivates(self):
+        """해제(abandon)한 챌린지를 다시 참여(join) → 409 아니라 기존 행 재활성화(ACTIVE).
+
+        오늘 진행도 선택/해제/재선택 UX의 핵심 — abandon은 행을 ABANDONED로 남기므로
+        재참여 시 새 create(unique 충돌) 대신 기존 행을 ACTIVE 로 되살린다.
+        """
+        challenge = await _seed_challenge()
+        payload = {"challenge_id": challenge.id, "started_at": str(date.today())}
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            token = await _get_token(client)
+            headers = {"Authorization": f"Bearer {token}"}
+            joined = await client.post("/api/v1/user-challenges", json=payload, headers=headers)
+            uc_id = joined.json()["id"]
+            await client.delete(f"/api/v1/user-challenges/{uc_id}", headers=headers)  # 해제
+            rejoin = await client.post("/api/v1/user-challenges", json=payload, headers=headers)  # 재참여
+        assert rejoin.status_code == status.HTTP_201_CREATED
+        body = rejoin.json()
+        assert body["status"] == "ACTIVE"
+        assert body["id"] == uc_id  # 새 행이 아니라 기존 행 재활성화(이력 유지)
+
 
 class TestCheckinAPI(TestCase):
     async def _join_and_get_uc_id(self, client: AsyncClient, token: str, challenge_id: int) -> int:
@@ -225,3 +245,36 @@ class TestMyChallengListAPI(TestCase):
             response = await client.get("/api/v1/user-challenges", headers=headers)
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["total"] == 1
+
+
+class TestCheckinCancelPoints(TestCase):
+    async def test_cancel_revokes_only_current_checkin_no_accumulation(self):
+        """완수→완료취소를 반복해도 회수가 누적되지 않고 매번 baseline으로 복귀.
+
+        과거 버그: revoke_checkin이 오늘 양수 트랜잭션을 전부 합산(이미 회수분 포함)해
+        반복 시 과다 회수(-100 등). 수정: 직전 회수 이후 지급분만 회수.
+        """
+        challenge = await _seed_challenge()
+        payload = {"challenge_id": challenge.id, "started_at": str(date.today())}
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            token = await _get_token(client)
+            headers = {"Authorization": f"Bearer {token}"}
+
+            async def balance() -> int:
+                r = await client.get("/api/v1/points/balance", headers=headers)
+                return r.json()["balance"]
+
+            joined = await client.post("/api/v1/user-challenges", json=payload, headers=headers)
+            uc_id = joined.json()["id"]
+            b0 = await balance()  # 선택(join)만 한 baseline (join은 포인트 무관)
+
+            # 1회차: 완수 → 적립, 완료취소 → baseline 복귀
+            await client.post(f"/api/v1/user-challenges/{uc_id}/checkin", json={}, headers=headers)
+            assert await balance() > b0  # 적립됨
+            await client.delete(f"/api/v1/user-challenges/{uc_id}/checkin", headers=headers)
+            assert await balance() == b0  # 정확히 회수 → 복귀
+
+            # 2회차: 반복해도 누적 회수 없이 다시 baseline
+            await client.post(f"/api/v1/user-challenges/{uc_id}/checkin", json={}, headers=headers)
+            await client.delete(f"/api/v1/user-challenges/{uc_id}/checkin", headers=headers)
+            assert await balance() == b0
