@@ -197,7 +197,8 @@ const LIFESTYLE_LABEL: Record<string, string> = {
   LOW: "낮음", MODERATE: "보통", HIGH: "높음",
 };
 
-const WELCOME_SEEN_KEY = "welcome_seen";
+// 사용자별 환영 모달 노출 여부 — 같은 디바이스에서 사용자 A의 닫기가 사용자 B에 영향 주지 않도록 user.id 분리
+const welcomeSeenKey = (userId: number) => `welcome_seen_${userId}`;
 
 export function DashboardPage() {
   const { user } = useAuth();
@@ -235,16 +236,16 @@ export function DashboardPage() {
     return () => clearTimeout(t);
   }, []);
 
-  // 첫 로그인 환영 모달 — 검진·설문 둘 다 없고 localStorage flag 없을 때만 1회
+  // 첫 로그인 환영 모달 — 검진·설문 둘 다 없고 사용자별 localStorage flag 없을 때만 1회
   useEffect(() => {
-    if (!summary) return;
+    if (!summary || !user) return;
     if (summary.latest_health || summary.latest_lifestyle) return;
-    if (localStorage.getItem(WELCOME_SEEN_KEY) === "true") return;
+    if (localStorage.getItem(welcomeSeenKey(user.id)) === "true") return;
     setShowWelcome(true);
-  }, [summary]);
+  }, [summary, user]);
 
   function dismissWelcome() {
-    localStorage.setItem(WELCOME_SEEN_KEY, "true");
+    if (user) localStorage.setItem(welcomeSeenKey(user.id), "true");
     setShowWelcome(false);
   }
 
