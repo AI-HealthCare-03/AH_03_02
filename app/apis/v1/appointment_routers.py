@@ -74,4 +74,4 @@ async def delete_appointment(
 ) -> Response:
     """진료 예약 삭제."""
     await service.delete_appointment(user_id=user.id, appt_id=appt_id)
-    return Response({"ok": True}, status_code=status.HTTP_200_OK)
+    return Response(OkResponse(ok=True).model_dump(mode="json"), status_code=status.HTTP_200_OK)
