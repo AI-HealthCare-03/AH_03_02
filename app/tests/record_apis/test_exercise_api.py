@@ -21,7 +21,7 @@ _SIGNUP = {
     "name": "운동테스터",
     "gender": "MALE",
     "birth_date": "1988-02-14",
-    "phone_number": "01077778888",
+    "phone_number": "01088887777",
 }
 _LOGIN = {"email": "exercise_test@example.com", "password": "Password123!"}
 
