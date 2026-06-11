@@ -161,3 +161,31 @@ class UserLabMetrics(models.Model):
 
     class Meta:
         table = "user_lab_metrics"
+
+
+class AppointmentType(StrEnum):
+    """진료 일정 종류 4종."""
+
+    CHECKUP = "CHECKUP"  # 정기 진료
+    DIALYSIS = "DIALYSIS"  # 투석
+    BLOOD_TEST = "BLOOD_TEST"  # 혈액검사
+    OTHER = "OTHER"  # 기타
+
+
+class Appointment(models.Model):
+    """진료 일정 1건 = 1행 (하루 복수 가능)."""
+
+    id = fields.BigIntField(primary_key=True)
+    user = fields.ForeignKeyField("models.User", related_name="appointments")
+    appt_date = fields.DateField(description="진료일")
+    appt_time = fields.CharField(max_length=5, null=True, description="시각 HH:MM(선택)")
+    appt_type = fields.CharEnumField(enum_type=AppointmentType)
+    hospital = fields.CharField(max_length=100, null=True)
+    note = fields.TextField(null=True)
+    created_at = fields.DatetimeField(auto_now_add=True)
+    updated_at = fields.DatetimeField(auto_now=True)
+
+    class Meta:
+        table = "appointments"
+        indexes = [("user_id", "appt_date")]
+        ordering = ["appt_date", "appt_time"]

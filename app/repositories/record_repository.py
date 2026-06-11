@@ -4,6 +4,7 @@ from decimal import Decimal
 from tortoise.functions import Avg, Sum
 
 from app.models.record import (
+    Appointment,
     DrinkType,
     ExerciseLog,
     LabRecord,
@@ -197,3 +198,58 @@ class UserLabMetricsRepository:
         obj.metric_keys = metric_keys
         await obj.save()
         return obj
+
+
+class AppointmentRepository:
+    async def create(
+        self,
+        user_id: int,
+        appt_date: date,
+        appt_time: str | None,
+        appt_type: str,
+        hospital: str | None,
+        note: str | None,
+    ) -> Appointment:
+        return await Appointment.create(
+            user_id=user_id,
+            appt_date=appt_date,
+            appt_time=appt_time,
+            appt_type=appt_type,
+            hospital=hospital,
+            note=note,
+        )
+
+    async def list_between(self, user_id: int, start: date, end: date) -> list[Appointment]:
+        return await Appointment.filter(user_id=user_id, appt_date__gte=start, appt_date__lte=end).order_by(
+            "appt_date", "appt_time"
+        )
+
+    async def upcoming(self, user_id: int, today: date, limit: int) -> list[Appointment]:
+        return (
+            await Appointment.filter(user_id=user_id, appt_date__gte=today)
+            .order_by("appt_date", "appt_time")
+            .limit(limit)
+        )
+
+    async def past(self, user_id: int, today: date, limit: int) -> list[Appointment]:
+        return (
+            await Appointment.filter(user_id=user_id, appt_date__lt=today)
+            .order_by("-appt_date", "-appt_time")
+            .limit(limit)
+        )
+
+    async def get(self, appt_id: int, user_id: int) -> Appointment | None:
+        return await Appointment.get_or_none(id=appt_id, user_id=user_id)
+
+    async def update(self, appt_id: int, user_id: int, data: dict) -> Appointment | None:
+        obj = await Appointment.get_or_none(id=appt_id, user_id=user_id)
+        if obj is None:
+            return None
+        for k, v in data.items():
+            setattr(obj, k, v)
+        await obj.save()
+        return obj
+
+    async def delete(self, appt_id: int, user_id: int) -> bool:
+        deleted = await Appointment.filter(id=appt_id, user_id=user_id).delete()
+        return deleted > 0
