@@ -10,6 +10,7 @@ fields[].inferText·inferConfidence만 추려 깔끔한 dict로 반환한다.
 import io
 import json
 import os
+import re
 import time
 import uuid
 
@@ -34,11 +35,106 @@ _MIME_TO_FORMAT = {
 # 신뢰도 임계값 — 이 미만은 사용자 검토 권장 (low_confidence_count로 합산)
 _LOW_CONFIDENCE_THRESHOLD = 0.85
 
+# ManualInputPage form 필드 → 키워드 매핑. HDL이 "콜레스테롤" 키워드보다 먼저(우선순위).
+_FIELD_KEYWORDS: list[tuple[str, list[str]]] = [
+    ("fasting_glucose", ["공복혈당", "혈당", "glucose"]),
+    ("creatinine", ["크레아티닌", "creatinine"]),
+    ("hdl_cholesterol", ["HDL", "고밀도"]),
+    ("ldl_cholesterol", ["LDL", "저밀도"]),
+    ("total_cholesterol", ["총콜레스테롤", "총 콜레스테롤", "콜레스테롤"]),
+    ("triglycerides", ["중성지방", "트리글리세라이드"]),
+    ("systolic_bp", ["수축기", "최고혈압"]),
+    ("diastolic_bp", ["이완기", "최저혈압"]),
+    ("height", ["신장", "키"]),
+    ("weight", ["체중", "몸무게"]),
+    ("waist_circumference", ["허리둘레", "허리"]),
+]
+
+# 혈압 "130/85" 패턴
+_BP_PATTERN = re.compile(r"(\d{2,3})\s*/\s*(\d{2,3})")
+# 숫자 (소수 허용)
+_NUMBER_PATTERN = re.compile(r"\d+(?:\.\d+)?")
+
 # 파일 매직 바이트 — content_type만 신뢰하지 않고 실제 파일 시그니처 검증
 # (사용자가 docx를 .pdf로 잘못 저장한 케이스 등을 친절한 한국어 에러로 변환)
 _PDF_MAGIC = b"%PDF-"
 _JPEG_MAGIC = b"\xff\xd8\xff"
 _PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+
+
+def _group_into_lines(fields_raw: list[dict]) -> list[dict]:
+    """Clova fields[].lineBreak로 같은 줄 토큰을 합쳐 라인 단위로 반환.
+
+    반환: [{"text": "공복혈당 118 mg/dL", "confidence": 0.96}, ...]
+    같은 라인 토큰들의 신뢰도는 최솟값 사용 (보수적).
+    """
+    lines: list[dict] = []
+    cur_texts: list[str] = []
+    cur_conf: float = 1.0
+    for f in fields_raw:
+        text = (f.get("inferText") or "").strip()
+        if not text:
+            continue
+        conf = float(f.get("inferConfidence") or 0.0)
+        cur_texts.append(text)
+        cur_conf = min(cur_conf, conf)
+        if f.get("lineBreak"):
+            lines.append({"text": " ".join(cur_texts), "confidence": round(cur_conf, 3)})
+            cur_texts = []
+            cur_conf = 1.0
+    if cur_texts:
+        lines.append({"text": " ".join(cur_texts), "confidence": round(cur_conf, 3)})
+    return lines
+
+
+def _try_map_blood_pressure(text: str, conf: float, mapped: dict[str, dict]) -> bool:
+    """혈압 패턴(130/85)을 SBP·DBP로 매핑. 매핑 성공 시 True."""
+    bp_match = _BP_PATTERN.search(text)
+    if not bp_match:
+        return False
+    if "혈압" not in text and "BP" not in text.upper():
+        return False
+    sbp, dbp = int(bp_match.group(1)), int(bp_match.group(2))
+    if "systolic_bp" not in mapped:
+        mapped["systolic_bp"] = {"value": sbp, "confidence": conf, "source_text": text}
+    if "diastolic_bp" not in mapped:
+        mapped["diastolic_bp"] = {"value": dbp, "confidence": conf, "source_text": text}
+    return True
+
+
+def _try_map_keyword(text: str, conf: float, mapped: dict[str, dict]) -> None:
+    """키워드 매칭으로 검진 필드 1개를 매핑. 가장 먼저 일치하는 우선순위 키워드 사용."""
+    upper = text.upper()
+    for field, keywords in _FIELD_KEYWORDS:
+        if field in mapped:
+            continue
+        if any(kw in text or kw.upper() in upper for kw in keywords):
+            num_match = _NUMBER_PATTERN.search(text)
+            if num_match:
+                mapped[field] = {
+                    "value": float(num_match.group()),
+                    "confidence": conf,
+                    "source_text": text,
+                }
+            return
+
+
+def _map_lines_to_health_fields(lines: list[dict]) -> dict[str, dict]:
+    """라인 단위 텍스트에서 검진 수치 자동 매핑.
+
+    반환: {"fasting_glucose": {"value": 118.0, "confidence": 0.96, "source_text": "공복혈당 118 mg/dL"}, ...}
+    매핑되지 않은 필드는 dict에 키 없음.
+    """
+    mapped: dict[str, dict] = {}
+    for line in lines:
+        text = line["text"]
+        conf = line["confidence"]
+        # 혈압 "130/85" 우선 처리
+        if _try_map_blood_pressure(text, conf, mapped):
+            continue
+        # 키워드 + 첫 숫자
+        _try_map_keyword(text, conf, mapped)
+    return mapped
 
 
 def _split_pdf_pages(pdf_bytes: bytes) -> list[bytes]:
@@ -237,10 +333,16 @@ async def extract_text(*, file_bytes: bytes, content_type: str, filename: str) -
             low_count += 1
         fields.append({"text": text, "confidence": round(conf, 3)})
 
+    # 라인 그루핑 + 자동 필드 매핑 — 사용자가 검진 입력 페이지에서 prefill로 받음
+    lines = _group_into_lines(all_raw)
+    mapped = _map_lines_to_health_fields(lines)
+
     logger.info(
-        "Clova OCR 추출 성공 pages=%d fields=%d low_conf=%d errors=%d",
+        "Clova OCR 추출 성공 pages=%d fields=%d lines=%d mapped=%d low_conf=%d errors=%d",
         page_count,
         len(fields),
+        len(lines),
+        len(mapped),
         low_count,
         len(page_errors),
     )
@@ -248,6 +350,8 @@ async def extract_text(*, file_bytes: bytes, content_type: str, filename: str) -
         "engine": "clova",
         "filename": filename or "checkup",
         "fields": fields,
+        "lines": lines,
+        "mapped": mapped,
         "low_confidence_count": low_count,
         "page_count": page_count,
         "page_errors": page_errors,
