@@ -6,11 +6,12 @@ export interface SelectedRow {
 
 interface Props {
   rows: SelectedRow[];
-  busyId: number | null; // 완수 처리 중인 userChallengeId
+  busyId: number | null; // 완수/완료취소 처리 중인 userChallengeId
   onComplete: (userChallengeId: number) => void;
+  onUncomplete: (userChallengeId: number) => void; // 완료 취소(포인트 회수)
 }
 
-export function TodayProgress({ rows, busyId, onComplete }: Props) {
+export function TodayProgress({ rows, busyId, onComplete, onUncomplete }: Props) {
   const total = rows.length;
   const done = rows.filter((r) => r.completed).length;
 
@@ -37,12 +38,21 @@ export function TodayProgress({ rows, busyId, onComplete }: Props) {
                 {r.name}
               </span>
               {r.completed ? (
-                <span className="flex items-center gap-1 text-xs font-semibold text-success">
-                  <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden>
-                    <polyline points="3,7 6,10 11,4" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                  완료
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center gap-1 text-xs font-semibold text-success">
+                    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden>
+                      <polyline points="3,7 6,10 11,4" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    완료
+                  </span>
+                  <button
+                    onClick={() => onUncomplete(r.userChallengeId)}
+                    disabled={busyId === r.userChallengeId}
+                    className="rounded-md border border-border px-2 py-1 text-xs text-text-muted disabled:opacity-50"
+                  >
+                    완료 취소
+                  </button>
+                </div>
               ) : (
                 <button
                   onClick={() => onComplete(r.userChallengeId)}

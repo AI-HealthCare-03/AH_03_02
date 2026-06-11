@@ -136,6 +136,26 @@ class TestJoinChallengeAPI(TestCase):
             )
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
+    async def test_rejoin_after_abandon_reactivates(self):
+        """해제(abandon)한 챌린지를 다시 참여(join) → 409 아니라 기존 행 재활성화(ACTIVE).
+
+        오늘 진행도 선택/해제/재선택 UX의 핵심 — abandon은 행을 ABANDONED로 남기므로
+        재참여 시 새 create(unique 충돌) 대신 기존 행을 ACTIVE 로 되살린다.
+        """
+        challenge = await _seed_challenge()
+        payload = {"challenge_id": challenge.id, "started_at": str(date.today())}
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            token = await _get_token(client)
+            headers = {"Authorization": f"Bearer {token}"}
+            joined = await client.post("/api/v1/user-challenges", json=payload, headers=headers)
+            uc_id = joined.json()["id"]
+            await client.delete(f"/api/v1/user-challenges/{uc_id}", headers=headers)  # 해제
+            rejoin = await client.post("/api/v1/user-challenges", json=payload, headers=headers)  # 재참여
+        assert rejoin.status_code == status.HTTP_201_CREATED
+        body = rejoin.json()
+        assert body["status"] == "ACTIVE"
+        assert body["id"] == uc_id  # 새 행이 아니라 기존 행 재활성화(이력 유지)
+
 
 class TestCheckinAPI(TestCase):
     async def _join_and_get_uc_id(self, client: AsyncClient, token: str, challenge_id: int) -> int:

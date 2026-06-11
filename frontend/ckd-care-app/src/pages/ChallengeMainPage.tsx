@@ -162,6 +162,21 @@ export function ChallengeMainPage() {
     }
   }
 
+  // 오늘 진행도 완료 취소: cancelCheckin (오늘 체크인 롤백 + 포인트 회수)
+  async function handleUncomplete(userChallengeId: number) {
+    setCompleteBusy(userChallengeId);
+    setError("");
+    try {
+      await challengeApi.cancelCheckin(userChallengeId);
+      invalidateDash();
+      await loadAll();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "완료 취소 실패");
+    } finally {
+      setCompleteBusy(null);
+    }
+  }
+
   async function handleSaveStage(stage: number) {
     if (!myTrack) return;
     setStageSaving(true);
@@ -284,7 +299,12 @@ export function ChallengeMainPage() {
         </div>
 
         {/* 오늘 진행도 — 선택한 챌린지 목록 + 완수 */}
-        <TodayProgress rows={selectedRows} busyId={completeBusy} onComplete={handleComplete} />
+        <TodayProgress
+          rows={selectedRows}
+          busyId={completeBusy}
+          onComplete={handleComplete}
+          onUncomplete={handleUncomplete}
+        />
 
         {/* 의료 면책 경고 배너 */}
         <div className="mx-5 mb-4 rounded-md border border-warning/30 bg-warning/10 px-3.5 py-3 text-xs leading-relaxed text-warning">
