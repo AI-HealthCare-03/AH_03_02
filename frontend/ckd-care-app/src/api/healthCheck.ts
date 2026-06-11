@@ -151,6 +151,8 @@ export interface OCRResponse {
   filename: string;
   fields: OCRField[];
   low_confidence_count: number;
+  page_count?: number;
+  page_errors?: string[];
 }
 
 export const healthCheckApi = {
