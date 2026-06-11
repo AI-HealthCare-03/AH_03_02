@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from tortoise.functions import Sum
 
-from app.models.record import DrinkType, RecordSettings, SleepLog, WaterIntakeEntry, WeightLog
+from app.models.record import DrinkType, RecordSettings, SleepLog, StressLog, WaterIntakeEntry, WeightLog
 
 
 class WaterIntakeRepository:
@@ -102,3 +102,15 @@ class SleepLogRepository:
 
     async def recent(self, user_id: int, since) -> list[SleepLog]:
         return await SleepLog.filter(user_id=user_id, log_date__gte=since).order_by("log_date")
+
+
+class StressLogRepository:
+    async def add(self, user_id: int, log_date: date, emotions: list[str]) -> StressLog:
+        return await StressLog.create(user_id=user_id, log_date=log_date, emotions=emotions)
+
+    async def list_by_date(self, user_id: int, log_date: date) -> list[StressLog]:
+        return await StressLog.filter(user_id=user_id, log_date=log_date).order_by("created_at")
+
+    async def recent(self, user_id: int, since: date) -> list[StressLog]:
+        """since 이후 모든 행(7일 빈도 집계용, 정렬 무관)."""
+        return await StressLog.filter(user_id=user_id, log_date__gte=since)
