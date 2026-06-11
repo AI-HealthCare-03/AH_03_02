@@ -356,6 +356,17 @@ export function ChallengeMainPage() {
           </button>
         </div>
 
+        {/* 병원 진료일 캘린더 (전용 페이지) */}
+        <div className="px-5 pt-2">
+          <button
+            onClick={() => navigate("/records/appointments")}
+            className="flex w-full items-center justify-between rounded-xl border border-border bg-bg p-4 text-left"
+          >
+            <span className="font-bold text-text-primary">📅 병원 진료일 캘린더</span>
+            <span className="text-text-muted">›</span>
+          </button>
+        </div>
+
         {/* 선택 챌린지 — 카테고리 탭 + 목록 */}
         <div className="px-5 pb-10 pt-2">
           <div className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-text-secondary">선택 챌린지</div>
