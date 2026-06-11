@@ -7,6 +7,8 @@ from app.dtos.record import (
     AddWaterRequest,
     AddWaterResponse,
     AutoCheckinResult,
+    DropStressRequest,
+    DropStressResponse,
     LogSleepRequest,
     LogSleepResponse,
     LogWeightRequest,
@@ -16,6 +18,9 @@ from app.dtos.record import (
     SleepHistoryItem,
     SleepHistoryResponse,
     SleepTodayResponse,
+    StressEmotionCount,
+    StressHistoryResponse,
+    StressTodayResponse,
     WaterEntryItem,
     WaterHistoryItem,
     WaterHistoryResponse,
@@ -34,12 +39,14 @@ from app.models.challenge import (
 from app.repositories.record_repository import (
     RecordSettingsRepository,
     SleepLogRepository,
+    StressLogRepository,
     WaterIntakeRepository,
     WeightLogRepository,
 )
 from app.services.challenge import ChallengeService
 from app.services.record_reference import (
     SLEEP_GOAL_MIN,
+    aggregate_emotion_counts,
     compute_sleep_minutes,
     default_goal_ml,
     goal_type_for,
@@ -56,6 +63,7 @@ class RecordService:
         self._settings = RecordSettingsRepository()
         self._weight = WeightLogRepository()
         self._sleep = SleepLogRepository()
+        self._stress = StressLogRepository()
         self._challenge = ChallengeService()
 
     async def _resolve_goal(self, user_id: int) -> tuple[int, str]:
@@ -238,3 +246,32 @@ class RecordService:
         rows = await self._sleep.recent(user_id, since)
         items = [SleepHistoryItem(date=r.log_date, duration_min=r.duration_min) for r in rows]
         return SleepHistoryResponse(days=days, items=items)
+
+    # ── 스트레스(감정 쓰레기통) 기록 ──────────────────────────────────────────
+
+    async def _build_stress_today(self, user_id: int, today: date) -> StressTodayResponse:
+        rows = await self._stress.list_by_date(user_id, today)
+        union = sorted({e for r in rows for e in (r.emotions or [])})
+        return StressTodayResponse(
+            date=today,
+            has_record=len(rows) > 0,
+            drop_count=len(rows),
+            today_emotions=union,
+        )
+
+    async def get_stress_today(self, user_id: int, today: date) -> StressTodayResponse:
+        return await self._build_stress_today(user_id, today)
+
+    async def drop_stress(self, user_id: int, today: date, dto: DropStressRequest) -> DropStressResponse:
+        emotions = [e.value for e in dto.emotions]
+        await self._stress.add(user_id, today, emotions)
+        today_resp = await self._build_stress_today(user_id, today)
+        auto = await self._maybe_auto_checkin_category(user_id, today, ChallengeCategory.STRESS)
+        return DropStressResponse(today=today_resp, auto_checkin=auto)
+
+    async def get_stress_history(self, user_id: int, today: date, days: int) -> StressHistoryResponse:
+        days = max(1, min(days, 30))
+        since = today - timedelta(days=days - 1)
+        rows = await self._stress.recent(user_id, since)
+        counts = [StressEmotionCount(emotion=e, count=c) for e, c in aggregate_emotion_counts(rows)]
+        return StressHistoryResponse(days=days, counts=counts)
