@@ -50,14 +50,16 @@ async def _set_last_checkin(user_id: int, days_ago: int | None) -> None:
 
 
 class TestSlumpMicroAPI(TestCase):
-    async def test_get_status_no_history_treated_as_slump(self) -> None:
+    async def test_get_status_no_history_not_slump(self) -> None:
+        """활동 이력 0건 사용자(신규 가입 직후)는 슬럼프 X — 환영 모달과 동시 노출 차단."""
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             token = await _token(client)
             resp = await client.get("/api/v1/challenges/slump-micro", headers={"Authorization": f"Bearer {token}"})
         assert resp.status_code == status.HTTP_200_OK
         body = resp.json()
-        assert body["is_slump"] is True
-        assert body["days_since_last_checkin"] == SLUMP_THRESHOLD_DAYS
+        assert body["is_slump"] is False
+        assert body["days_since_last_checkin"] == 0
+        assert body["threshold_days"] == SLUMP_THRESHOLD_DAYS
         assert body["already_checked_in_today"] is False
         assert body["micro"]["code"] == pick_today_micro(date.today()).code.value
 
