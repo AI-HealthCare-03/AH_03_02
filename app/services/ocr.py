@@ -32,6 +32,31 @@ _MIME_TO_FORMAT = {
 # 신뢰도 임계값 — 이 미만은 사용자 검토 권장 (low_confidence_count로 합산)
 _LOW_CONFIDENCE_THRESHOLD = 0.85
 
+# 파일 매직 바이트 — content_type만 신뢰하지 않고 실제 파일 시그니처 검증
+# (사용자가 docx를 .pdf로 잘못 저장한 케이스 등을 친절한 한국어 에러로 변환)
+_PDF_MAGIC = b"%PDF-"
+_JPEG_MAGIC = b"\xff\xd8\xff"
+_PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
+
+
+def _validate_magic_bytes(file_bytes: bytes, image_format: str) -> None:
+    """파일 매직 바이트로 실제 형식 검증. content_type만 보면 docx→.pdf 같은 위장 못 잡음."""
+    if image_format == "pdf" and not file_bytes.startswith(_PDF_MAGIC):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="PDF 파일이 손상됐거나 실제 형식이 PDF가 아닙니다. 결과지를 다시 저장해 시도해주세요.",
+        )
+    if image_format in ("jpg",) and not file_bytes.startswith(_JPEG_MAGIC):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="JPG 파일이 손상됐거나 실제 형식이 JPG가 아닙니다.",
+        )
+    if image_format == "png" and not file_bytes.startswith(_PNG_MAGIC):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="PNG 파일이 손상됐거나 실제 형식이 PNG가 아닙니다.",
+        )
+
 
 async def _post_to_clova(
     *, invoke_url: str, secret_key: str, message: str, file_bytes: bytes, content_type: str, filename: str
@@ -113,6 +138,9 @@ async def extract_text(*, file_bytes: bytes, content_type: str, filename: str) -
             detail="지원하지 않는 파일 형식입니다.",
         )
 
+    # 파일 매직 바이트 검증 — content_type만 신뢰하지 않음 (확장자만 .pdf로 바꾼 docx 등 차단)
+    _validate_magic_bytes(file_bytes, image_format)
+
     message = json.dumps(
         {
             "version": "V2",
@@ -122,13 +150,15 @@ async def extract_text(*, file_bytes: bytes, content_type: str, filename: str) -
         }
     )
 
+    # multipart filename은 ASCII로 강제 — 한국어/특수문자 파일명을 Clova가 400으로 거절하는 사례 차단
+    safe_filename = f"checkup.{image_format}"
     resp = await _post_to_clova(
         invoke_url=invoke_url,
         secret_key=secret_key,
         message=message,
         file_bytes=file_bytes,
         content_type=content_type,
-        filename=filename or "checkup",
+        filename=safe_filename,
     )
     fields_raw = _parse_clova_response(resp)
 
