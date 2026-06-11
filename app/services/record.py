@@ -221,7 +221,9 @@ class RecordService:
 
     async def log_sleep(self, user_id: int, today: date, dto: LogSleepRequest) -> LogSleepResponse:
         duration = compute_sleep_minutes(dto.bed_time, dto.wake_time)
-        await self._sleep.upsert(user_id, today, dto.bed_time, dto.wake_time, dto.wake_count, duration)
+        bed_s = f"{dto.bed_time.hour:02d}:{dto.bed_time.minute:02d}"
+        wake_s = f"{dto.wake_time.hour:02d}:{dto.wake_time.minute:02d}"
+        await self._sleep.upsert(user_id, today, bed_s, wake_s, dto.wake_count, duration)
         today_resp = await self._build_sleep_today(user_id, today)
         auto = await self._maybe_auto_checkin_category(user_id, today, ChallengeCategory.SLEEP)
         return LogSleepResponse(today=today_resp, auto_checkin=auto)

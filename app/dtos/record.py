@@ -98,8 +98,8 @@ class LogSleepRequest(BaseModel):
 
 class SleepTodayResponse(BaseSerializerModel):
     date: date
-    bed_time: time | None
-    wake_time: time | None
+    bed_time: str | None  # "HH:MM" (DB는 문자열 저장)
+    wake_time: str | None  # "HH:MM"
     wake_count: int | None
     duration_min: int | None
     goal_met: bool
