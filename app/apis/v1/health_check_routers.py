@@ -140,7 +140,7 @@ async def get_report(
     summary="검진 결과지 OCR 텍스트 추출 (Clova)",
     description=(
         "검진 결과지 이미지(JPG·PNG·PDF, 최대 10MB)를 업로드하면 Clova OCR API로 텍스트를 추출합니다. "
-        "필드 자동 매핑은 v1.1 예정 — 현재는 추출된 텍스트와 신뢰도를 반환하고 사용자가 수동 입력으로 옮겨 적습니다. "
+        "추출된 텍스트와 신뢰도를 반환하고 사용자가 수동 입력 화면에서 옮겨 적습니다. "
         "Clova API 키 미설정 환경(envs/.local.env에 CLOVA_OCR_INVOKE_URL·CLOVA_OCR_SECRET_KEY 없음)에선 503 반환."
     ),
 )

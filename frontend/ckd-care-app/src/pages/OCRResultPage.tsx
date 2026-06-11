@@ -68,7 +68,7 @@ export function OCRResultPage() {
         <div className="mt-[16px] w-full max-w-[800px] rounded-sm border border-info bg-info/5 px-[16px] py-[12px] text-sm leading-[1.6] text-text-secondary">
           <p>
             추출된 텍스트를 보고 <span className="font-bold text-text-primary">검진 수치 직접 입력</span> 화면에 옮겨 적으세요.
-            필드 자동 매핑은 v1.1 예정입니다. 신뢰도 {(LOW_CONFIDENCE_THRESHOLD * 100).toFixed(0)}% 미만 항목은 ⚠ 표시로 강조됩니다.
+            신뢰도 {(LOW_CONFIDENCE_THRESHOLD * 100).toFixed(0)}% 미만 항목은 ⚠ 표시로 강조됩니다.
           </p>
         </div>
 

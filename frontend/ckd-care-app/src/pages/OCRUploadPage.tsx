@@ -68,7 +68,7 @@ export function OCRUploadPage() {
       <main className="flex flex-1 flex-col items-center p-[32px]">
         <h1 className="text-2xl font-bold text-text-primary">건강검진 결과지 업로드</h1>
         <p className="mt-[8px] text-sm text-text-secondary">
-          건강검진 결과지를 업로드하면 AI가 텍스트를 추출합니다. 추출된 항목은 수동 입력 화면에서 옮겨 적습니다 (자동 필드 매핑은 v1.1 예정).
+          건강검진 결과지를 업로드하면 AI가 텍스트를 추출합니다. 추출된 항목은 수동 입력 화면에서 옮겨 적습니다.
         </p>
 
         {/* 드롭존 / 미리보기 */}
