@@ -61,3 +61,16 @@ def compute_sleep_minutes(bed: time, wake: time) -> int:
     b = bed.hour * 60 + bed.minute
     w = wake.hour * 60 + wake.minute
     return (w - b) % (24 * 60)
+
+
+def aggregate_emotion_counts(rows: list) -> list[tuple[str, int]]:
+    """여러 StressLog의 emotions를 flatten → 태그별 카운트.
+
+    정렬: count 내림차순, 동률은 emotion 알파벳 오름차순.
+    각 row는 .emotions(list[str] | None) 속성만 사용한다.
+    """
+    counter: dict[str, int] = {}
+    for r in rows:
+        for e in r.emotions or []:
+            counter[e] = counter.get(e, 0) + 1
+    return sorted(counter.items(), key=lambda kv: (-kv[1], kv[0]))

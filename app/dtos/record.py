@@ -3,7 +3,7 @@ from datetime import date, datetime, time
 from pydantic import BaseModel, Field
 
 from app.dtos.base import BaseSerializerModel
-from app.models.record import DrinkType
+from app.models.record import DrinkType, StressEmotion
 
 
 class AddWaterRequest(BaseModel):
@@ -119,3 +119,30 @@ class SleepHistoryItem(BaseSerializerModel):
 class SleepHistoryResponse(BaseSerializerModel):
     days: int
     items: list[SleepHistoryItem]
+
+
+class DropStressRequest(BaseModel):
+    emotions: list[StressEmotion] = Field(min_length=1, description="감정 태그(1개 이상, 복수 선택)")
+    # text는 받지 않음(저장 안 함 — 프론트 전용 '버리기')
+
+
+class StressTodayResponse(BaseSerializerModel):
+    date: date
+    has_record: bool
+    drop_count: int  # 오늘 '버리기' 횟수
+    today_emotions: list[str]  # 오늘 누른 감정 태그 합집합(정렬)
+
+
+class DropStressResponse(BaseSerializerModel):
+    today: StressTodayResponse
+    auto_checkin: AutoCheckinResult
+
+
+class StressEmotionCount(BaseSerializerModel):
+    emotion: str
+    count: int
+
+
+class StressHistoryResponse(BaseSerializerModel):
+    days: int
+    counts: list[StressEmotionCount]

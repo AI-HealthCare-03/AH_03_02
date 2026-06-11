@@ -8,6 +8,8 @@ from app.dependencies.security import get_request_user
 from app.dtos.record import (
     AddWaterRequest,
     AddWaterResponse,
+    DropStressRequest,
+    DropStressResponse,
     LogSleepRequest,
     LogSleepResponse,
     LogWeightRequest,
@@ -16,6 +18,8 @@ from app.dtos.record import (
     SettingsResponse,
     SleepHistoryResponse,
     SleepTodayResponse,
+    StressHistoryResponse,
+    StressTodayResponse,
     WaterHistoryResponse,
     WaterTodayResponse,
     WeightHistoryResponse,
@@ -158,4 +162,39 @@ async def sleep_history(
     days: int = Query(7, ge=1, le=30),
 ) -> Response:
     result = await service.get_sleep_history(user_id=user.id, today=date.today(), days=days)
+    return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+# ── 감정 쓰레기통(스트레스) 엔드포인트 ─────────────────────────────────────
+
+
+@record_router.get("/stress/today", response_model=StressTodayResponse, status_code=status.HTTP_200_OK)
+async def get_stress_today(
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[RecordService, Depends(RecordService)],
+) -> Response:
+    """오늘의 감정 버킷 조회"""
+    result = await service.get_stress_today(user_id=user.id, today=date.today())
+    return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+@record_router.post("/stress", response_model=DropStressResponse, status_code=status.HTTP_201_CREATED)
+async def drop_stress(
+    body: DropStressRequest,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[RecordService, Depends(RecordService)],
+) -> Response:
+    """감정 쓰레기통에 감정 투하 (1개 이상)"""
+    result = await service.drop_stress(user_id=user.id, today=date.today(), dto=body)
+    return Response(result.model_dump(mode="json"), status_code=status.HTTP_201_CREATED)
+
+
+@record_router.get("/stress/history", response_model=StressHistoryResponse, status_code=status.HTTP_200_OK)
+async def stress_history(
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[RecordService, Depends(RecordService)],
+    days: int = Query(7, ge=1, le=30),
+) -> Response:
+    """최근 N일 감정 집계 히스토리 조회"""
+    result = await service.get_stress_history(user_id=user.id, today=date.today(), days=days)
     return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)

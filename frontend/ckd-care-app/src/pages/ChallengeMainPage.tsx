@@ -20,6 +20,7 @@ import { TodayProgress } from "../components/challenge/TodayProgress";
 import { WaterTrackingCard } from "../components/record/WaterTrackingCard";
 import { WeightTrackingCard } from "../components/record/WeightTrackingCard";
 import { SleepTrackingCard } from "../components/record/SleepTrackingCard";
+import { StressTrackingCard } from "../components/record/StressTrackingCard";
 
 type View = "onboard" | "stage" | "main";
 const ONBOARD_KEY = "challenge_onboarded";
@@ -329,6 +330,11 @@ export function ChallengeMainPage() {
         {/* 수면 기록 */}
         <div className="px-5 pt-2">
           <SleepTrackingCard onAutoCheckin={() => { void loadAll(); }} />
+        </div>
+
+        {/* 감정 쓰레기통 */}
+        <div className="px-5 pt-2">
+          <StressTrackingCard onAutoCheckin={() => { void loadAll(); }} />
         </div>
 
         {/* 선택 챌린지 — 카테고리 탭 + 목록 */}

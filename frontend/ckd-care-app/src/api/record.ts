@@ -82,6 +82,31 @@ export interface SleepHistory {
   items: { date: string; duration_min: number }[];
 }
 
+// ── 스트레스(감정 쓰레기통) 타입 ──
+export type StressEmotion =
+  | "ANXIOUS"
+  | "TENSE"
+  | "ANGRY"
+  | "SAD"
+  | "LONELY"
+  | "LISTLESS"
+  | "GRATEFUL"
+  | "RELIEVED";
+export interface StressToday {
+  date: string;
+  has_record: boolean;
+  drop_count: number;
+  today_emotions: StressEmotion[];
+}
+export interface DropStressResponse {
+  today: StressToday;
+  auto_checkin: AutoCheckin;
+}
+export interface StressHistory {
+  days: number;
+  counts: { emotion: StressEmotion; count: number }[];
+}
+
 export const recordApi = {
   // 오늘 수분 섭취 현황 조회
   getWaterToday: () => api.get<WaterToday>("/records/water/today"),
@@ -118,4 +143,12 @@ export const recordApi = {
   // 수면 추이
   getSleepHistory: (days = 7) =>
     api.get<SleepHistory>(`/records/sleep/history?days=${days}`),
+  // 오늘 감정 기록 조회
+  getStressToday: () => api.get<StressToday>("/records/stress/today"),
+  // 감정 '버리기' (이벤트 append, emotions만 전송 — 텍스트는 저장 안 함)
+  dropStress: (emotions: StressEmotion[]) =>
+    api.post<DropStressResponse>("/records/stress", { emotions }),
+  // 최근 7일 감정 빈도
+  getStressHistory: (days = 7) =>
+    api.get<StressHistory>(`/records/stress/history?days=${days}`),
 };
