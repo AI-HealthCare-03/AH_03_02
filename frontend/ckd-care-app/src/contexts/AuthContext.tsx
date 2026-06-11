@@ -50,6 +50,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   function logout() {
     localStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(TOKEN_KEY);
+    // 온보딩 모달 세션 키 정리 — 다음 로그인 시 다시 노출되도록 (검진/설문 0건이면)
+    for (let i = sessionStorage.length - 1; i >= 0; i--) {
+      const k = sessionStorage.key(i);
+      if (k && k.startsWith("welcome_seen_")) sessionStorage.removeItem(k);
+    }
     setToken(null);
     setUser(null);
   }

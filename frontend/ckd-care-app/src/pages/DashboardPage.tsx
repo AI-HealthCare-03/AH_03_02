@@ -197,7 +197,8 @@ const LIFESTYLE_LABEL: Record<string, string> = {
   LOW: "낮음", MODERATE: "보통", HIGH: "높음",
 };
 
-// 사용자별 환영 모달 노출 여부 — 같은 디바이스에서 사용자 A의 닫기가 사용자 B에 영향 주지 않도록 user.id 분리
+// 사용자별 환영 모달 노출 — sessionStorage라 같은 탭 새로고침엔 유지, 로그아웃 시 AuthContext가 비움
+// → 효과: 로그인할 때마다 1회 노출 / 새로고침·페이지 이동 시 안 뜸 / 검진·설문 입력 후엔 데이터 조건에 걸려 어차피 안 뜸
 const welcomeSeenKey = (userId: number) => `welcome_seen_${userId}`;
 
 export function DashboardPage() {
@@ -236,16 +237,16 @@ export function DashboardPage() {
     return () => clearTimeout(t);
   }, []);
 
-  // 첫 로그인 환영 모달 — 검진·설문 둘 다 없고 사용자별 localStorage flag 없을 때만 1회
+  // 첫 로그인 환영 모달 — 검진·설문 둘 다 없고 같은 세션에 안 본 사용자에게 1회
   useEffect(() => {
     if (!summary || !user) return;
     if (summary.latest_health || summary.latest_lifestyle) return;
-    if (localStorage.getItem(welcomeSeenKey(user.id)) === "true") return;
+    if (sessionStorage.getItem(welcomeSeenKey(user.id)) === "true") return;
     setShowWelcome(true);
   }, [summary, user]);
 
   function dismissWelcome() {
-    if (user) localStorage.setItem(welcomeSeenKey(user.id), "true");
+    if (user) sessionStorage.setItem(welcomeSeenKey(user.id), "true");
     setShowWelcome(false);
   }
 
