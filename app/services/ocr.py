@@ -151,6 +151,40 @@ def _try_map_height_weight_pair(text: str, conf: float, mapped: dict[str, dict])
     return True
 
 
+def _try_map_height_weight_pair_lookahead(lines: list[dict], idx: int, mapped: dict[str, dict]) -> bool:
+    """표 형식: '키(cm) 및 몸무게(kg)' 라벨 라인 + 다음 라인의 '172 / 68' 값 페어 매핑.
+
+    Clova가 표 셀을 별도 라인으로 끊는 경우 같은 라인 페어 매칭이 안 되므로
+    lookahead로 슬래시 페어를 찾아 동시 매핑한다.
+    """
+    text = lines[idx]["text"]
+    conf = lines[idx]["confidence"]
+    if _is_ruling_line(text):
+        return False
+    has_h = any(k in text for k in ("키", "신장"))
+    has_w = any(k in text for k in ("몸무게", "체중"))
+    if not (has_h and has_w):
+        return False
+    if _PAIR_PATTERN.search(text):
+        return False  # 같은 라인 페어는 _try_map_height_weight_pair가 처리
+    for j in range(idx + 1, min(idx + 1 + _LOOKAHEAD_LINES, len(lines))):
+        next_text = lines[j]["text"]
+        if _is_ruling_line(next_text):
+            continue
+        m = _PAIR_PATTERN.search(next_text)
+        if not m:
+            continue
+        next_conf = min(conf, lines[j]["confidence"])
+        src = f"{text} → {next_text}"
+        h, w = float(m.group(1)), float(m.group(2))
+        if "height" not in mapped:
+            mapped["height"] = {"value": h, "confidence": next_conf, "source_text": src}
+        if "weight" not in mapped:
+            mapped["weight"] = {"value": w, "confidence": next_conf, "source_text": src}
+        return True
+    return False
+
+
 # 정상 범위·판정 표현 — 이런 단어가 들어간 라인은 "값" 아님
 _RANGE_WORDS = ("미만", "이상", "이하", "초과", "~", "정상", "주의", "질환", "의심", "참고", "범위", "양호")
 
@@ -263,6 +297,9 @@ def _map_lines_to_health_fields(lines: list[dict]) -> dict[str, dict]:
         conf = line["confidence"]
         # 키+몸무게 같은 라인 ("키(cm) 및 몸무게(kg) 172 / 68") 우선
         if _try_map_height_weight_pair(text, conf, mapped):
+            continue
+        # 표 형식: 키+몸무게 라벨 라인 + 다음 라인 페어
+        if _try_map_height_weight_pair_lookahead(lines, idx, mapped):
             continue
         # 혈압 "130/85" 우선 처리
         if _try_map_blood_pressure(text, conf, mapped):
