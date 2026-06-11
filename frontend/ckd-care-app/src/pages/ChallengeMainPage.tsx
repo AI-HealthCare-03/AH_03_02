@@ -19,7 +19,7 @@ import { OptionalChallengeList, type ChallengeRow } from "../components/challeng
 import { WaterTrackingCard } from "../components/record/WaterTrackingCard";
 import { WeightTrackingCard } from "../components/record/WeightTrackingCard";
 
-type View = "onboard" | "track" | "stage" | "main";
+type View = "onboard" | "stage" | "main";
 const ONBOARD_KEY = "challenge_onboarded";
 
 function todayStr() {
