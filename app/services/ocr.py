@@ -143,17 +143,17 @@ def _group_into_lines(fields_raw: list[dict]) -> list[dict]:
         return _group_by_linebreak(fields_raw)
     items.sort(key=lambda it: it["y_mid"])
     grouped: list[list[dict]] = [[items[0]]]
-    cur_top, cur_bot = items[0]["y_top"], items[0]["y_bot"]
+    # 같은 줄 판정: 그룹 평균 y_mid 와 토큰 y_mid 차이가 평균 토큰 높이의 절반 이내
+    # (누적으로 y범위가 늘어나 다른 행까지 흡수되는 문제 방지)
     for it in items[1:]:
-        overlap = max(0.0, min(cur_bot, it["y_bot"]) - max(cur_top, it["y_top"]))
-        ref_h = min(cur_bot - cur_top, it["y_bot"] - it["y_top"]) or 1
-        if overlap / ref_h >= 0.4:
-            grouped[-1].append(it)
-            cur_top = min(cur_top, it["y_top"])
-            cur_bot = max(cur_bot, it["y_bot"])
+        last_group = grouped[-1]
+        avg_mid = sum(c["y_mid"] for c in last_group) / len(last_group)
+        avg_h = sum(c["y_bot"] - c["y_top"] for c in last_group) / len(last_group)
+        tol = max(avg_h * 0.5, (it["y_bot"] - it["y_top"]) * 0.5)
+        if tol > 0 and abs(it["y_mid"] - avg_mid) <= tol:
+            last_group.append(it)
         else:
             grouped.append([it])
-            cur_top, cur_bot = it["y_top"], it["y_bot"]
     out: list[dict] = []
     for g in grouped:
         g.sort(key=lambda c: c["x"])
@@ -356,6 +356,22 @@ def _try_map_with_lookahead(lines: list[dict], idx: int, mapped: dict[str, dict]
                 return
 
 
+def _flatten_fields(page_raws: list[list[dict]]) -> tuple[list[dict], int]:
+    """페이지별 raw fields를 평탄화해 (text/confidence 리스트, 저신뢰도 카운트) 반환."""
+    fields: list[dict] = []
+    low_count = 0
+    for page_raw in page_raws:
+        for f in page_raw:
+            text = (f.get("inferText") or "").strip()
+            if not text:
+                continue
+            conf = float(f.get("inferConfidence") or 0.0)
+            if conf < _LOW_CONFIDENCE_THRESHOLD:
+                low_count += 1
+            fields.append({"text": text, "confidence": round(conf, 3)})
+    return fields, low_count
+
+
 def _map_lines_to_health_fields(lines: list[dict]) -> dict[str, dict]:
     """라인 단위 텍스트에서 검진 수치 자동 매핑.
 
@@ -540,7 +556,7 @@ async def extract_text(*, file_bytes: bytes, content_type: str, filename: str) -
     pages = _split_pdf_pages(file_bytes) if image_format == "pdf" else [file_bytes]
     page_count = len(pages)
 
-    all_raw: list[dict] = []
+    page_raws: list[list[dict]] = []
     page_errors: list[str] = []
     for page_idx, page_bytes in enumerate(pages, 1):
         try:
@@ -552,32 +568,26 @@ async def extract_text(*, file_bytes: bytes, content_type: str, filename: str) -
                 content_type=content_type,
                 page_idx=page_idx,
             )
-            all_raw.extend(page_raw)
+            page_raws.append(page_raw)
         except HTTPException as exc:
             # 부분 실패 허용 — 일부 페이지 실패해도 성공한 페이지의 fields는 보존
             logger.warning("Clova OCR 페이지 %d 실패: %s", page_idx, exc.detail)
             page_errors.append(f"페이지 {page_idx}: {exc.detail}")
 
-    if not all_raw and page_errors:
+    if not page_raws and page_errors:
         # 모든 페이지 실패
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=f"모든 페이지에서 텍스트 추출에 실패했습니다. ({page_errors[0]})",
         )
 
-    fields: list[dict] = []
-    low_count = 0
-    for f in all_raw:
-        text = (f.get("inferText") or "").strip()
-        if not text:
-            continue
-        conf = float(f.get("inferConfidence") or 0.0)
-        if conf < _LOW_CONFIDENCE_THRESHOLD:
-            low_count += 1
-        fields.append({"text": text, "confidence": round(conf, 3)})
+    fields, low_count = _flatten_fields(page_raws)
 
-    # 라인 그루핑 + 자동 필드 매핑 — 사용자가 검진 입력 페이지에서 prefill로 받음
-    lines = _group_into_lines(all_raw)
+    # 라인 그루핑은 페이지별로 따로 (페이지 좌표 origin 겹침으로 다른 페이지 토큰이
+    # 같은 줄로 묶이는 문제 방지) → 결과 라인 리스트만 concat
+    lines: list[dict] = []
+    for page_raw in page_raws:
+        lines.extend(_group_into_lines(page_raw))
     mapped = _map_lines_to_health_fields(lines)
 
     logger.info(
