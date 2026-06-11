@@ -76,3 +76,31 @@ class SleepLog(models.Model):
         table = "sleep_logs"
         unique_together = [("user", "log_date")]
         ordering = ["-log_date"]
+
+
+class StressEmotion(StrEnum):
+    """감정 쓰레기통 전용 감정 태그 8종 (체크인용 CheckinEmotion 7종과 별개)."""
+
+    ANXIOUS = "ANXIOUS"  # 불안
+    TENSE = "TENSE"  # 긴장
+    ANGRY = "ANGRY"  # 화남
+    SAD = "SAD"  # 슬픔
+    LONELY = "LONELY"  # 외로움
+    LISTLESS = "LISTLESS"  # 무기력
+    GRATEFUL = "GRATEFUL"  # 감사
+    RELIEVED = "RELIEVED"  # 안도
+
+
+class StressLog(models.Model):
+    """'감정 쓰레기통' 1회 = 1행 (하루 복수 가능). 버린 텍스트는 저장 안 함."""
+
+    id = fields.BigIntField(primary_key=True)
+    user = fields.ForeignKeyField("models.User", related_name="stress_logs")
+    log_date = fields.DateField(description="감정 버린 날짜")
+    emotions = fields.JSONField(description="선택한 감정 태그 값 list[str] (StressEmotion)")
+    created_at = fields.DatetimeField(auto_now_add=True)
+
+    class Meta:
+        table = "stress_logs"
+        ordering = ["-created_at"]
+        indexes = [("user_id", "log_date")]
