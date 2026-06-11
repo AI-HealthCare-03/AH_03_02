@@ -107,6 +107,34 @@ export interface StressHistory {
   counts: { emotion: StressEmotion; count: number }[];
 }
 
+// ── 운동 피로도 타입 ──
+export type ExerciseType = "WALK" | "CYCLE" | "STRENGTH" | "STRETCH" | "OTHER";
+export interface ExerciseEntry {
+  id: number;
+  exercise_type: ExerciseType;
+  duration_min: number;
+  fatigue_level: number;
+  note: string | null;
+  created_at: string;
+}
+export interface ExerciseToday {
+  date: string;
+  entries: ExerciseEntry[];
+  total_duration_min: number;
+  max_fatigue: number | null;
+  has_record: boolean;
+  suggest_rest: boolean;
+  rest_message: string | null;
+}
+export interface LogExerciseResponse {
+  today: ExerciseToday;
+  auto_checkin: AutoCheckin;
+}
+export interface ExerciseHistory {
+  days: number;
+  items: { date: string; avg_fatigue: number }[];
+}
+
 export const recordApi = {
   // 오늘 수분 섭취 현황 조회
   getWaterToday: () => api.get<WaterToday>("/records/water/today"),
@@ -151,4 +179,19 @@ export const recordApi = {
   // 최근 7일 감정 빈도
   getStressHistory: (days = 7) =>
     api.get<StressHistory>(`/records/stress/history?days=${days}`),
+  // 오늘 운동 기록 조회
+  getExerciseToday: () => api.get<ExerciseToday>("/records/exercise/today"),
+  // 운동 기록 추가 (append)
+  logExercise: (body: {
+    exercise_type: ExerciseType;
+    duration_min: number;
+    fatigue_level: number;
+    note?: string | null;
+  }) => api.post<LogExerciseResponse>("/records/exercise", body),
+  // 운동 기록 삭제 (개별)
+  deleteExercise: (id: number) =>
+    api.delete<ExerciseToday>(`/records/exercise/${id}`),
+  // 최근 7일 일별 평균 피로도
+  getExerciseHistory: (days = 7) =>
+    api.get<ExerciseHistory>(`/records/exercise/history?days=${days}`),
 };

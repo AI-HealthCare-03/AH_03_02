@@ -21,6 +21,7 @@ import { WaterTrackingCard } from "../components/record/WaterTrackingCard";
 import { WeightTrackingCard } from "../components/record/WeightTrackingCard";
 import { SleepTrackingCard } from "../components/record/SleepTrackingCard";
 import { StressTrackingCard } from "../components/record/StressTrackingCard";
+import { ExerciseTrackingCard } from "../components/record/ExerciseTrackingCard";
 
 type View = "onboard" | "stage" | "main";
 const ONBOARD_KEY = "challenge_onboarded";
@@ -335,6 +336,11 @@ export function ChallengeMainPage() {
         {/* 감정 쓰레기통 */}
         <div className="px-5 pt-2">
           <StressTrackingCard onAutoCheckin={() => { void loadAll(); }} />
+        </div>
+
+        {/* 운동 피로도 */}
+        <div className="px-5 pt-2">
+          <ExerciseTrackingCard onAutoCheckin={() => { void loadAll(); }} />
         </div>
 
         {/* 선택 챌린지 — 카테고리 탭 + 목록 */}

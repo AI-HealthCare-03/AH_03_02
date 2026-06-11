@@ -1,9 +1,17 @@
 from datetime import date
 from decimal import Decimal
 
-from tortoise.functions import Sum
+from tortoise.functions import Avg, Sum
 
-from app.models.record import DrinkType, RecordSettings, SleepLog, StressLog, WaterIntakeEntry, WeightLog
+from app.models.record import (
+    DrinkType,
+    ExerciseLog,
+    RecordSettings,
+    SleepLog,
+    StressLog,
+    WaterIntakeEntry,
+    WeightLog,
+)
 
 
 class WaterIntakeRepository:
@@ -114,3 +122,41 @@ class StressLogRepository:
     async def recent(self, user_id: int, since: date) -> list[StressLog]:
         """since 이후 모든 행(7일 빈도 집계용, 정렬 무관)."""
         return await StressLog.filter(user_id=user_id, log_date__gte=since)
+
+
+class ExerciseLogRepository:
+    async def add(
+        self,
+        user_id: int,
+        log_date: date,
+        exercise_type: str,
+        duration_min: int,
+        fatigue_level: int,
+        note: str | None,
+    ) -> ExerciseLog:
+        return await ExerciseLog.create(
+            user_id=user_id,
+            log_date=log_date,
+            exercise_type=exercise_type,
+            duration_min=duration_min,
+            fatigue_level=fatigue_level,
+            note=note,
+        )
+
+    async def list_by_date(self, user_id: int, log_date: date) -> list[ExerciseLog]:
+        return await ExerciseLog.filter(user_id=user_id, log_date=log_date).order_by("created_at")
+
+    async def daily_avg_fatigue(self, user_id: int, since: date) -> dict[date, float]:
+        """since 이후 일별 평균 피로도 {log_date: avg_fatigue}."""
+        rows = (
+            await ExerciseLog.filter(user_id=user_id, log_date__gte=since)
+            .annotate(avg=Avg("fatigue_level"))
+            .group_by("log_date")
+            .values("log_date", "avg")
+        )
+        return {r["log_date"]: float(r["avg"] or 0) for r in rows}
+
+    async def delete(self, entry_id: int, user_id: int) -> bool:
+        """소유권 필터: 본인 entry만 삭제. 삭제된 행 수>0 이면 True."""
+        deleted = await ExerciseLog.filter(id=entry_id, user_id=user_id).delete()
+        return deleted > 0

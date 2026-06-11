@@ -9,6 +9,12 @@ from app.dtos.record import (
     AutoCheckinResult,
     DropStressRequest,
     DropStressResponse,
+    ExerciseEntryItem,
+    ExerciseHistoryItem,
+    ExerciseHistoryResponse,
+    ExerciseTodayResponse,
+    LogExerciseRequest,
+    LogExerciseResponse,
     LogSleepRequest,
     LogSleepResponse,
     LogWeightRequest,
@@ -37,6 +43,7 @@ from app.models.challenge import (
     UserChallengeStatus,
 )
 from app.repositories.record_repository import (
+    ExerciseLogRepository,
     RecordSettingsRepository,
     SleepLogRepository,
     StressLogRepository,
@@ -45,11 +52,13 @@ from app.repositories.record_repository import (
 )
 from app.services.challenge import ChallengeService
 from app.services.record_reference import (
+    EXERCISE_REST_MESSAGE,
     SLEEP_GOAL_MIN,
     aggregate_emotion_counts,
     compute_sleep_minutes,
     default_goal_ml,
     goal_type_for,
+    should_suggest_rest,
     warning_level,
     weight_warning_level,
 )
@@ -64,6 +73,7 @@ class RecordService:
         self._weight = WeightLogRepository()
         self._sleep = SleepLogRepository()
         self._stress = StressLogRepository()
+        self._exercise = ExerciseLogRepository()
         self._challenge = ChallengeService()
 
     async def _resolve_goal(self, user_id: int) -> tuple[int, str]:
@@ -275,3 +285,44 @@ class RecordService:
         rows = await self._stress.recent(user_id, since)
         counts = [StressEmotionCount(emotion=e, count=c) for e, c in aggregate_emotion_counts(rows)]
         return StressHistoryResponse(days=days, counts=counts)
+
+    # ── 운동 피로도 기록 ──────────────────────────────────────────────────────
+
+    async def _build_exercise_today(self, user_id: int, today: date) -> ExerciseTodayResponse:
+        rows = await self._exercise.list_by_date(user_id, today)
+        total = sum(r.duration_min for r in rows)
+        mx = max((r.fatigue_level for r in rows), default=None)
+        prev_rows = await self._exercise.list_by_date(user_id, today - timedelta(days=1))
+        prev_mx = max((r.fatigue_level for r in prev_rows), default=None)
+        suggest = should_suggest_rest(mx, prev_mx)
+        return ExerciseTodayResponse(
+            date=today,
+            entries=[ExerciseEntryItem.model_validate(r) for r in rows],
+            total_duration_min=total,
+            max_fatigue=mx,
+            has_record=len(rows) > 0,
+            suggest_rest=suggest,
+            rest_message=EXERCISE_REST_MESSAGE if suggest else None,
+        )
+
+    async def get_exercise_today(self, user_id: int, today: date) -> ExerciseTodayResponse:
+        return await self._build_exercise_today(user_id, today)
+
+    async def log_exercise(self, user_id: int, today: date, dto: LogExerciseRequest) -> LogExerciseResponse:
+        await self._exercise.add(user_id, today, dto.exercise_type.value, dto.duration_min, dto.fatigue_level, dto.note)
+        today_resp = await self._build_exercise_today(user_id, today)
+        auto = await self._maybe_auto_checkin_category(user_id, today, ChallengeCategory.EXERCISE)
+        return LogExerciseResponse(today=today_resp, auto_checkin=auto)
+
+    async def delete_exercise(self, user_id: int, today: date, entry_id: int) -> ExerciseTodayResponse:
+        ok = await self._exercise.delete(entry_id, user_id)
+        if not ok:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="기록을 찾을 수 없습니다.")
+        return await self._build_exercise_today(user_id, today)
+
+    async def get_exercise_history(self, user_id: int, today: date, days: int) -> ExerciseHistoryResponse:
+        days = max(1, min(days, 30))
+        since = today - timedelta(days=days - 1)
+        agg = await self._exercise.daily_avg_fatigue(user_id, since)
+        items = [ExerciseHistoryItem(date=d, avg_fatigue=round(v, 1)) for d, v in sorted(agg.items())]
+        return ExerciseHistoryResponse(days=days, items=items)

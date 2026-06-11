@@ -104,3 +104,31 @@ class StressLog(models.Model):
         table = "stress_logs"
         ordering = ["-created_at"]
         indexes = [("user_id", "log_date")]
+
+
+class ExerciseType(StrEnum):
+    """운동 종류 5종."""
+
+    WALK = "WALK"  # 걷기
+    CYCLE = "CYCLE"  # 자전거
+    STRENGTH = "STRENGTH"  # 근력
+    STRETCH = "STRETCH"  # 스트레칭
+    OTHER = "OTHER"  # 기타
+
+
+class ExerciseLog(models.Model):
+    """'운동 1회 = 1행' (하루 복수 가능). 주관적 피로도 1~5."""
+
+    id = fields.BigIntField(primary_key=True)
+    user = fields.ForeignKeyField("models.User", related_name="exercise_logs")
+    log_date = fields.DateField(description="운동 날짜")
+    exercise_type = fields.CharEnumField(enum_type=ExerciseType)
+    duration_min = fields.IntField(description="운동 시간(분)")
+    fatigue_level = fields.IntField(description="주관적 피로도 1~5")
+    note = fields.TextField(null=True)
+    created_at = fields.DatetimeField(auto_now_add=True)
+
+    class Meta:
+        table = "exercise_logs"
+        ordering = ["-created_at"]
+        indexes = [("user_id", "log_date")]
