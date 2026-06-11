@@ -10,6 +10,10 @@ from app.dtos.record import (
     AddWaterResponse,
     DropStressRequest,
     DropStressResponse,
+    ExerciseHistoryResponse,
+    ExerciseTodayResponse,
+    LogExerciseRequest,
+    LogExerciseResponse,
     LogSleepRequest,
     LogSleepResponse,
     LogWeightRequest,
@@ -197,4 +201,50 @@ async def stress_history(
 ) -> Response:
     """최근 N일 감정 집계 히스토리 조회"""
     result = await service.get_stress_history(user_id=user.id, today=date.today(), days=days)
+    return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+# ── 운동 피로도 엔드포인트 ────────────────────────────────────────────────────
+
+
+@record_router.get("/exercise/today", response_model=ExerciseTodayResponse, status_code=status.HTTP_200_OK)
+async def get_exercise_today(
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[RecordService, Depends(RecordService)],
+) -> Response:
+    """오늘의 운동 기록 + 피로도 요약 조회"""
+    result = await service.get_exercise_today(user_id=user.id, today=date.today())
+    return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+@record_router.post("/exercise", response_model=LogExerciseResponse, status_code=status.HTTP_201_CREATED)
+async def log_exercise(
+    body: LogExerciseRequest,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[RecordService, Depends(RecordService)],
+) -> Response:
+    """운동 기록 추가 (피로도·종류·시간 포함)"""
+    result = await service.log_exercise(user_id=user.id, today=date.today(), dto=body)
+    return Response(result.model_dump(mode="json"), status_code=status.HTTP_201_CREATED)
+
+
+@record_router.delete("/exercise/{entry_id}", response_model=ExerciseTodayResponse, status_code=status.HTTP_200_OK)
+async def delete_exercise(
+    entry_id: int,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[RecordService, Depends(RecordService)],
+) -> Response:
+    """운동 기록 단건 삭제 후 오늘 요약 반환"""
+    result = await service.delete_exercise(user_id=user.id, today=date.today(), entry_id=entry_id)
+    return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+@record_router.get("/exercise/history", response_model=ExerciseHistoryResponse, status_code=status.HTTP_200_OK)
+async def exercise_history(
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[RecordService, Depends(RecordService)],
+    days: int = Query(7, ge=1, le=30),
+) -> Response:
+    """최근 N일 운동 피로도 일별 평균 히스토리 조회"""
+    result = await service.get_exercise_history(user_id=user.id, today=date.today(), days=days)
     return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
