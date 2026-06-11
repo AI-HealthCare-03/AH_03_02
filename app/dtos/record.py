@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 
 from pydantic import BaseModel, Field
 
@@ -88,3 +88,34 @@ class WeightHistoryItem(BaseSerializerModel):
 class WeightHistoryResponse(BaseSerializerModel):
     days: int
     items: list[WeightHistoryItem]
+
+
+class LogSleepRequest(BaseModel):
+    bed_time: time
+    wake_time: time
+    wake_count: int = Field(default=0, ge=0, le=3, description="0~3 (3=3회 이상)")
+
+
+class SleepTodayResponse(BaseSerializerModel):
+    date: date
+    bed_time: time | None
+    wake_time: time | None
+    wake_count: int | None
+    duration_min: int | None
+    goal_met: bool
+    has_record: bool
+
+
+class LogSleepResponse(BaseSerializerModel):
+    today: SleepTodayResponse
+    auto_checkin: AutoCheckinResult
+
+
+class SleepHistoryItem(BaseSerializerModel):
+    date: date
+    duration_min: int
+
+
+class SleepHistoryResponse(BaseSerializerModel):
+    days: int
+    items: list[SleepHistoryItem]
