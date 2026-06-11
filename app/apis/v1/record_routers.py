@@ -8,10 +8,14 @@ from app.dependencies.security import get_request_user
 from app.dtos.record import (
     AddWaterRequest,
     AddWaterResponse,
+    LogWeightRequest,
+    LogWeightResponse,
     SetSettingsRequest,
     SettingsResponse,
     WaterHistoryResponse,
     WaterTodayResponse,
+    WeightHistoryResponse,
+    WeightTodayResponse,
 )
 from app.models.users import User
 from app.services.record import RecordService
@@ -74,4 +78,42 @@ async def set_settings(
     service: Annotated[RecordService, Depends(RecordService)],
 ) -> Response:
     result = await service.set_settings(user_id=user.id, dto=body)
+    return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+@record_router.get("/weight/today", response_model=WeightTodayResponse, status_code=status.HTTP_200_OK)
+async def get_weight_today(
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[RecordService, Depends(RecordService)],
+) -> Response:
+    result = await service.get_weight_today(user_id=user.id, today=date.today())
+    return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+@record_router.put("/weight", response_model=LogWeightResponse, status_code=status.HTTP_200_OK)
+async def log_weight(
+    body: LogWeightRequest,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[RecordService, Depends(RecordService)],
+) -> Response:
+    result = await service.log_weight(user_id=user.id, today=date.today(), dto=body)
+    return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+@record_router.delete("/weight", response_model=WeightTodayResponse, status_code=status.HTTP_200_OK)
+async def delete_weight(
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[RecordService, Depends(RecordService)],
+) -> Response:
+    result = await service.delete_weight(user_id=user.id, today=date.today())
+    return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+@record_router.get("/weight/history", response_model=WeightHistoryResponse, status_code=status.HTTP_200_OK)
+async def weight_history(
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[RecordService, Depends(RecordService)],
+    days: int = Query(7, ge=1, le=90),
+) -> Response:
+    result = await service.get_weight_history(user_id=user.id, today=date.today(), days=days)
     return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)

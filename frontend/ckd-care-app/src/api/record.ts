@@ -42,6 +42,27 @@ export interface RecordSettings {
   goal_type: GoalType;
 }
 
+// ── 체중 기록 타입 ──
+export interface WeightToday {
+  date: string;
+  weight_kg: number | null;
+  prev_weight_kg: number | null;
+  delta_kg: number | null;
+  warning_level: WarningLevel;
+  note: string | null;
+  measured_at: string | null;
+  has_record: boolean;
+  disclaimer: string | null;
+}
+export interface LogWeightResponse {
+  today: WeightToday;
+  auto_checkin: AutoCheckin;
+}
+export interface WeightHistory {
+  days: number;
+  items: { date: string; weight_kg: number }[];
+}
+
 export const recordApi = {
   // 오늘 수분 섭취 현황 조회
   getWaterToday: () => api.get<WaterToday>("/records/water/today"),
@@ -58,4 +79,14 @@ export const recordApi = {
   // 수분 목표 설정 변경
   setSettings: (water_goal_ml: number) =>
     api.put<RecordSettings>("/records/settings", { water_goal_ml }),
+  // 오늘 체중 조회
+  getWeightToday: () => api.get<WeightToday>("/records/weight/today"),
+  // 체중 기록/수정 (upsert)
+  logWeight: (weight_kg: number, note?: string) =>
+    api.put<LogWeightResponse>("/records/weight", { weight_kg, note: note ?? null }),
+  // 오늘 체중 삭제
+  deleteWeight: () => api.delete<WeightToday>("/records/weight"),
+  // 체중 추이
+  getWeightHistory: (days = 7) =>
+    api.get<WeightHistory>(`/records/weight/history?days=${days}`),
 };

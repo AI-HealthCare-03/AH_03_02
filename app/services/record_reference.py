@@ -31,3 +31,21 @@ def warning_level(total_ml: int, goal_ml: int, goal_type: str) -> str:
     if total_ml >= goal_ml * 0.9:
         return "warn"
     return "none"
+
+
+_WEIGHT_WARN_KG = 1.0
+_WEIGHT_OVER_KG = 2.0
+
+
+def weight_warning_level(delta_kg: float | None, track: ChallengeTrack) -> str:
+    """어제 대비 증가량 경고. DIALYSIS/CKD 트랙에서만.
+
+    'none' | 'warn'(>=1kg) | 'over'(>=2kg). delta_kg=None(비교 대상 없음) → 'none'.
+    """
+    if delta_kg is None or track not in _LIMIT_TRACKS:
+        return "none"
+    if delta_kg >= _WEIGHT_OVER_KG:
+        return "over"
+    if delta_kg >= _WEIGHT_WARN_KG:
+        return "warn"
+    return "none"
