@@ -3,7 +3,7 @@ from datetime import date, datetime, time
 from pydantic import BaseModel, Field
 
 from app.dtos.base import BaseSerializerModel
-from app.models.record import DrinkType, StressEmotion
+from app.models.record import DrinkType, ExerciseType, StressEmotion
 
 
 class AddWaterRequest(BaseModel):
@@ -146,3 +146,44 @@ class StressEmotionCount(BaseSerializerModel):
 class StressHistoryResponse(BaseSerializerModel):
     days: int
     counts: list[StressEmotionCount]
+
+
+class LogExerciseRequest(BaseModel):
+    exercise_type: ExerciseType
+    duration_min: int = Field(gt=0, le=600, description="운동 시간(분)")
+    fatigue_level: int = Field(ge=1, le=5, description="주관적 피로도 1~5")
+    note: str | None = None
+
+
+class ExerciseEntryItem(BaseSerializerModel):
+    id: int
+    exercise_type: ExerciseType
+    duration_min: int
+    fatigue_level: int
+    note: str | None
+    created_at: datetime
+
+
+class ExerciseTodayResponse(BaseSerializerModel):
+    date: date
+    entries: list[ExerciseEntryItem]
+    total_duration_min: int
+    max_fatigue: int | None
+    has_record: bool
+    suggest_rest: bool
+    rest_message: str | None = None
+
+
+class LogExerciseResponse(BaseSerializerModel):
+    today: ExerciseTodayResponse
+    auto_checkin: AutoCheckinResult
+
+
+class ExerciseHistoryItem(BaseSerializerModel):
+    date: date
+    avg_fatigue: float
+
+
+class ExerciseHistoryResponse(BaseSerializerModel):
+    days: int
+    items: list[ExerciseHistoryItem]
