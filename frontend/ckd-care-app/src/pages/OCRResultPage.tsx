@@ -20,7 +20,6 @@ const MAPPED_FIELD_LABEL: Record<OCRMappedKey, { label: string; unit: string }> 
   creatinine: { label: "크레아티닌", unit: "mg/dL" },
   total_cholesterol: { label: "총콜레스테롤", unit: "mg/dL" },
   hdl_cholesterol: { label: "HDL 콜레스테롤", unit: "mg/dL" },
-  ldl_cholesterol: { label: "LDL 콜레스테롤", unit: "mg/dL" },
   triglycerides: { label: "중성지방", unit: "mg/dL" },
 };
 
@@ -29,7 +28,7 @@ const MAPPED_FIELD_ORDER: OCRMappedKey[] = [
   "height", "weight", "waist_circumference",
   "systolic_bp", "diastolic_bp",
   "fasting_glucose", "creatinine",
-  "total_cholesterol", "hdl_cholesterol", "ldl_cholesterol", "triglycerides",
+  "total_cholesterol", "hdl_cholesterol", "triglycerides",
 ];
 
 export function OCRResultPage() {

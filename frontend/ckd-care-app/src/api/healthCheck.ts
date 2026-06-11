@@ -153,11 +153,11 @@ export interface OCRMappedField {
 }
 
 // 자동 매핑되는 검진 필드 (ManualInputPage prefill용 필드명과 일치)
+// LDL은 시스템에서 사용 안 함 → OCR 매핑에서 제외
 export type OCRMappedKey =
   | "fasting_glucose"
   | "creatinine"
   | "hdl_cholesterol"
-  | "ldl_cholesterol"
   | "total_cholesterol"
   | "triglycerides"
   | "systolic_bp"

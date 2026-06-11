@@ -35,12 +35,14 @@ _MIME_TO_FORMAT = {
 # 신뢰도 임계값 — 이 미만은 사용자 검토 권장 (low_confidence_count로 합산)
 _LOW_CONFIDENCE_THRESHOLD = 0.85
 
-# ManualInputPage form 필드 → 키워드 매핑. HDL이 "콜레스테롤" 키워드보다 먼저(우선순위).
+# ManualInputPage form 필드 → 키워드 매핑.
+# LDL은 시스템에서 사용하지 않으므로 제외.
+# HDL은 결합형 "고밀도 콜레스테롤"만 사용 — 단독 "고밀도" 토큰이 잘못된 행 숫자를 매핑하는 문제 방지
+# (단독 토큰은 fallback에서 안전 조건 만족 시에만 처리).
 _FIELD_KEYWORDS: list[tuple[str, list[str]]] = [
     ("fasting_glucose", ["공복혈당", "혈당", "glucose"]),
     ("creatinine", ["크레아티닌", "creatinine"]),
-    ("hdl_cholesterol", ["HDL", "고밀도"]),
-    ("ldl_cholesterol", ["LDL", "저밀도"]),
+    ("hdl_cholesterol", ["HDL", "고밀도 콜레스테롤"]),
     ("total_cholesterol", ["총콜레스테롤", "총 콜레스테롤", "콜레스테롤"]),
     ("triglycerides", ["중성지방", "트리글리세라이드"]),
     ("systolic_bp", ["수축기", "최고혈압"]),
@@ -493,27 +495,27 @@ def _map_tokens_by_position(page_raws: list[list[dict]], mapped: dict[str, dict]
 
 
 def _fallback_split_cholesterol(page_raws: list[list[dict]], mapped: dict[str, dict]) -> None:
-    """단독 '고밀도'·'저밀도' 토큰이 라벨 매칭에 실패한 경우 보강 (회귀 0).
+    """단독 '고밀도' 토큰이 라벨 매칭에 실패한 경우 HDL 보강.
 
-    Clova가 "고밀도 콜레스테롤(mg/dL)" 셀을 두 토큰으로 쪼개는 경우,
-    "고밀도" 단독 토큰 + 인접한 "콜레스테롤(mg/dL)" 토큰 + 같은 행 우측 단독 숫자를
-    엄격한 조건으로 결합해 매핑.
+    Clova가 "고밀도 콜레스테롤(mg/dL)" 셀을 두 토큰으로 쪼개거나, 라인 그룹화가 묶지 못해
+    토큰 매핑이 잘못된 행 숫자를 매핑한 케이스를 정확히 처리. LDL은 시스템에서 사용하지
+    않으므로 처리 안 함.
 
     안전 장치:
-    - hdl/ldl이 이미 mapped면 절대 발동 안 함
+    - hdl_cholesterol이 이미 mapped면 절대 발동 안 함
     - "콜레스테롤" 토큰에 단위(mg/dL) 키워드 필수 — 판정 라인의 "콜레스테롤"은 단위 없어 제외
-    - "낮은"·"의심" 토큰이 같은 행에 있으면 발동 중단 — 판정 라인 가로채기 차단
+    - "낮은"·"의심" 토큰이 같은 행에 있으면 가로채기 위험으로 발동 중단
+    - 숫자 후보는 (kt, ct) 페어의 y범위 안에 y_mid가 들어오는 토큰만 — 인접 행 숫자 차단
     """
-    targets = [("hdl_cholesterol", "고밀도"), ("ldl_cholesterol", "저밀도")]
-    for field, kw in targets:
-        if field in mapped:
+    field = "hdl_cholesterol"
+    if field in mapped:
+        return
+    for page_raw in page_raws:
+        items = _extract_token_items(page_raw)
+        if not items:
             continue
-        for page_raw in page_raws:
-            items = _extract_token_items(page_raw)
-            if not items:
-                continue
-            if _try_fallback_one_page(items, field, kw, mapped):
-                break
+        if _try_fallback_one_page(items, field, "고밀도", mapped):
+            return
 
 
 def _try_fallback_one_page(items: list[dict], field: str, kw: str, mapped: dict[str, dict]) -> bool:
@@ -521,30 +523,31 @@ def _try_fallback_one_page(items: list[dict], field: str, kw: str, mapped: dict[
     kw_tokens = [it for it in items if it["text"].strip() == kw]
     if not kw_tokens:
         return False
-    # 콜레스테롤 + 단위 키워드 토큰만 (판정 라인의 단순 "콜레스테롤" 제외)
     cho_tokens = [it for it in items if "콜레스테롤" in it["text"] and any(u in it["text"] for u in _LABEL_UNIT_HINTS)]
     if not cho_tokens:
         return False
     nums = [{**it, "value": float(it["text"])} for it in items if _PURE_NUMBER_RE.fullmatch(it["text"])]
     bad_words = ("낮은", "의심", "고위험", "전단계", "이상자", "유질환자")
     for kt in kw_tokens:
-        # 같은 행에 판정 단어가 있으면 가로채기 위험 → skip
         if any(any(w in it["text"] for w in bad_words) for it in items if it is not kt and _same_row(kt, it)):
             continue
-        # 같은 행 또는 즉시 다음 행에 "콜레스테롤(mg/dL)" 토큰
-        h = kt["y_bot"] - kt["y_top"]
-        ct = next(
-            (c for c in cho_tokens if abs(c["y_mid"] - kt["y_mid"]) <= h * 1.5 and c["x"] > kt["x"]),
-            None,
+        # 가장 가까운 ct (라벨 페어로 인정할 토큰 높이 2.5배 이내)
+        kt_h = kt["y_bot"] - kt["y_top"]
+        ct = min(
+            (c for c in cho_tokens if abs(c["y_mid"] - kt["y_mid"]) <= max(kt_h, c["y_bot"] - c["y_top"]) * 2.5),
+            key=lambda c: abs(c["y_mid"] - kt["y_mid"]) + abs(c["x"] - kt["x"]) * 0.3,
+            default=None,
         )
         if ct is None:
             continue
-        # 라벨 페어 우측 + 같은 행(둘 중 하나의 y) 첫 단독 숫자
+        # 라벨 페어 y범위 안의 숫자만 후보 (인접 행 숫자 차단)
+        y_top = min(kt["y_top"], ct["y_top"])
+        y_bot = max(kt["y_bot"], ct["y_bot"])
         anchor_x = max(kt["x"], ct["x"])
-        candidates = [n for n in nums if n["x"] > anchor_x and (_same_row(kt, n) or _same_row(ct, n))]
+        candidates = [n for n in nums if n["x"] > anchor_x and y_top <= n["y_mid"] <= y_bot]
         if not candidates:
             continue
-        best = min(candidates, key=lambda n: n["x"] - anchor_x)
+        best = min(candidates, key=lambda n: n["x"])
         mapped[field] = {
             "value": best["value"],
             "confidence": round(min(kt["conf"], ct["conf"], best["conf"]), 3),
