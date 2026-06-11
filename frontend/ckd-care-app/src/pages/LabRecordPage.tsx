@@ -181,7 +181,9 @@ export function LabRecordPage() {
   const active = metrics?.active ?? [];
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-bg-alt pb-16">
+    <div className="flex min-h-screen flex-col bg-bg-alt">
+      {/* 모바일 폭으로 중앙 정렬 (다른 페이지와 동일한 풀폭 flex 루트 패턴) */}
+      <div className="mx-auto w-full max-w-md pb-16">
       {/* 헤더 */}
       <header className="flex items-center gap-2 border-b border-border bg-bg px-4 py-3">
         <button
@@ -277,6 +279,7 @@ export function LabRecordPage() {
         ) : (
           (overview?.metrics ?? []).map((m) => <MetricCard key={m.key} m={m} />)
         )}
+      </div>
       </div>
     </div>
   );
