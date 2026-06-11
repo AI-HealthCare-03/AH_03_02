@@ -5,6 +5,8 @@ goal_type 은 저장하지 않고 트랙에서 파생한다.
 - 그 외          : 달성(target) — 목표 채우기 유도
 """
 
+from datetime import time
+
 from app.models.challenge import ChallengeTrack
 
 _LIMIT_TRACKS = {ChallengeTrack.DIALYSIS, ChallengeTrack.CKD}
@@ -49,3 +51,13 @@ def weight_warning_level(delta_kg: float | None, track: ChallengeTrack) -> str:
     if delta_kg >= _WEIGHT_WARN_KG:
         return "warn"
     return "none"
+
+
+SLEEP_GOAL_MIN = 420  # 7시간
+
+
+def compute_sleep_minutes(bed: time, wake: time) -> int:
+    """취침→기상 수면 시간(분). 자정 넘김 자동 처리, bed==wake → 0."""
+    b = bed.hour * 60 + bed.minute
+    w = wake.hour * 60 + wake.minute
+    return (w - b) % (24 * 60)
