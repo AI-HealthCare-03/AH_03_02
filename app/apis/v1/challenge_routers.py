@@ -89,15 +89,15 @@ async def get_my_track(
     "/my-track",
     response_model=MyTrackResponse,
     status_code=status.HTTP_200_OK,
-    summary="내 트랙 수동 변경",
-    description="사용자의 챌린지 트랙을 수동으로 변경합니다.",
+    summary="배지 단계 변경",
+    description="사용자의 배지 단계(stage)를 변경합니다. 트랙은 자동배정되어 변경할 수 없습니다.",
 )
 async def update_my_track(
     body: UpdateMyTrackRequest,
     user: Annotated[User, Depends(get_request_user)],
     service: Annotated[ChallengeService, Depends(ChallengeService)],
 ) -> Response:
-    result = await service.update_my_track(user_id=user.id, dto=body)
+    result = await service.update_my_track(user_id=user.id, stage=body.stage)
     return Response(result.model_dump(), status_code=status.HTTP_200_OK)
 
 

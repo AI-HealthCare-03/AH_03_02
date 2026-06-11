@@ -160,9 +160,11 @@ class MyTrackResponse(BaseSerializerModel):
 
 
 class UpdateMyTrackRequest(BaseModel):
-    """내 트랙/스테이지 수동 변경 요청"""
+    """배지 단계(stage) 변경 요청.
 
-    track: ChallengeTrack
+    트랙은 PDF 명세상 자동배정되며 사용자가 변경할 수 없으므로 stage만 받는다.
+    """
+
     stage: int  # 1~4
 
 
