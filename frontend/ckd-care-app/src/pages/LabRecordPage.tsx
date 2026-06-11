@@ -127,6 +127,8 @@ export function LabRecordPage() {
   const [measuredDate, setMeasuredDate] = useState(todayStr());
   // 입력 draft: 지표키 → 문자열(빈 문자열 허용, 저장 시 숫자 변환)
   const [draft, setDraft] = useState<Record<string, string>>({});
+  // 지표 관리 패널 열림/닫힘 상태
+  const [managing, setManaging] = useState(false);
 
   // 활성 지표 목록 조회
   const { data: metrics } = useQuery({
@@ -162,6 +164,19 @@ export function LabRecordPage() {
       setDraft({});
     },
   });
+
+  // 활성 지표 설정 뮤테이션 (지표 추가/제거)
+  const metricsMut = useMutation({
+    mutationFn: (keys: string[]) => labApi.setMetrics(keys),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["record", "lab"] }),
+  });
+
+  // 지표 토글 — 활성화 중이면 제거, 비활성이면 추가
+  const toggleMetric = (key: string) => {
+    const cur = metrics?.active_keys ?? [];
+    const next = cur.includes(key) ? cur.filter((k) => k !== key) : [...cur, key];
+    metricsMut.mutate(next);
+  };
 
   const active = metrics?.active ?? [];
 
@@ -221,6 +236,39 @@ export function LabRecordPage() {
           저장
         </button>
       </section>
+
+      {/* 지표 관리(추가/제거) */}
+      <div className="mx-4 mt-3">
+        <button
+          onClick={() => setManaging((v) => !v)}
+          className="text-xs font-semibold text-accent"
+        >
+          {managing ? "지표 관리 닫기" : "＋ 추적 지표 관리"}
+        </button>
+        {managing && metrics && (
+          <div className="mt-2 flex flex-wrap gap-1.5 rounded-xl border border-border bg-bg p-3">
+            {metrics.catalog.map((d) => {
+              const on = metrics.active_keys.includes(d.key);
+              return (
+                <button
+                  key={d.key}
+                  type="button"
+                  onClick={() => toggleMetric(d.key)}
+                  disabled={metricsMut.isPending}
+                  className={
+                    "rounded-full border px-2.5 py-1 text-xs font-medium transition disabled:opacity-50 " +
+                    (on
+                      ? "border-accent bg-accent text-white"
+                      : "border-border bg-bg text-text-muted hover:bg-bg-alt")
+                  }
+                >
+                  {d.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* 지표 추세 카드 그리드 */}
       <div className="mt-3 grid grid-cols-1 gap-3 px-4 sm:grid-cols-2">
