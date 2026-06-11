@@ -180,6 +180,13 @@ class LabService:
             if v < 0:
                 raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=f"{k}: 음수 불가")
             clean[k] = float(v)
+        # 유효 값이 하나도 없으면 upsert 생략(기존 날짜 기록을 빈 dict로 덮어쓰지 않음)
+        if not clean:
+            return SaveLabResponse(
+                measured_date=measured_date,
+                saved_keys=[],
+                auto_checkin=AutoCheckinResult(performed=False, reason="no_valid_values"),
+            )
         await self._lab.upsert(user_id, measured_date, clean)
         # 오늘 날짜로 MONITORING 챌린지 자동 체크인 시도
         auto = await self._maybe_auto_checkin_monitoring(user_id, date.today())
