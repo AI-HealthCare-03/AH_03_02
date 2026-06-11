@@ -48,6 +48,8 @@ export function SignupPage() {
   );
   const [consents, setConsents] = useState<ConsentMap>(initialConsents);
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -73,6 +75,9 @@ export function SignupPage() {
     }
     if (!/[A-Z]/.test(form.password) || !/[a-z]/.test(form.password) || !/[0-9]/.test(form.password) || !/[^a-zA-Z0-9]/.test(form.password)) {
       setError("비밀번호는 영문 대소문자·숫자·특수문자를 각 1개 이상 포함해야 합니다."); return;
+    }
+    if (form.password !== passwordConfirm) {
+      setError("비밀번호 확인이 일치하지 않습니다."); return;
     }
     if (!/^\d{4}-\d{2}-\d{2}$/.test(form.birth_date)) {
       setError("생년월일은 8자리 숫자로 입력해주세요 (예: 19990101)."); return;
@@ -157,6 +162,32 @@ export function SignupPage() {
                 }
               />
               <p className="text-xs text-text-muted">8자 이상, 영문 대소문자·숫자·특수문자 각 1개 이상</p>
+            </div>
+            <div className="flex flex-col gap-[4px]">
+              <TextInput
+                label="비밀번호 확인"
+                placeholder="비밀번호를 한 번 더 입력하세요"
+                type={showPasswordConfirm ? "text" : "password"}
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                autoComplete="new-password"
+                rightSlot={
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordConfirm((s) => !s)}
+                    aria-label={showPasswordConfirm ? "비밀번호 숨기기" : "비밀번호 보기"}
+                    className="text-text-muted hover:text-text-primary"
+                  >
+                    {showPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                }
+              />
+              {passwordConfirm.length > 0 && form.password !== passwordConfirm && (
+                <p className="text-xs text-danger">비밀번호가 일치하지 않습니다.</p>
+              )}
+              {passwordConfirm.length > 0 && form.password === passwordConfirm && (
+                <p className="text-xs text-success">비밀번호가 일치합니다.</p>
+              )}
             </div>
             <TextInput
               label="생년월일"
