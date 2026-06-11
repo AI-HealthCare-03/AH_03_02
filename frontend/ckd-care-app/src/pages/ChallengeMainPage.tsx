@@ -6,13 +6,12 @@ import { CheckinResultModal } from "../components/CheckinResultModal";
 import { EggWidget } from "../components/EggWidget";
 import {
   challengeApi,
-  type ChallengeTrack, type ChallengeCategory,
+  type ChallengeCategory,
   type MyTrack, type DailyChecklistItem, type Challenge,
   type UserChallenge, type CheckInResponse,
 } from "../api/challenge";
 import { TRACK_THEME, STAGES } from "../components/challenge/trackTheme";
 import { OnboardView } from "../components/challenge/OnboardView";
-import { TrackSelectView } from "../components/challenge/TrackSelectView";
 import { StageSelectView } from "../components/challenge/StageSelectView";
 import { DailyChecklist } from "../components/challenge/DailyChecklist";
 import { CategoryTabs } from "../components/challenge/CategoryTabs";
@@ -39,7 +38,9 @@ export function ChallengeMainPage() {
   const [error, setError] = useState("");
   const [checkBusy, setCheckBusy] = useState<string | null>(null);
   const [chalBusy, setChalBusy] = useState<number | null>(null);
-  const [trackPick, setTrackPick] = useState<ChallengeTrack | null>(null);
+  const [stageToast, setStageToast] = useState<string | null>(null);
+  const [stageSaving, setStageSaving] = useState(false);
+  const [stageError, setStageError] = useState<string | null>(null);
   const [checkinResult, setCheckinResult] = useState<CheckInResponse | null>(null);
 
   async function loadAll() {
@@ -154,22 +155,22 @@ export function ChallengeMainPage() {
     }
   }
 
-  function handleSelectTrack(track: ChallengeTrack) {
-    setTrackPick(track);
-    setView("stage");
-  }
-
-  async function handleSelectStage(stage: number) {
-    const track = trackPick ?? myTrack?.track;
-    if (!track) return;
-    setError("");
+  async function handleSaveStage(stage: number) {
+    if (!myTrack) return;
+    setStageSaving(true);
+    setStageError(null);
     try {
-      await challengeApi.updateMyTrack(track, stage);
-      setActiveCat(null);   // 새 트랙 첫 카테고리로 재설정 유도
+      await challengeApi.updateMyTrack(myTrack.track, stage);
       setView("main");
-      await loadAll();  // myTrack·checklist·challenges·myChallenges 전체 재로드로 정합
+      await loadAll();
+      const label = STAGES.find((s) => s.num === stage)?.label ?? `S${stage}`;
+      const key = STAGES.find((s) => s.num === stage)?.key ?? `S${stage}`;
+      setStageToast(`${key} ${label}로 변경되었습니다`);
+      setTimeout(() => setStageToast(null), 2000);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "트랙 변경 실패");
+      setStageError(e instanceof Error ? e.message : "저장에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setStageSaving(false);
     }
   }
 
@@ -212,22 +213,19 @@ export function ChallengeMainPage() {
     );
   }
 
-  // 트랙 선택 뷰
-  if (view === "track" && myTrack) {
+  // 단계 선택 뷰 — 트랙은 자동배정이라 단계만 변경
+  if (view === "stage" && myTrack) {
     return (
       <div className="flex min-h-screen flex-col bg-bg-alt">
-        <ScreenLabel label="11 · 트랙 선택" />
-        <TrackSelectView current={myTrack.track} onSelect={handleSelectTrack} onBack={() => setView("main")} />
-      </div>
-    );
-  }
-  // 스테이지 선택 뷰
-  if (view === "stage" && (trackPick || myTrack)) {
-    const track = trackPick ?? myTrack!.track;
-    return (
-      <div className="flex min-h-screen flex-col bg-bg-alt">
-        <ScreenLabel label="11 · 스테이지 선택" />
-        <StageSelectView track={track} current={myTrack?.stage ?? 1} onSelect={handleSelectStage} onBack={() => setView("track")} />
+        <ScreenLabel label="11 · 단계 선택" />
+        <StageSelectView
+          track={myTrack.track}
+          current={myTrack.stage}
+          onSave={handleSaveStage}
+          onBack={() => { setStageError(null); setView("main"); }}
+          saving={stageSaving}
+          error={stageError}
+        />
       </div>
     );
   }
@@ -248,19 +246,28 @@ export function ChallengeMainPage() {
       <TopNav />
       <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col pb-10">
         {error && <div className="mx-5 mt-3 rounded-sm bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>}
+        {stageToast && (
+          <div className="mx-5 mt-3 rounded-md bg-success/10 px-3 py-2 text-sm text-success" role="status">
+            {stageToast}
+          </div>
+        )}
 
         {/* 헤더 — 날짜·트랙 배지 */}
         <div className="px-5 pt-5">
           <div className="text-xs text-text-secondary">{dateStr}</div>
           <h1 className="mt-1 text-xl font-semibold text-text-primary">오늘의 챌린지</h1>
           {myTrack && theme && (
-            <button
-              onClick={() => setView("track")}
-              className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-medium ${theme.bgClass} ${theme.textClass}`}
-            >
-              {myTrack.track_label} · {stageLabel} {STAGES.find((s) => s.num === myTrack.stage)?.label.replace(" 단계", "")}
-              <span className="text-[11px]">변경 ›</span>
-            </button>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span className={`inline-flex items-center rounded-full px-2.5 py-1.5 text-xs font-medium ${theme.bgClass} ${theme.textClass}`}>
+                {myTrack.track_label}
+              </span>
+              <button
+                onClick={() => { setStageError(null); setView("stage"); }}
+                className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1.5 text-xs font-medium text-text-secondary hover:border-border-strong"
+              >
+                {stageLabel} {STAGES.find((s) => s.num === myTrack.stage)?.label} · 변경 ›
+              </button>
+            </div>
           )}
         </div>
 
