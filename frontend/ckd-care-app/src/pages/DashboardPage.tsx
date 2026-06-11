@@ -15,6 +15,29 @@ import { pointsApi } from "../api/gamification";
 import { slumpApi, type SlumpStatusResponse } from "../api/slump";
 import { useAuth } from "../contexts/AuthContext";
 
+function egfrWarning(v: number | null): { text: string; cls: string } | null {
+  if (v === null || v >= 90) return null;
+  if (v >= 60)
+    return {
+      text: "🟢 신장 기능 수치는 대체로 양호한 편이에요. 정기 검진을 권합니다.",
+      cls: "border-green-400 bg-green-50 text-green-900",
+    };
+  if (v >= 30)
+    return {
+      text: "⚠️ 이번 검사에서 사구체여과율(eGFR)이 다소 낮게 나왔어요. 일시적일 수도 있지만 신장 기능 저하 신호일 수 있어 신장내과 진료와 재검사를 권합니다.",
+      cls: "border-amber-400 bg-amber-50 text-amber-900",
+    };
+  if (v >= 15)
+    return {
+      text: "🔴 사구체여과율(eGFR)이 상당히 낮게 나왔어요. 가까운 시일 안에 신장내과 진료를 받아보세요.",
+      cls: "border-red-400 bg-red-50 text-red-900",
+    };
+  return {
+    text: "🔴❗ 사구체여과율(eGFR)이 매우 낮게 나왔어요. 되도록 빨리 신장내과 진료를 받아보세요.",
+    cls: "border-red-400 bg-red-50 text-red-900",
+  };
+}
+
 function EgfrGauge({ value }: { value: number | null }) {
   if (value === null) return <div className="flex h-[360px] items-center justify-center text-sm text-text-muted">데이터 없음</div>;
   const max = 120;
@@ -179,6 +202,7 @@ export function DashboardPage() {
   const [attendanceLoading, setAttendanceLoading] = useState(false);
   const [attendanceMsg, setAttendanceMsg] = useState("");
   const [slump, setSlump] = useState<SlumpStatusResponse | null>(null);
+  const [warningRed, setWarningRed] = useState(false);
 
   // React Query로 대시보드 요약 데이터 관리
   // refetchInterval: CKD 위험도가 아직 계산 중(null)이면 4초마다 자동 재조회 (비동기 worker 완료 대기)
@@ -199,6 +223,12 @@ export function DashboardPage() {
 
   // 에러 메시지 추출
   const error = queryError instanceof Error ? queryError.message : "";
+
+  // eGFR 경고 10초 후 amber → red 전환
+  useEffect(() => {
+    const t = setTimeout(() => setWarningRed(true), 8000);
+    return () => clearTimeout(t);
+  }, []);
 
   async function handleAttendance() {
     setAttendanceLoading(true);
@@ -347,6 +377,22 @@ export function DashboardPage() {
           </div>
           <EggWidget />
         </div>
+
+        {/* eGFR 경고 — 선별군 전용 (진단자 제외) */}
+        {(() => {
+          if (ls?.ckd_diagnosed) return null;
+          const w = egfrWarning(h?.egfr_estimated ?? null);
+          if (!w) return null;
+          const isAmber = w.cls.includes("amber");
+          const cls = isAmber && warningRed
+            ? "border-red-400 bg-red-50 text-red-900"
+            : w.cls;
+          return (
+            <div role="alert" className={`mt-[16px] rounded-md border p-4 transition-colors duration-[2000ms] ${cls}`}>
+              <p className="text-sm font-semibold leading-[1.7]">{w.text}</p>
+            </div>
+          );
+        })()}
 
         {/* Row2: eGFR 추세 + 시뮬레이션 */}
         <div className="mt-[24px] grid grid-cols-1 items-stretch gap-[16px] md:grid-cols-3">
