@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from fastapi.responses import ORJSONResponse as Response
 
 from app.dependencies.security import get_request_user
@@ -12,9 +12,14 @@ from app.dtos.health_check import (
     ReportResponse,
 )
 from app.models.users import User
+from app.services import ocr as ocr_service
 from app.services.health_check import HealthCheckService
 
 health_check_router = APIRouter(prefix="/health-checks", tags=["health-checks"])
+
+# OCR 업로드 제한 — Clova 무료 한도(20MB·이미지)와 안전 마진 고려
+_OCR_ALLOWED_MIME = {"image/jpeg", "image/jpg", "image/png", "application/pdf"}
+_OCR_MAX_BYTES = 10 * 1024 * 1024  # 10MB
 
 
 def _get_user_age(user: User) -> int:
@@ -127,3 +132,41 @@ async def get_report(
             detail="검진 기록을 찾을 수 없습니다.",
         )
     return Response(result.model_dump(), status_code=status.HTTP_200_OK)
+
+
+@health_check_router.post(
+    "/ocr",
+    status_code=status.HTTP_200_OK,
+    summary="검진 결과지 OCR 텍스트 추출 (Clova)",
+    description=(
+        "검진 결과지 이미지(JPG·PNG·PDF, 최대 10MB)를 업로드하면 Clova OCR API로 텍스트를 추출합니다. "
+        "추출된 텍스트와 신뢰도를 반환하고 사용자가 수동 입력 화면에서 옮겨 적습니다. "
+        "Clova API 키 미설정 환경(envs/.local.env에 CLOVA_OCR_INVOKE_URL·CLOVA_OCR_SECRET_KEY 없음)에선 503 반환."
+    ),
+)
+async def ocr_extract(
+    user: Annotated[User, Depends(get_request_user)],
+    file: Annotated[UploadFile, File(description="검진 결과지 이미지·PDF (≤ 10MB)")],
+) -> Response:
+    # 파일 형식 검증
+    if file.content_type not in _OCR_ALLOWED_MIME:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="JPG, PNG, PDF 형식만 지원합니다.",
+        )
+
+    # 본문 읽기 + 크기 검증
+    contents = await file.read()
+    if len(contents) > _OCR_MAX_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail="파일 크기는 최대 10MB까지 지원합니다.",
+        )
+
+    # Clova OCR 호출 — 키 미설정·외부 오류·타임아웃은 서비스 안에서 한국어 HTTPException으로 변환
+    result = await ocr_service.extract_text(
+        file_bytes=contents,
+        content_type=file.content_type or "application/octet-stream",
+        filename=file.filename or "checkup",
+    )
+    return Response(result, status_code=status.HTTP_200_OK)
