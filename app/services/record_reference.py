@@ -74,3 +74,14 @@ def aggregate_emotion_counts(rows: list) -> list[tuple[str, int]]:
         for e in r.emotions or []:
             counter[e] = counter.get(e, 0) + 1
     return sorted(counter.items(), key=lambda kv: (-kv[1], kv[0]))
+
+
+EXERCISE_FATIGUE_HIGH = 4  # 피로도 4 이상 = 높음
+EXERCISE_REST_MESSAGE = "오늘은 가볍게 쉬어가는 것도 좋습니다."
+
+
+def should_suggest_rest(today_max: int | None, prev_max: int | None) -> bool:
+    """오늘과 어제 모두 일별 최대 피로도 >= 4면 휴식 권유."""
+    if today_max is None or prev_max is None:
+        return False
+    return today_max >= EXERCISE_FATIGUE_HIGH and prev_max >= EXERCISE_FATIGUE_HIGH
