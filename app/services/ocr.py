@@ -85,12 +85,8 @@ _JPEG_MAGIC = b"\xff\xd8\xff"
 _PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 
 
-def _group_into_lines(fields_raw: list[dict]) -> list[dict]:
-    """Clova fields[].lineBreak로 같은 줄 토큰을 합쳐 라인 단위로 반환.
-
-    반환: [{"text": "공복혈당 118 mg/dL", "confidence": 0.96}, ...]
-    같은 라인 토큰들의 신뢰도는 최솟값 사용 (보수적).
-    """
+def _group_by_linebreak(fields_raw: list[dict]) -> list[dict]:
+    """lineBreak fallback 그룹화. boundingPoly 없는 응답용."""
     lines: list[dict] = []
     cur_texts: list[str] = []
     cur_conf: float = 1.0
@@ -108,6 +104,66 @@ def _group_into_lines(fields_raw: list[dict]) -> list[dict]:
     if cur_texts:
         lines.append({"text": " ".join(cur_texts), "confidence": round(cur_conf, 3)})
     return lines
+
+
+def _extract_token_items(fields_raw: list[dict]) -> list[dict]:
+    """boundingPoly에서 토큰별 좌표·텍스트 추출. 하나라도 polygon이 없으면 빈 리스트."""
+    items: list[dict] = []
+    for f in fields_raw:
+        text = (f.get("inferText") or "").strip()
+        if not text:
+            continue
+        poly = (f.get("boundingPoly") or {}).get("vertices") or []
+        if len(poly) < 4:
+            return []
+        ys = [float(v.get("y", 0)) for v in poly]
+        xs = [float(v.get("x", 0)) for v in poly]
+        items.append(
+            {
+                "text": text,
+                "conf": float(f.get("inferConfidence") or 0.0),
+                "y_top": min(ys),
+                "y_bot": max(ys),
+                "y_mid": (min(ys) + max(ys)) / 2,
+                "x": min(xs),
+            }
+        )
+    return items
+
+
+def _group_into_lines(fields_raw: list[dict]) -> list[dict]:
+    """boundingPoly y좌표로 같은 표 행 토큰을 묶고 x좌표로 정렬해 라인 단위로 반환.
+
+    Clova V2가 lineBreak를 토큰마다 발화해 라인 그룹화가 무력화되는 케이스가 많아
+    좌표 기반으로 재그룹화한다. y범위가 절반 이상 겹치면 같은 줄로 판정.
+    boundingPoly가 없는 응답은 lineBreak fallback.
+    """
+    items = _extract_token_items(fields_raw)
+    if not items:
+        return _group_by_linebreak(fields_raw)
+    items.sort(key=lambda it: it["y_mid"])
+    grouped: list[list[dict]] = [[items[0]]]
+    cur_top, cur_bot = items[0]["y_top"], items[0]["y_bot"]
+    for it in items[1:]:
+        overlap = max(0.0, min(cur_bot, it["y_bot"]) - max(cur_top, it["y_top"]))
+        ref_h = min(cur_bot - cur_top, it["y_bot"] - it["y_top"]) or 1
+        if overlap / ref_h >= 0.4:
+            grouped[-1].append(it)
+            cur_top = min(cur_top, it["y_top"])
+            cur_bot = max(cur_bot, it["y_bot"])
+        else:
+            grouped.append([it])
+            cur_top, cur_bot = it["y_top"], it["y_bot"]
+    out: list[dict] = []
+    for g in grouped:
+        g.sort(key=lambda c: c["x"])
+        out.append(
+            {
+                "text": " ".join(c["text"] for c in g),
+                "confidence": round(min(c["conf"] for c in g), 3),
+            }
+        )
+    return out
 
 
 def _try_map_blood_pressure(text: str, conf: float, mapped: dict[str, dict]) -> bool:
@@ -203,9 +259,21 @@ def _is_value_line(text: str) -> bool:
     return True
 
 
+# 검진 라벨에 자주 붙는 단위·표현 — 이게 있으면 ruling 단어가 섞여 있어도 진짜 라벨 라인
+_LABEL_UNIT_HINTS = ("mg/dL", "g/dL", "mmHg", "kg/m", "(cm)", "(kg)", "(mL/min")
+
+
 def _is_ruling_line(text: str) -> bool:
-    """판정·체크박스·정상범위 설명 라인 판단. 진짜 라벨이 아니므로 키워드 매칭 제외."""
-    return any(w in text for w in _RULING_WORDS)
+    """판정·체크박스·정상범위 설명 라인 판단.
+
+    표 행단위 그룹화 후엔 한 줄에 라벨+값+판정이 함께 올 수 있어,
+    단위 키워드가 있으면 진짜 라벨 라인으로 인정.
+    """
+    if not any(w in text for w in _RULING_WORDS):
+        return False
+    if any(u in text for u in _LABEL_UNIT_HINTS):
+        return False
+    return True
 
 
 def _find_matching_field(text: str) -> str | None:
