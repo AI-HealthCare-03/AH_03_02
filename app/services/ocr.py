@@ -151,37 +151,40 @@ def _try_map_height_weight_pair(text: str, conf: float, mapped: dict[str, dict])
     return True
 
 
-def _try_map_height_weight_pair_lookahead(lines: list[dict], idx: int, mapped: dict[str, dict]) -> bool:
-    """표 형식: '키(cm) 및 몸무게(kg)' 라벨 라인 + 다음 라인의 '172 / 68' 값 페어 매핑.
+_HW_WINDOW_LINES = 8  # 키→몸무게→172→/→68까지 잡으려면 충분한 윈도우 필요
 
-    Clova가 표 셀을 별도 라인으로 끊는 경우 같은 라인 페어 매칭이 안 되므로
-    lookahead로 슬래시 페어를 찾아 동시 매핑한다.
+
+def _try_map_height_weight_pair_lookahead(lines: list[dict], idx: int, mapped: dict[str, dict]) -> bool:
+    """표 형식: '키(cm)'·'및'·'몸무게(kg)'·'172'·'/'·'68' 처럼 토큰별로 잘게 쪼개진 라인을 합쳐서 페어 매핑.
+
+    Clova가 lineBreak를 토큰마다 발화시키는 경우 라인 그룹화가 무력화되므로,
+    "키"·"신장" 키워드 라인 발견 시 다음 _HW_WINDOW_LINES만큼 슬라이딩 윈도우로 합쳐
+    "몸무게/체중" + 슬래시 페어가 모두 있는지 검사.
     """
     text = lines[idx]["text"]
-    conf = lines[idx]["confidence"]
     if _is_ruling_line(text):
         return False
-    has_h = any(k in text for k in ("키", "신장"))
-    has_w = any(k in text for k in ("몸무게", "체중"))
-    if not (has_h and has_w):
+    if not any(k in text for k in ("키", "신장")):
         return False
-    if _PAIR_PATTERN.search(text):
-        return False  # 같은 라인 페어는 _try_map_height_weight_pair가 처리
-    for j in range(idx + 1, min(idx + 1 + _LOOKAHEAD_LINES, len(lines))):
-        next_text = lines[j]["text"]
-        if _is_ruling_line(next_text):
+    if "height" in mapped and "weight" in mapped:
+        return False
+    combined_text = text
+    combined_conf = lines[idx]["confidence"]
+    for j in range(idx + 1, min(idx + 1 + _HW_WINDOW_LINES, len(lines))):
+        nt = lines[j]["text"]
+        if _is_ruling_line(nt):
             continue
-        m = _PAIR_PATTERN.search(next_text)
-        if not m:
-            continue
-        next_conf = min(conf, lines[j]["confidence"])
-        src = f"{text} → {next_text}"
-        h, w = float(m.group(1)), float(m.group(2))
-        if "height" not in mapped:
-            mapped["height"] = {"value": h, "confidence": next_conf, "source_text": src}
-        if "weight" not in mapped:
-            mapped["weight"] = {"value": w, "confidence": next_conf, "source_text": src}
-        return True
+        combined_text += " " + nt
+        combined_conf = min(combined_conf, lines[j]["confidence"])
+        has_w = any(k in combined_text for k in ("몸무게", "체중"))
+        m = _PAIR_PATTERN.search(combined_text)
+        if has_w and m:
+            h, w = float(m.group(1)), float(m.group(2))
+            if "height" not in mapped:
+                mapped["height"] = {"value": h, "confidence": combined_conf, "source_text": combined_text}
+            if "weight" not in mapped:
+                mapped["weight"] = {"value": w, "confidence": combined_conf, "source_text": combined_text}
+            return True
     return False
 
 
