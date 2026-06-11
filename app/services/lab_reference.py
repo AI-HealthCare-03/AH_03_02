@@ -123,4 +123,8 @@ def resolve_range(key: str, gender: str) -> tuple[float | None, float | None] | 
     m = _CATALOG.get(key)
     if m is None or m.ranges is None:
         return None
-    return m.ranges.get(gender) or m.ranges.get("*")
+    # 키 존재 여부로 명시 분기 ("키 없음"과 (None, None) 범위를 구분 — or 폴백 footgun 회피)
+    result = m.ranges.get(gender)
+    if result is None:
+        result = m.ranges.get("*")
+    return result
