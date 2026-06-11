@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from tortoise.functions import Sum
 
-from app.models.record import DrinkType, RecordSettings, WaterIntakeEntry, WeightLog
+from app.models.record import DrinkType, RecordSettings, SleepLog, WaterIntakeEntry, WeightLog
 
 
 class WaterIntakeRepository:
@@ -72,3 +72,33 @@ class WeightLogRepository:
 
     async def recent(self, user_id: int, since: date) -> list[WeightLog]:
         return await WeightLog.filter(user_id=user_id, log_date__gte=since).order_by("log_date")
+
+
+class SleepLogRepository:
+    async def upsert(self, user_id: int, log_date, bed_time, wake_time, wake_count: int, duration_min: int) -> SleepLog:
+        obj = await SleepLog.get_or_none(user_id=user_id, log_date=log_date)
+        if obj is None:
+            return await SleepLog.create(
+                user_id=user_id,
+                log_date=log_date,
+                bed_time=bed_time,
+                wake_time=wake_time,
+                wake_count=wake_count,
+                duration_min=duration_min,
+            )
+        obj.bed_time = bed_time
+        obj.wake_time = wake_time
+        obj.wake_count = wake_count
+        obj.duration_min = duration_min
+        await obj.save()
+        return obj
+
+    async def get_by_date(self, user_id: int, log_date) -> SleepLog | None:
+        return await SleepLog.get_or_none(user_id=user_id, log_date=log_date)
+
+    async def delete_by_date(self, user_id: int, log_date) -> bool:
+        deleted = await SleepLog.filter(user_id=user_id, log_date=log_date).delete()
+        return deleted > 0
+
+    async def recent(self, user_id: int, since) -> list[SleepLog]:
+        return await SleepLog.filter(user_id=user_id, log_date__gte=since).order_by("log_date")
