@@ -182,8 +182,8 @@ export function LabRecordPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-bg-alt">
-      {/* 모바일 폭으로 중앙 정렬 (다른 페이지와 동일한 풀폭 flex 루트 패턴) */}
-      <div className="mx-auto w-full max-w-md pb-16">
+      {/* 모바일 폭으로 중앙 정렬. max-w-md 토큰이 이 테마에서 깨져(12px) arbitrary 값 사용 */}
+      <div className="mx-auto w-full max-w-[28rem] pb-16">
       {/* 헤더 */}
       <header className="flex items-center gap-2 border-b border-border bg-bg px-4 py-3">
         <button
