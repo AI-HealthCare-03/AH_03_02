@@ -17,6 +17,7 @@ import { StageSelectView } from "../components/challenge/StageSelectView";
 import { DailyChecklist } from "../components/challenge/DailyChecklist";
 import { CategoryTabs } from "../components/challenge/CategoryTabs";
 import { OptionalChallengeList, type ChallengeRow } from "../components/challenge/OptionalChallengeList";
+import { WaterTrackingCard } from "../components/record/WaterTrackingCard";
 
 type View = "onboard" | "track" | "stage" | "main";
 const ONBOARD_KEY = "challenge_onboarded";
@@ -282,6 +283,11 @@ export function ChallengeMainPage() {
 
         {/* 필수 일일 체크리스트 */}
         <DailyChecklist items={checklist} busyKey={checkBusy} onToggle={handleToggleChecklist} />
+
+        {/* 수분 섭취 기록 */}
+        <div className="px-5 pt-2">
+          <WaterTrackingCard />
+        </div>
 
         {/* 선택 챌린지 — 카테고리 탭 + 목록 */}
         <div className="px-5 pb-10 pt-2">
