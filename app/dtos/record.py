@@ -56,3 +56,35 @@ class WaterHistoryResponse(BaseSerializerModel):
 class SettingsResponse(BaseSerializerModel):
     water_goal_ml: int
     goal_type: str
+
+
+class LogWeightRequest(BaseModel):
+    weight_kg: float = Field(gt=20, le=300, description="체중 kg (소수 1자리)")
+    note: str | None = None
+
+
+class WeightTodayResponse(BaseSerializerModel):
+    date: date
+    weight_kg: float | None
+    prev_weight_kg: float | None
+    delta_kg: float | None
+    warning_level: str  # "none" | "warn" | "over"
+    note: str | None
+    measured_at: datetime | None
+    has_record: bool
+    disclaimer: str | None = None
+
+
+class LogWeightResponse(BaseSerializerModel):
+    today: WeightTodayResponse
+    auto_checkin: AutoCheckinResult
+
+
+class WeightHistoryItem(BaseSerializerModel):
+    date: date
+    weight_kg: float
+
+
+class WeightHistoryResponse(BaseSerializerModel):
+    days: int
+    items: list[WeightHistoryItem]
