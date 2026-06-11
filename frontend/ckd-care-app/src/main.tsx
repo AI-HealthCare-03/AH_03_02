@@ -28,6 +28,7 @@ import { LifestyleSurveyPage } from "./pages/LifestyleSurveyPage";
 import { DietSurveyPage } from "./pages/DietSurveyPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { ChallengeMainPage } from "./pages/ChallengeMainPage";
+import { LabRecordPage } from "./pages/LabRecordPage";
 import { DailyCheckinPage } from "./pages/DailyCheckinPage";
 import { EggHatchingPage } from "./pages/EggHatchingPage";
 import { SlumpPage } from "./pages/SlumpPage";
@@ -85,6 +86,7 @@ function AppRoutes() {
       <Route path="/lifestyle-survey" element={<PrivateRoute><LifestyleSurveyPage /></PrivateRoute>} />
       <Route path="/diet-survey" element={<PrivateRoute><DietSurveyPage /></PrivateRoute>} />
       <Route path="/challenge" element={<PrivateRoute><ChallengeMainPage /></PrivateRoute>} />
+      <Route path="/records/lab" element={<PrivateRoute><LabRecordPage /></PrivateRoute>} />
       <Route path="/daily-checkin" element={<PrivateRoute><DailyCheckinPage /></PrivateRoute>} />
       <Route path="/egg-hatching" element={<PrivateRoute><EggHatchingPage /></PrivateRoute>} />
       <Route path="/slump" element={<PrivateRoute><SlumpPage /></PrivateRoute>} />
