@@ -6,9 +6,11 @@ from tortoise.functions import Avg, Sum
 from app.models.record import (
     DrinkType,
     ExerciseLog,
+    LabRecord,
     RecordSettings,
     SleepLog,
     StressLog,
+    UserLabMetrics,
     WaterIntakeEntry,
     WeightLog,
 )
@@ -160,3 +162,38 @@ class ExerciseLogRepository:
         """소유권 필터: 본인 entry만 삭제. 삭제된 행 수>0 이면 True."""
         deleted = await ExerciseLog.filter(id=entry_id, user_id=user_id).delete()
         return deleted > 0
+
+
+class LabRecordRepository:
+    async def upsert(self, user_id: int, measured_date: date, values: dict) -> LabRecord:
+        obj = await LabRecord.get_or_none(user_id=user_id, measured_date=measured_date)
+        if obj is None:
+            return await LabRecord.create(user_id=user_id, measured_date=measured_date, values=values)
+        # 같은 날짜 재저장 시 기존 지표값과 병합(부분 저장이 이전 키를 지우지 않게)
+        obj.values = {**(obj.values or {}), **values}
+        await obj.save()
+        return obj
+
+    async def get_by_date(self, user_id: int, measured_date: date) -> LabRecord | None:
+        return await LabRecord.get_or_none(user_id=user_id, measured_date=measured_date)
+
+    async def recent(self, user_id: int, limit: int) -> list[LabRecord]:
+        """measured_date 내림차순 최근 limit개 (추세용)."""
+        return await LabRecord.filter(user_id=user_id).order_by("-measured_date").limit(limit)
+
+    async def delete_by_date(self, user_id: int, measured_date: date) -> bool:
+        deleted = await LabRecord.filter(user_id=user_id, measured_date=measured_date).delete()
+        return deleted > 0
+
+
+class UserLabMetricsRepository:
+    async def get(self, user_id: int) -> UserLabMetrics | None:
+        return await UserLabMetrics.get_or_none(user_id=user_id)
+
+    async def upsert(self, user_id: int, metric_keys: list[str]) -> UserLabMetrics:
+        obj = await UserLabMetrics.get_or_none(user_id=user_id)
+        if obj is None:
+            return await UserLabMetrics.create(user_id=user_id, metric_keys=metric_keys)
+        obj.metric_keys = metric_keys
+        await obj.save()
+        return obj

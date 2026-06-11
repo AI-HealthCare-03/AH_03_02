@@ -132,3 +132,32 @@ class ExerciseLog(models.Model):
         table = "exercise_logs"
         ordering = ["-created_at"]
         indexes = [("user_id", "log_date")]
+
+
+class LabRecord(models.Model):
+    """검사 1회(날짜) = 1행. 검사일별 지표값 dict, 수정 가능(upsert)."""
+
+    id = fields.BigIntField(primary_key=True)
+    user = fields.ForeignKeyField("models.User", related_name="lab_records")
+    measured_date = fields.DateField(description="검사일")
+    values = fields.JSONField(description="입력한 지표값 {metric_key: float}")
+    created_at = fields.DatetimeField(auto_now_add=True)
+    updated_at = fields.DatetimeField(auto_now=True)
+
+    class Meta:
+        table = "lab_records"
+        unique_together = [("user", "measured_date")]
+        ordering = ["-measured_date"]
+
+
+class UserLabMetrics(models.Model):
+    """사용자가 추적할 지표 키 목록(커스텀). 없으면 트랙 기본 지표 사용."""
+
+    id = fields.BigIntField(primary_key=True)
+    user = fields.OneToOneField("models.User", related_name="lab_metrics")
+    metric_keys = fields.JSONField(description="활성 지표 키 list[str]")
+    created_at = fields.DatetimeField(auto_now_add=True)
+    updated_at = fields.DatetimeField(auto_now=True)
+
+    class Meta:
+        table = "user_lab_metrics"

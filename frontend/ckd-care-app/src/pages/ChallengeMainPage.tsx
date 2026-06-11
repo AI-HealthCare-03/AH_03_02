@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
@@ -32,6 +33,7 @@ function todayStr() {
 
 export function ChallengeMainPage() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [view, setView] = useState<View>("main");
   const [myTrack, setMyTrack] = useState<MyTrack | null>(null);
   const [checklist, setChecklist] = useState<DailyChecklistItem[]>([]);
@@ -341,6 +343,17 @@ export function ChallengeMainPage() {
         {/* 운동 피로도 */}
         <div className="px-5 pt-2">
           <ExerciseTrackingCard onAutoCheckin={() => { void loadAll(); }} />
+        </div>
+
+        {/* 검사 수치 기록장 (전용 페이지) */}
+        <div className="px-5 pt-2">
+          <button
+            onClick={() => navigate("/records/lab")}
+            className="flex w-full items-center justify-between rounded-xl border border-border bg-bg p-4 text-left"
+          >
+            <span className="font-bold text-text-primary">🧪 검사 수치 기록장</span>
+            <span className="text-text-muted">›</span>
+          </button>
         </div>
 
         {/* 선택 챌린지 — 카테고리 탭 + 목록 */}
