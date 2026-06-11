@@ -169,7 +169,8 @@ class LabRecordRepository:
         obj = await LabRecord.get_or_none(user_id=user_id, measured_date=measured_date)
         if obj is None:
             return await LabRecord.create(user_id=user_id, measured_date=measured_date, values=values)
-        obj.values = values
+        # 같은 날짜 재저장 시 기존 지표값과 병합(부분 저장이 이전 키를 지우지 않게)
+        obj.values = {**(obj.values or {}), **values}
         await obj.save()
         return obj
 
