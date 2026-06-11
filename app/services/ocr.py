@@ -102,21 +102,80 @@ def _try_map_blood_pressure(text: str, conf: float, mapped: dict[str, dict]) -> 
     return True
 
 
-def _try_map_keyword(text: str, conf: float, mapped: dict[str, dict]) -> None:
-    """키워드 매칭으로 검진 필드 1개를 매핑. 가장 먼저 일치하는 우선순위 키워드 사용."""
+# 정상 범위·판정 표현 — 이런 단어가 들어간 라인은 "값" 아님
+_RANGE_WORDS = ("미만", "이상", "이하", "초과", "~", "정상", "주의", "질환", "의심", "참고", "범위", "양호")
+
+
+def _is_value_line(text: str) -> bool:
+    """검진 값(숫자) 라인 판단. 정상 범위·판정·혈압 패턴 제외."""
+    if not _NUMBER_PATTERN.search(text):
+        return False
+    if any(w in text for w in _RANGE_WORDS):
+        return False
+    if "-" in text or "/" in text:  # 범위·혈압은 별도 처리
+        return False
+    return True
+
+
+def _find_matching_field(text: str) -> str | None:
+    """라인 텍스트에서 매칭되는 검진 필드명 반환. 우선순위 첫 매치."""
     upper = text.upper()
     for field, keywords in _FIELD_KEYWORDS:
-        if field in mapped:
-            continue
         if any(kw in text or kw.upper() in upper for kw in keywords):
-            num_match = _NUMBER_PATTERN.search(text)
+            return field
+    return None
+
+
+def _try_map_keyword(text: str, conf: float, mapped: dict[str, dict]) -> str | None:
+    """같은 라인에 키워드+숫자가 모두 있을 때 매핑. 키워드만 있으면 그 필드명 반환 (다음 라인 검색용)."""
+    field = _find_matching_field(text)
+    if field is None or field in mapped:
+        return None
+    num_match = _NUMBER_PATTERN.search(text)
+    if num_match:
+        mapped[field] = {
+            "value": float(num_match.group()),
+            "confidence": conf,
+            "source_text": text,
+        }
+        return None
+    # 키워드는 있지만 숫자 없음 → 다음 라인 검색이 필요
+    return field
+
+
+_LOOKAHEAD_LINES = 3  # 키워드 라인 다음 N개 라인까지 값 검색 (표 형식 결과지 대응)
+
+
+def _try_map_with_lookahead(lines: list[dict], idx: int, mapped: dict[str, dict]) -> None:
+    """현재 라인의 키워드 + 이어지는 라인의 값으로 매핑.
+
+    한국 검진 결과지는 보통 "공복혈당(mg/dL)\\n92\\n100미만\\n정상" 처럼
+    라벨/값/범위/판정이 별도 라인이라 같은 라인 매칭만으론 잡지 못함.
+    이 함수는 다음 _LOOKAHEAD_LINES 안의 첫 "값 라인"을 찾아 매핑.
+    """
+    line = lines[idx]
+    text = line["text"]
+    conf = line["confidence"]
+    # 1) 같은 라인 매칭 (키워드+숫자) — 성공하면 끝
+    pending_field = _try_map_keyword(text, conf, mapped)
+    if pending_field is None:
+        return  # 같은 라인 매칭 성공 또는 키워드 자체 없음
+    # 2) 같은 라인엔 키워드만 있었음 → 다음 라인들에서 첫 "값 라인" 찾기
+    for j in range(idx + 1, min(idx + 1 + _LOOKAHEAD_LINES, len(lines))):
+        next_line = lines[j]
+        next_text = next_line["text"]
+        # 다른 키워드 라인을 만나면 중단 (양식 셀이 바뀜)
+        if _find_matching_field(next_text) is not None:
+            break
+        if _is_value_line(next_text):
+            num_match = _NUMBER_PATTERN.search(next_text)
             if num_match:
-                mapped[field] = {
+                mapped[pending_field] = {
                     "value": float(num_match.group()),
-                    "confidence": conf,
-                    "source_text": text,
+                    "confidence": min(conf, next_line["confidence"]),
+                    "source_text": f"{text} → {next_text}",
                 }
-            return
+                return
 
 
 def _map_lines_to_health_fields(lines: list[dict]) -> dict[str, dict]:
@@ -126,14 +185,12 @@ def _map_lines_to_health_fields(lines: list[dict]) -> dict[str, dict]:
     매핑되지 않은 필드는 dict에 키 없음.
     """
     mapped: dict[str, dict] = {}
-    for line in lines:
-        text = line["text"]
-        conf = line["confidence"]
+    for idx, line in enumerate(lines):
         # 혈압 "130/85" 우선 처리
-        if _try_map_blood_pressure(text, conf, mapped):
+        if _try_map_blood_pressure(line["text"], line["confidence"], mapped):
             continue
-        # 키워드 + 첫 숫자
-        _try_map_keyword(text, conf, mapped)
+        # 같은 라인 또는 인접 라인에서 매핑
+        _try_map_with_lookahead(lines, idx, mapped)
     return mapped
 
 
