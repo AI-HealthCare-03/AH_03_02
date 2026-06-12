@@ -15,12 +15,7 @@ from app.dtos.chat import ChatMessageResponse
 from app.models.chat import ChatRole
 from app.models.health_check import HealthCheck
 from app.repositories.chat_repository import ChatRepository
-
-_DIALYSIS_TO_TRACK: dict[str, str] = {
-    "none": "non_dialysis",
-    "hemodialysis": "hemodialysis",
-    "peritoneal": "peritoneal",
-}
+from app.services.diet_flags import dialysis_to_track, load_diet_flags
 
 
 def _sse(event: dict) -> str:
@@ -33,21 +28,24 @@ class ChatService:
         self._repo = ChatRepository()
 
     async def _build_user_context(self, user_id: int) -> dict:
-        """최신 검진에서 RAG 가 쓰는 eGFR·risk_group 추출. 없으면 {} (RAG 안전 분기)."""
+        """최신 검진에서 RAG 가 쓰는 eGFR·risk_group·track + 식이 플래그 추출. 없으면 부분/빈 dict."""
         hc = await HealthCheck.filter(user_id=user_id).order_by("-checked_date").first()
-        if hc is None:
-            return {}
         ctx: dict = {}
-        if hc.egfr_estimated is not None:
-            ctx["eGFR"] = hc.egfr_estimated
-        if hc.ckd_stage is not None:
-            ctx["risk_group"] = str(hc.ckd_stage)
-        if hc.weight is not None:
-            ctx["weight"] = hc.weight  # 단백질 등 영양 권장량을 사용자 체중으로 개인화 환산
-        if hc.dialysis_type is not None:
-            track = _DIALYSIS_TO_TRACK.get(str(hc.dialysis_type))
-            if track:
-                ctx["track"] = track
+        if hc is not None:
+            if hc.egfr_estimated is not None:
+                ctx["eGFR"] = hc.egfr_estimated
+            if hc.ckd_stage is not None:
+                ctx["risk_group"] = str(hc.ckd_stage)
+            if hc.weight is not None:
+                ctx["weight"] = hc.weight  # 단백질 등 영양 권장량을 사용자 체중으로 개인화 환산
+            if hc.dialysis_type is not None:
+                track = dialysis_to_track(str(hc.dialysis_type))
+                if track:
+                    ctx["track"] = track
+        # 식이 플래그(챗봇 배경 컨텍스트 — P1 단방향, Q&A 모드라 자동 우회 안 함)
+        flags = await load_diet_flags(user_id)
+        if flags is not None and (flags.flags or flags.search_hints):
+            ctx["diet_flags"] = {"flags": list(flags.flags), "search_hints": list(flags.search_hints)}
         return ctx
 
     async def ask(self, user_id: int, question: str) -> ChatMessageResponse:
