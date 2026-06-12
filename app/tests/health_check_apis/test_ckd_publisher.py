@@ -47,6 +47,11 @@ async def test_publish_ckd_job_no_survey(monkeypatch) -> None:  # noqa: ANN001
 
     monkeypatch.setattr(ckd_publisher.LifestyleSurvey, "filter", classmethod(lambda cls, **kw: _QS()))
 
+    async def _no_flags(user_id: int) -> None:  # 식이설문 없음 → 플래그 없음(DB 미접근)
+        return None
+
+    monkeypatch.setattr(ckd_publisher, "load_diet_flags", _no_flags)
+
     await ckd_publisher.publish_ckd_job(
         health_check_id=12,
         user_id=1,
