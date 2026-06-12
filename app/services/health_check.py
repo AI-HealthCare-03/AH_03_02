@@ -11,7 +11,7 @@ from app.dtos.health_check import (
     ReportMeta,
     ReportResponse,
 )
-from app.models.health_check import AppGroup, CkdStage, HealthCheck
+from app.models.health_check import AppGroup, CkdStage, DialysisType, HealthCheck
 from app.models.lifestyle_survey import LifestyleSurvey, SmokingStatus
 from app.models.safety_event import SafetyEvent, SafetyEventType
 from app.models.users import Gender, User
@@ -109,12 +109,22 @@ class HealthCheckService:
         systolic_bp: int,
         diastolic_bp: int,
         fasting_glucose: float,
+        ckd_diagnosed: bool = False,
+        dialysis_type: DialysisType | None = None,
     ) -> AppGroup:
-        """규칙 기반 AppGroup 배정 (설계서 § 4, 우선순위 G1→G2→G4).
+        """규칙 기반 AppGroup 배정 (설계서 § 4 + CKD 진단자 분기).
 
-        G3는 Model 1 score 필요 — AI 팀 연동 전까지 G4로 fallback.
-        htn_diagnosed / dm_diagnosed 미수집 — 추후 식이설문 연동 시 보완 예정.
+        1단계: CKD 진단자 우선 — 투석/이식이면 DIALYSIS, 그 외(비투석)는 CKD.
+               스크리닝(2단계)으로 내려가지 않는다.
+        2단계: 미진단자 스크리닝 (우선순위 G1→G2→G4). G3는 Model 1 score 필요 —
+               AI 워커가 비동기로 배정(연동 전까지 G4 fallback).
         """
+        # 1단계: CKD 진단자 우선 처리
+        if ckd_diagnosed:
+            if dialysis_type in (DialysisType.HEMODIALYSIS, DialysisType.PERITONEAL, DialysisType.TRANSPLANT):
+                return AppGroup.DIALYSIS
+            return AppGroup.CKD  # none/미입력 → 비투석(보존기)
+        # 2단계: 미진단자 스크리닝
         if egfr is not None and egfr < _G1_EGFR_THRESHOLD:
             return AppGroup.G1
         if (
@@ -175,7 +185,17 @@ class HealthCheckService:
             egfr = self._estimate_egfr(dto.creatinine, user_age, user_gender)
             ckd_stage = self._get_ckd_stage(egfr)
 
-        app_group = self._assign_app_group(egfr, dto.systolic_bp, dto.diastolic_bp, dto.fasting_glucose)
+        # CKD 진단 여부 조회(LifestyleSurvey) — 그룹 배정에 반영. 없으면 미진단(False).
+        lifestyle = await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date", "-id").first()
+        ckd_diagnosed = bool(lifestyle.ckd_diagnosed) if lifestyle else False
+        app_group = self._assign_app_group(
+            egfr,
+            dto.systolic_bp,
+            dto.diastolic_bp,
+            dto.fasting_glucose,
+            ckd_diagnosed=ckd_diagnosed,
+            dialysis_type=dto.dialysis_type,
+        )
 
         hc = await self._repo.create(
             user_id=user_id,
