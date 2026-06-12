@@ -64,7 +64,7 @@ REQUIRED_CHECKLIST: dict[str, list[tuple[str, str]]] = {
     "DIALYSIS": [
         ("medication", "[복약] 처방약을 정해진 시간 내로 복용하셨나요?"),
         ("diet_fluid", "[식이·수분] 주치의가 처방한 수분 제한량 및 식이요법(칼륨, 인 등)을 지키셨나요?"),
-        ("appointment", "[투석 일정] 투석 일정일을 캘린더에 등록되어 있나요?"),
+        ("appointment", "[투석 일정] 캘린더에 투석 일정이 등록되어 있나요?"),
         ("symptom", "[이상 증상] 호흡곤란·심한 부종 등 이상 시 즉시 의료진에게 연락하세요."),
     ],
     "CKD": [
@@ -74,22 +74,19 @@ REQUIRED_CHECKLIST: dict[str, list[tuple[str, str]]] = {
         ("symptom", "[이상 증상] 부종, 소변량, 체중 이상 시 즉시 의료진에게 연락하세요."),
     ],
     "INTENSIVE": [
-        ("medication", "[복약] 처방약을 정해진 시간 내로 복용하셨나요?"),
-        ("diet_fluid", "[식이·수분] 주치의가 처방한 수분·식이를 지키셨나요?"),
-        ("appointment", "[진료·검사] 진료 예약일을 캘린더에 등록되어 있나요?"),
-        ("symptom", "[이상 증상] 이상 증상 발생 시 즉시 의료진에게 연락하세요."),
+        ("hydration", "[수분] 오늘의 수분 섭취량을 기록해주세요."),
+        ("weight", "[체중] 오늘의 체중을 기록해주세요."),
+        ("sleep", "[수면] 오늘의 수면의 시간 기록해주세요."),
     ],
     "DAILY": [
-        ("medication", "[복약] 처방약을 정해진 시간 내로 복용하셨나요?"),
-        ("diet_fluid", "[식이·수분] 주치의가 정한 수분·식이 지키셨나요?"),
-        ("appointment", "[진료·검사] 진료 예약일을 캘린더에 등록되어 있나요?"),
-        ("symptom", "[이상 증상] 이상 증상 발생 시 즉시 의료진에게 연락하세요."),
+        ("hydration", "[수분] 오늘의 수분 섭취량을 기록해주세요."),
+        ("weight", "[체중] 오늘의 체중을 기록해주세요."),
+        ("sleep", "[수면] 오늘의 수면의 시간 기록해주세요."),
     ],
     "WELLNESS": [
-        ("health_check", "[건강 점검] 오늘 몸 상태를 간단히 점검해 보셨나요?"),
-        ("nutrition", "[수분·식이] 균형 잡힌 식사와 충분한 수분 섭취를 하셨나요?"),
-        ("activity", "[활동] 오늘 몸을 움직이는 시간이 있었나요?"),
-        ("sleep", "[수면] 어젯밤 수면은 충분했나요?"),
+        ("hydration", "[수분] 오늘의 수분 섭취량을 기록해주세요."),
+        ("weight", "[체중] 오늘의 체중을 기록해주세요."),
+        ("sleep", "[수면] 오늘의 수면의 시간 기록해주세요."),
     ],
 }
 
@@ -121,25 +118,25 @@ def stage_label(stage: int) -> str:
 def assign_track(
     app_group: str | None,
     ckd_diagnosed: bool,
-    egfr: float | None,
+    dialysis_type: str | None = None,
 ) -> ChallengeTrack:
-    """CKD 진단 여부·eGFR·앱 그룹(A/B/C/D)으로 트랙을 자동배정.
+    """CKD 진단 여부·dialysis_type·앱 그룹(A/B/C/D)으로 트랙을 자동배정.
 
-    PDF '트랙 배정 로직 정의서'(2026-06-11) 의사코드 기준.
-    트랙은 가입 시 설문·임상 수치로 자동 배정되며 사용자가 변경할 수 없다.
+    트랙은 자동 배정되며 사용자가 변경할 수 없다.
+    app_group(대시보드 그룹)과 동일하게 dialysis_type으로 투석/비투석을 판정한다.
 
     배정 순서 (우선순위):
     1. CKD 진단자 — 진단=예면 무조건 분기, 스크리닝(2단계)으로 내려가지 않음
-       - eGFR < 15             → DIALYSIS 트랙 (투석·이식, 의료진 배정)
-       - eGFR >= 15 또는 미입력 → CKD 트랙 (비투석 보존기, 의료진 배정)
+       - 혈액투석/복막투석/이식 → DIALYSIS 트랙 (투석·이식, 의료진 배정)
+       - 그 외(비투석·미입력)  → CKD 트랙 (비투석 보존기, 의료진 배정)
     2. 미진단자 스크리닝 (서비스 관리 대상)
        - A 그룹 (신장 집중 관리군)   → INTENSIVE 트랙
        - B·C 그룹 (위험·사전 관리군) → DAILY 트랙
        - D 그룹 또는 미분류           → WELLNESS 트랙 (fallback)
     """
     if ckd_diagnosed:
-        # 말기 신부전(eGFR < 15) → 투석·이식. 그 외(≥15·미입력)는 비투석 보존기.
-        if egfr is not None and egfr < 15:
+        # 투석/이식 → DIALYSIS, 그 외(비투석·미입력)는 비투석 보존기 CKD.
+        if dialysis_type in ("hemodialysis", "peritoneal", "transplant"):
             return ChallengeTrack.DIALYSIS
         return ChallengeTrack.CKD
 

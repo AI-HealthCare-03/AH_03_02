@@ -13,7 +13,7 @@ from datetime import date
 from ai_worker.core import db
 from ai_worker.core.logger import setup_logger
 from ai_worker.schemas.ckd import CkdJob
-from ai_worker.tasks import guide
+from ai_worker.tasks import consult_cards, guide
 from src.ckd import artifacts, pipeline, predict
 from src.ckd import config as ckd_config
 
@@ -38,10 +38,15 @@ async def _gen_and_store_guide(
 ) -> None:
     """가이드 1회 생성 후 ai_guide 저장. 실패는 로그만(ai_guide null 유지)."""
     try:
-        question = guide.build_guide_question(shap_model1 or [], shap_model2)
+        diet = user_context.get("diet_flags") or {}
+        question = guide.build_guide_question(shap_model1 or [], shap_model2, diet.get("search_hints"))
         text = await asyncio.to_thread(_run_rag, question, user_context)
-        await db.update_guide(health_check_id, text or "")
-        logger.info("가이드 선생성 완료 hc=%s len=%d", health_check_id, len(text or ""))
+        cards = consult_cards.render(diet.get("consult_cards"))
+        final = (text or "").strip()
+        if cards:
+            final = f"{final}\n\n{cards}".strip()
+        await db.update_guide(health_check_id, final)
+        logger.info("가이드 선생성 완료 hc=%s len=%d", health_check_id, len(final))
     except Exception:  # noqa: BLE001 — 선생성 실패가 worker를 막지 않도록
         logger.exception("가이드 선생성 실패 hc=%s", health_check_id)
 
@@ -57,6 +62,12 @@ def _spawn_guide_task(job: CkdJob, out: dict) -> None:
     weight = (job.payload or {}).get("weight")
     if weight is not None:
         user_ctx["weight"] = weight
+    diet_flags = (job.payload or {}).get("diet_flags")
+    if diet_flags:
+        user_ctx["diet_flags"] = diet_flags
+    track = (job.payload or {}).get("track")
+    if track:
+        user_ctx["track"] = track
 
     task = asyncio.create_task(
         _gen_and_store_guide(

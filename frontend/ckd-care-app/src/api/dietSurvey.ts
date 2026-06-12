@@ -6,6 +6,9 @@ export interface DietSurveyCreateRequest {
   sweet_drink_per_day: number;
   fried_food_per_week: number;
   vegetables_every_meal: boolean;
+  // 칼륨·단백질: A(G1)·B(G2)·진단자만 응답 (음식군 빈도 0적음/1보통/2많음). 미해당·미응답은 null.
+  potassium_food_freq?: number | null;
+  protein_food_freq?: number | null;
 }
 
 export interface DietSurveyResponse {

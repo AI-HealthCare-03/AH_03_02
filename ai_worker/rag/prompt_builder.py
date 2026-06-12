@@ -100,6 +100,22 @@ def _user_context_line(user_context: dict | None) -> str:
     return "\n[사용자 정보] " + ", ".join(parts)
 
 
+def _diet_flags_line(user_context: dict | None) -> str:
+    """식이 플래그를 배경 위험요인 1줄로(P1 단방향, R5 안전문구 반복 금지)."""
+    if not user_context:
+        return ""
+    diet = user_context.get("diet_flags") or {}
+    flags = diet.get("flags") or []
+    if not flags:
+        return ""
+    return (
+        "\n[식이 참고] 이 사용자의 식이 위험 신호: "
+        + ", ".join(flags)
+        + ". 위 신호를 배경으로 고려하되, 칼륨·인·단백질의 제한 수치나 금지 식품 목록을 "
+        "임의로 제시하지 말고, 필요 시 '본인 제한 여부는 의료진·영양사 확인'으로 안내하세요."
+    )
+
+
 def build_generation_messages(
     query: str,
     parent_context: str,
@@ -111,7 +127,8 @@ def build_generation_messages(
         f"[{d.metadata.get('source', '?')} p.{d.metadata.get('page', '?')}]\n{d.page_content}" for d in documents
     )
     context = parent_context.strip() or sources  # parent 맥락 우선, 없으면 child
-    user_msg = f"[참고 문서]\n{context}\n\n[근거 발췌]\n{sources}{_user_context_line(user_context)}\n\n[질문]\n{query}"
+    ctx_line = _user_context_line(user_context) + _diet_flags_line(user_context)
+    user_msg = f"[참고 문서]\n{context}\n\n[근거 발췌]\n{sources}{ctx_line}\n\n[질문]\n{query}"
     return [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": user_msg},

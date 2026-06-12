@@ -65,6 +65,8 @@ _APP_GROUP_TO_LETTER: dict[str, str] = {
     "G2": "B",  # 신장 위험 관리군 (eGFR >= 60 + 임상 마커)
     "G3": "C",  # 신장 사전 관리군 (모델 위험신호)
     "G4": "D",  # 건강 습관 형성군 (정상)
+    "CKD": "CKD",  # CKD 진단 + 비투석(보존기)
+    "DIALYSIS": "DIALYSIS",  # CKD 진단 + 투석/이식
 }
 
 
@@ -113,19 +115,19 @@ class ChallengeService:
     async def _compute_track(self, user_id: int) -> ChallengeTrack:
         """최신 검진·문진 기준 트랙 자동배정 (PDF 명세: 항상 자동, 사용자 변경 불가).
 
-        트랙 결정 입력은 app_group(A~D)·ckd_diagnosed·eGFR 뿐이며 dialysis_type은 쓰지 않는다.
+        트랙 결정 입력은 app_group(A~D)·ckd_diagnosed·dialysis_type.
         """
         hc = await self._hc_repo.get_latest(user_id)
         survey = await self._survey_repo.get_latest(user_id)
 
         app_group_letter = _app_group_to_letter(hc.app_group.value if hc and hc.app_group else None)
         ckd_diagnosed: bool = bool(survey.ckd_diagnosed) if survey else False
-        egfr: float | None = hc.egfr_estimated if hc else None
+        dialysis_type: str | None = hc.dialysis_type.value if hc and hc.dialysis_type else None
 
         return assign_track(
             app_group=app_group_letter,
             ckd_diagnosed=ckd_diagnosed,
-            egfr=egfr,
+            dialysis_type=dialysis_type,
         )
 
     async def get_my_track(self, user_id: int) -> MyTrackResponse:

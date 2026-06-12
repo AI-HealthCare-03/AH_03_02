@@ -146,10 +146,37 @@ export interface OCRField {
   confidence: number; // 0~1
 }
 
+export interface OCRMappedField {
+  value: number;
+  confidence: number;
+  source_text: string;
+}
+
+// 자동 매핑되는 검진 필드 (ManualInputPage prefill용 필드명과 일치)
+// LDL은 시스템에서 사용 안 함 → OCR 매핑에서 제외
+export type OCRMappedKey =
+  | "fasting_glucose"
+  | "creatinine"
+  | "hdl_cholesterol"
+  | "total_cholesterol"
+  | "triglycerides"
+  | "systolic_bp"
+  | "diastolic_bp"
+  | "height"
+  | "weight"
+  | "waist_circumference";
+
+export interface OCRLine {
+  text: string;
+  confidence: number;
+}
+
 export interface OCRResponse {
   engine: "clova" | "stub";
   filename: string;
   fields: OCRField[];
+  lines?: OCRLine[];
+  mapped?: Partial<Record<OCRMappedKey, OCRMappedField>>;
   low_confidence_count: number;
   page_count?: number;
   page_errors?: string[];
