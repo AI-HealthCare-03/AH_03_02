@@ -16,6 +16,7 @@ import time
 from langchain_core.documents import Document
 from qdrant_client import QdrantClient
 from qdrant_client.models import FieldCondition, Filter, MatchAny, MatchValue
+from rank_bm25 import BM25Okapi
 
 from . import config as cfg
 from . import embedder
@@ -35,6 +36,22 @@ def get_client() -> QdrantClient:
 def _parent_point_id(parent_hex: str) -> int:
     """인덱싱 uploader.point_id 와 동일 규칙 (16-hex → u64)."""
     return int(parent_hex, 16)
+
+
+def _bm25_scores(query: str, texts: list[str]) -> list[float]:
+    """BM25Okapi 점수 반환 (한국어: 공백 토크나이저)."""
+    tokenized = [t.split() for t in texts]
+    bm25 = BM25Okapi(tokenized)
+    return bm25.get_scores(query.split()).tolist()
+
+
+def _rrf_rerank(hits: list, bm25_scores: list[float], *, k: int, top_k: int) -> list:
+    """코사인 순위 + BM25 순위를 RRF로 통합, top_k개 반환."""
+    n = len(hits)
+    bm25_rank = {i: r for r, i in enumerate(sorted(range(n), key=lambda x: bm25_scores[x], reverse=True))}
+    rrf_scores = [1 / (k + ci) + 1 / (k + bm25_rank[ci]) for ci in range(n)]
+    order = sorted(range(n), key=lambda i: rrf_scores[i], reverse=True)
+    return [hits[i] for i in order[:top_k]]
 
 
 def retrieve(
@@ -78,10 +95,16 @@ def retrieve(
     hits = client.query_points(
         collection_name=cfg.COLLECTION_CHILD,
         query=qv,
-        limit=top_k,
+        limit=cfg.BM25_OVER_FETCH,
         query_filter=flt,
     ).points
     logger.info("[RAG-TIMING]   retrieve.qdrant_child  elapsed=%.3fs", time.perf_counter() - _t)
+
+    if hits:
+        texts = [(h.payload or {}).get("text", "") for h in hits]
+        scores = _bm25_scores(query, texts)
+        hits = _rrf_rerank(hits, scores, k=cfg.RRF_K, top_k=top_k)
+        logger.info("[RAG-RRF]  candidates=%d → final=%d", len(texts), len(hits))
 
     documents: list[Document] = []
     parent_ids: list[str] = []  # 순서 보존 + 중복 제거

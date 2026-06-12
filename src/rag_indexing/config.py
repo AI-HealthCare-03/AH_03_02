@@ -144,6 +144,13 @@ TRACK_BY_SOURCE_KO: dict = {
     "비투석": TRACK_NON_DIALYSIS,
 }
 
+# 파일명 stem → track 강제 지정 (doc_type 우선도 무시 — clinical 파일 수동 트랙 지정용)
+# 키: path.stem 완전일치 / 값: TRACK_* 상수
+SOURCE_TRACK_OVERRIDE: dict = {
+    "2021 적절한 혈액투석 치료 근거기반 진료지침": TRACK_HEMODIALYSIS,
+    "(2012)복막투석 복막염 진료지침": TRACK_PERITONEAL,
+}
+
 # ─────────────────────────────────────────────
 # Qdrant 업로드 (qdrant_uploader.py)
 # ─────────────────────────────────────────────

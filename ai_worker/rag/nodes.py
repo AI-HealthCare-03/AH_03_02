@@ -44,6 +44,8 @@ def grade_node(state: RAGState) -> dict:
     joined = "\n\n".join(d.page_content for d in state["documents"])
     if not joined.strip():
         return {"relevance": "not_relevant"}
+    if state.get("top_score", 0.0) >= cfg.SCORE_PREPASS:
+        return {"relevance": "relevant"}
     g = llm_client.doc_grader().invoke(f"질문: {_q(state)}\n문서:\n{joined}\n이 문서에 질문에 답할 정보가 있습니까?")
     return {"relevance": g.relevance}
 
@@ -160,17 +162,6 @@ def fallback_post_guard_node(state: RAGState) -> dict:
     return {"generation": safety_guard.fallback_finalize(state.get("generation", ""))}
 
 
-_NO_EVIDENCE_NOTICE = (
-    "죄송합니다. 해당 질문에 대해서는 현재 제공 가능한 의료 가이드라인 정보가 없습니다.\n"
-    "정확한 안내를 위해 담당 의료진에게 확인해 주시기 바랍니다."
-)
-
-
-def no_evidence_notice_node(state: RAGState) -> dict:
-    """신장 관련이지만 가이드라인 근거 없음 → 고정 문구 반환 (LLM 생성 없음)."""
-    return {"generation": _NO_EVIDENCE_NOTICE}
-
-
 def referral_notice_node(state: RAGState) -> dict:
     """DOMAIN_2_GENERAL(인접질환 비신장) → 전문진료 유도."""
     return {"generation": safety_guard.REFERRAL_NOTICE}
@@ -186,7 +177,7 @@ def fallback_router(s: RAGState) -> str:
         return "blocked"
     d = s.get("domain", "")
     if d in ("DOMAIN_1", "DOMAIN_2_KIDNEY"):
-        return "no_evidence_notice"
+        return "fallback_generate"
     if d == "DOMAIN_2_GENERAL":
         return "referral"
     return "scope"  # DOMAIN_3 또는 분류 실패 시 안전하게 scope 안내
