@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Soup, Coffee, Pizza, Leaf } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Soup, Coffee, Pizza, Leaf, Apple, Beef } from "lucide-react";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 import { Tag } from "../components/Tag";
 import { BtnPrimary } from "../components/BtnPrimary";
-import { dietSurveyApi } from "../api/dietSurvey";
+import { dietSurveyApi, type DietSurveyCreateRequest } from "../api/dietSurvey";
+import { dashboardApi } from "../api/dashboard";
 
 function StepperInput({ label, value, onChange, min = 0, max = 30 }: {
   label: string; value: number; onChange: (v: number) => void; min?: number; max?: number;
@@ -26,6 +28,29 @@ function StepperInput({ label, value, onChange, min = 0, max = 30 }: {
   );
 }
 
+// 적음/보통/많음 3지선다 (음식군 섭취 빈도 → 0/1/2). 칼륨·단백질 문항용.
+function ChoiceButtons({ value, onChange, options }: {
+  value: number | null; onChange: (v: number) => void; options: string[];
+}) {
+  return (
+    <div className="flex gap-[12px]">
+      {options.map((opt, i) => (
+        <button
+          key={i}
+          onClick={() => onChange(i)}
+          className={`flex-1 rounded-md border px-[16px] py-[10px] text-sm ${
+            value === i
+              ? "border-accent bg-accent font-bold text-bg"
+              : "border-border-strong bg-bg text-text-primary"
+          }`}
+        >
+          {opt}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function DietSurveyPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -35,6 +60,18 @@ export function DietSurveyPage() {
   const [sweetDrink, setSweetDrink] = useState(1);
   const [friedFood, setFriedFood] = useState(2);
   const [vegetables, setVegetables] = useState<boolean | null>(null);
+  const [potassium, setPotassium] = useState<number | null>(null);
+  const [protein, setProtein] = useState<number | null>(null);
+
+  // 칼륨·단백질 문항은 A(eGFR<60=G1)·B(위험인자=G2)·CKD 진단자만 노출.
+  // (미해당자에겐 무의미하고, 혈중 칼륨 미확인 상태에서 과일·채소 기피를 유발할 수 있어 묻지 않음)
+  const { data: summary } = useQuery({
+    queryKey: ["dashboard-summary"],
+    queryFn: dashboardApi.getSummary,
+  });
+  const appGroup = summary?.latest_health?.app_group ?? null;
+  const ckdDiagnosed = summary?.latest_lifestyle?.ckd_diagnosed ?? false;
+  const showKP = ckdDiagnosed || appGroup === "G1" || appGroup === "G2";
 
   async function handleSubmit() {
     if (vegetables === null) {
@@ -43,13 +80,19 @@ export function DietSurveyPage() {
     setError("");
     setLoading(true);
     try {
-      await dietSurveyApi.create({
+      const body: DietSurveyCreateRequest = {
         surveyed_date: new Date().toISOString().slice(0, 10),
         soup_stew_per_day: soupStew,
         sweet_drink_per_day: sweetDrink,
         fried_food_per_week: friedFood,
         vegetables_every_meal: vegetables,
-      });
+      };
+      // 해당자만 칼륨·단백질 전송. 미선택은 null(백엔드 nullable, 플래그 미생성).
+      if (showKP) {
+        body.potassium_food_freq = potassium;
+        body.protein_food_freq = protein;
+      }
+      await dietSurveyApi.create(body);
       navigate("/dashboard");
     } catch (e) {
       setError(e instanceof Error ? e.message : "저장에 실패했습니다.");
@@ -145,6 +188,35 @@ export function DietSurveyPage() {
               </button>
             </div>
           </div>
+
+          {/* Q5·Q6: 칼륨·단백질 — 신장 위험군(A·B)·CKD 진단자만 노출 */}
+          {showKP && (
+            <>
+              {/* Q5: 칼륨 (과일·채소·콩류 빈도) */}
+              <div className="flex flex-col gap-[12px] rounded-md border border-border bg-bg p-[16px]">
+                <div className="flex items-center gap-[12px]">
+                  <Apple size={24} className="text-text-secondary" />
+                  <p className="flex-1 text-sm font-bold text-text-primary">
+                    과일·채소·콩류를 하루 몇 번 드시나요?
+                  </p>
+                  <Tag label="칼륨" />
+                </div>
+                <ChoiceButtons value={potassium} onChange={setPotassium} options={["적음", "보통", "많음"]} />
+              </div>
+
+              {/* Q6: 단백질 (고기·생선·계란 빈도) */}
+              <div className="flex flex-col gap-[12px] rounded-md border border-border bg-bg p-[16px]">
+                <div className="flex items-center gap-[12px]">
+                  <Beef size={24} className="text-text-secondary" />
+                  <p className="flex-1 text-sm font-bold text-text-primary">
+                    고기·생선·계란을 하루 몇 번 드시나요?
+                  </p>
+                  <Tag label="단백질" />
+                </div>
+                <ChoiceButtons value={protein} onChange={setProtein} options={["적음", "보통", "많음"]} />
+              </div>
+            </>
+          )}
         </div>
 
         <div className="mt-[24px] w-[640px]">
