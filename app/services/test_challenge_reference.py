@@ -63,9 +63,14 @@ class TestMappingIntegrity:
             for c in cats:
                 assert c in CATEGORY_LABEL
 
-    def test_required_checklist_4_items(self):
+    def test_required_checklist_items(self):
+        # PDF 수정사항4: 투석 트랙(DIALYSIS·CKD)은 4종 유지, 비투석 스크리닝(INTENSIVE/DAILY/WELLNESS)은 수분·체중·수면 3종
         assert set(REQUIRED_CHECKLIST.keys()) == {"DIALYSIS", "CKD", "INTENSIVE", "DAILY", "WELLNESS"}
-        for items in REQUIRED_CHECKLIST.values():
-            assert len(items) == 4
+        expected_len = {"DIALYSIS": 4, "CKD": 4, "INTENSIVE": 3, "DAILY": 3, "WELLNESS": 3}
+        for track, items in REQUIRED_CHECKLIST.items():
+            assert len(items) == expected_len[track], (track, len(items))
             for key, text in items:
                 assert isinstance(key, str) and isinstance(text, str) and text
+        # INTENSIVE/DAILY/WELLNESS는 동일한 수분·체중·수면 3종
+        for track in ("INTENSIVE", "DAILY", "WELLNESS"):
+            assert [k for k, _ in REQUIRED_CHECKLIST[track]] == ["hydration", "weight", "sleep"]
