@@ -21,6 +21,8 @@ class DietSurveyService:
             sweet_drink_per_day=dto.sweet_drink_per_day,
             fried_food_per_week=dto.fried_food_per_week,
             vegetables_every_meal=dto.vegetables_every_meal,
+            potassium_food_freq=dto.potassium_food_freq,
+            protein_food_freq=dto.protein_food_freq,
         )
         return DietSurveyResponse.model_validate(survey)
 
