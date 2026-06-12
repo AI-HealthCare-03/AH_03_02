@@ -192,3 +192,41 @@ def compute_diet_flags(
     )
 
     return DietFlagResult(flags=tuple(flags), consult_cards=tuple(cards), search_hints=tuple(hints))
+
+
+async def load_diet_flags(user_id: int) -> DietFlagResult | None:
+    """사용자 최신 식이설문·검진·생활습관설문 조회 → compute_diet_flags.
+
+    식이설문이 없으면 None(플래그 없음). 챗봇·리포트 가이드 두 경로 공용.
+    """
+    from app.models.diet_survey import DietSurvey
+    from app.models.health_check import HealthCheck
+    from app.models.lifestyle_survey import LifestyleSurvey
+
+    diet_row = await DietSurvey.filter(user_id=user_id).order_by("-surveyed_date").first()
+    if diet_row is None:
+        return None
+
+    hc = await HealthCheck.filter(user_id=user_id).order_by("-checked_date", "-id").first()
+    ls = await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date").first()
+
+    app_group = str(hc.app_group) if (hc and hc.app_group is not None) else None
+    track = dialysis_to_track(str(hc.dialysis_type)) if (hc and hc.dialysis_type is not None) else None
+    ckd_diagnosed = bool(ls.ckd_diagnosed) if ls else False
+    dm_diagnosed = bool(ls.dm_diagnosed) if ls else False
+
+    diet = DietInput(
+        soup_stew_per_day=diet_row.soup_stew_per_day,
+        sweet_drink_per_day=diet_row.sweet_drink_per_day,
+        fried_food_per_week=diet_row.fried_food_per_week,
+        vegetables_every_meal=diet_row.vegetables_every_meal,
+        potassium_food_freq=diet_row.potassium_food_freq,
+        protein_food_freq=diet_row.protein_food_freq,
+    )
+    return compute_diet_flags(
+        diet,
+        app_group=app_group,
+        ckd_diagnosed=ckd_diagnosed,
+        track=track,
+        dm_diagnosed=dm_diagnosed,
+    )
