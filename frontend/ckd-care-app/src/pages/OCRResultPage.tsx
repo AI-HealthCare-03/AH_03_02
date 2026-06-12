@@ -1,13 +1,35 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Copy, AlertTriangle, FileX } from "lucide-react";
+import { Copy, AlertTriangle, FileX, Sparkles } from "lucide-react";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 import { BtnPrimary } from "../components/BtnPrimary";
 import { BtnSecondary } from "../components/BtnSecondary";
-import type { OCRResponse } from "../api/healthCheck";
+import type { OCRResponse, OCRMappedKey } from "../api/healthCheck";
 
 const LOW_CONFIDENCE_THRESHOLD = 0.85;
+
+// 매핑 필드 한국어 라벨 + 단위
+const MAPPED_FIELD_LABEL: Record<OCRMappedKey, { label: string; unit: string }> = {
+  height: { label: "신장", unit: "cm" },
+  weight: { label: "체중", unit: "kg" },
+  waist_circumference: { label: "허리둘레", unit: "cm" },
+  systolic_bp: { label: "수축기 혈압", unit: "mmHg" },
+  diastolic_bp: { label: "이완기 혈압", unit: "mmHg" },
+  fasting_glucose: { label: "공복혈당", unit: "mg/dL" },
+  creatinine: { label: "크레아티닌", unit: "mg/dL" },
+  total_cholesterol: { label: "총콜레스테롤", unit: "mg/dL" },
+  hdl_cholesterol: { label: "HDL 콜레스테롤", unit: "mg/dL" },
+  triglycerides: { label: "중성지방", unit: "mg/dL" },
+};
+
+// 표시 순서 (검진 결과지 일반 순)
+const MAPPED_FIELD_ORDER: OCRMappedKey[] = [
+  "height", "weight", "waist_circumference",
+  "systolic_bp", "diastolic_bp",
+  "fasting_glucose", "creatinine",
+  "total_cholesterol", "hdl_cholesterol", "triglycerides",
+];
 
 export function OCRResultPage() {
   const navigate = useNavigate();
@@ -32,6 +54,15 @@ export function OCRResultPage() {
   }
 
   const fullText = ocr.fields.map((f) => f.text).join(" ");
+  const mapped = ocr.mapped ?? {};
+  const mappedKeys = MAPPED_FIELD_ORDER.filter((k) => mapped[k] != null);
+
+  // ManualInputPage prefill 객체 구성 — value만 추출
+  const prefill: Record<string, number> = {};
+  for (const k of mappedKeys) {
+    const f = mapped[k];
+    if (f) prefill[k] = f.value;
+  }
 
   async function copyAllToClipboard() {
     try {
@@ -39,7 +70,7 @@ export function OCRResultPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // clipboard API 사용 불가 (insecure context 등)
+      // clipboard API 사용 불가
     }
   }
 
@@ -52,6 +83,12 @@ export function OCRResultPage() {
         <div className="flex w-full max-w-[800px] flex-col gap-[8px] md:flex-row md:items-center md:justify-between md:gap-0">
           <h1 className="text-2xl font-bold text-text-primary">OCR 추출 결과</h1>
           <div className="flex flex-wrap items-center gap-[8px]">
+            {mappedKeys.length > 0 && (
+              <span className="flex items-center gap-[4px] rounded-sm bg-success/10 px-[10px] py-[4px] text-sm font-bold text-success">
+                <Sparkles size={14} />
+                자동 매핑 {mappedKeys.length}개
+              </span>
+            )}
             <span className="rounded-sm bg-info/10 px-[10px] py-[4px] text-sm font-bold text-info">
               항목 {ocr.fields.length}개
             </span>
@@ -64,11 +101,40 @@ export function OCRResultPage() {
           </div>
         </div>
 
+        {/* 자동 매핑 카드 — 시연 핵심 */}
+        {mappedKeys.length > 0 && (
+          <div className="mt-[16px] w-full max-w-[800px] rounded-md border border-accent bg-accent/5 p-[16px]">
+            <div className="mb-[10px] flex items-center gap-[6px]">
+              <Sparkles size={16} className="text-accent" />
+              <p className="text-sm font-bold text-text-primary">자동 매핑된 검진 수치</p>
+              <span className="text-xs text-text-muted">— "검진 수치 직접 입력으로 이동" 시 자동 입력</span>
+            </div>
+            <div className="grid grid-cols-2 gap-[8px] md:grid-cols-3">
+              {mappedKeys.map((k) => {
+                const f = mapped[k]!;
+                const meta = MAPPED_FIELD_LABEL[k];
+                const low = f.confidence < LOW_CONFIDENCE_THRESHOLD;
+                return (
+                  <div key={k} className="rounded-sm bg-bg px-[10px] py-[8px]">
+                    <p className="text-[11px] text-text-muted">{meta.label}</p>
+                    <p className="mt-[2px] flex items-baseline gap-[4px]">
+                      <span className="text-base font-bold text-text-primary">{f.value}</span>
+                      <span className="text-[10px] text-text-muted">{meta.unit}</span>
+                      <span className={`ml-auto text-[10px] font-bold ${low ? "text-warning" : "text-success"}`}>
+                        {Math.round(f.confidence * 100)}%{low && " ⚠"}
+                      </span>
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* 안내 박스 */}
         <div className="mt-[16px] w-full max-w-[800px] rounded-sm border border-info bg-info/5 px-[16px] py-[12px] text-sm leading-[1.6] text-text-secondary">
           <p>
-            추출된 텍스트를 보고 <span className="font-bold text-text-primary">검진 수치 직접 입력</span> 화면에 옮겨 적으세요.
-            신뢰도 {(LOW_CONFIDENCE_THRESHOLD * 100).toFixed(0)}% 미만 항목은 ⚠ 표시로 강조됩니다.
+            아래 추출된 텍스트는 검진 수치 입력 화면에서 확인·보정할 수 있어요. 신뢰도 {(LOW_CONFIDENCE_THRESHOLD * 100).toFixed(0)}% 미만 항목은 ⚠ 표시로 강조됩니다.
           </p>
         </div>
 
@@ -87,7 +153,7 @@ export function OCRResultPage() {
                 <span className="text-xs font-bold text-text-secondary">추출된 텍스트</span>
                 <span className="text-right text-xs font-bold text-text-secondary">신뢰도</span>
               </div>
-              <div className="max-h-[480px] overflow-y-auto">
+              <div className="max-h-[360px] overflow-y-auto">
                 {ocr.fields.map((f, idx) => {
                   const low = f.confidence < LOW_CONFIDENCE_THRESHOLD;
                   const pct = Math.round(f.confidence * 100);
@@ -123,8 +189,8 @@ export function OCRResultPage() {
         <div className="mt-[24px] flex w-full max-w-[800px] flex-col-reverse gap-[8px] md:flex-row md:justify-end">
           <BtnSecondary label="다시 업로드" onClick={() => navigate("/ocr-upload")} />
           <BtnPrimary
-            label="검진 수치 직접 입력으로 이동"
-            onClick={() => navigate("/manual-input", { state: { ocrText: fullText } })}
+            label={mappedKeys.length > 0 ? `자동 입력 (${mappedKeys.length}개) + 직접 보정` : "검진 수치 직접 입력으로 이동"}
+            onClick={() => navigate("/manual-input", { state: { ocrText: fullText, prefill } })}
           />
         </div>
       </main>
