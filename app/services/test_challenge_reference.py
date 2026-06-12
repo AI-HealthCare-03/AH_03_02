@@ -19,38 +19,39 @@ class TestAssignTrack:
     트랙은 (app_group, ckd_diagnosed, egfr)만으로 자동배정된다 — dialysis_type 미사용.
     """
 
-    # ── 1단계: CKD 진단자 (최우선 분기, 스크리닝으로 내려가지 않음) ──
-    def test_diagnosed_low_egfr_dialysis(self):
-        # eGFR < 15 → 투석·이식 트랙
-        assert assign_track("D", True, 12) == ChallengeTrack.DIALYSIS
+    # ── 1단계: CKD 진단자 (최우선 분기, dialysis_type으로 투석/비투석 판정) ──
+    def test_diagnosed_hemodialysis_dialysis(self):
+        assert assign_track("D", True, "hemodialysis") == ChallengeTrack.DIALYSIS
 
-    def test_diagnosed_egfr_ge_15_conservative(self):
-        # eGFR >= 15 → 비투석 CKD 트랙
-        assert assign_track("A", True, 40) == ChallengeTrack.CKD
+    def test_diagnosed_peritoneal_dialysis(self):
+        assert assign_track("A", True, "peritoneal") == ChallengeTrack.DIALYSIS
 
-    def test_diagnosed_egfr_boundary_15(self):
-        # eGFR == 15 (< 15 아님) → 비투석 CKD 트랙
-        assert assign_track("A", True, 15) == ChallengeTrack.CKD
+    def test_diagnosed_transplant_dialysis(self):
+        assert assign_track("A", True, "transplant") == ChallengeTrack.DIALYSIS
 
-    def test_diagnosed_egfr_missing_conservative(self):
-        # eGFR 미입력 → 비투석 CKD 트랙 (진단=예면 무조건 분기)
+    def test_diagnosed_non_dialysis_ckd(self):
+        # 비투석(none) → 비투석 CKD 트랙
+        assert assign_track("A", True, "none") == ChallengeTrack.CKD
+
+    def test_diagnosed_dialysis_missing_ckd(self):
+        # 투석 종류 미입력 → 비투석 CKD 트랙 (진단=예면 무조건 분기)
         assert assign_track(None, True, None) == ChallengeTrack.CKD
 
-    # ── 2단계: 미진단자 스크리닝 (app_group 기반) ──
+    # ── 2단계: 미진단자 스크리닝 (app_group 기반, dialysis_type 무관) ──
     def test_group_a_intensive(self):
-        assert assign_track("A", False, 55) == ChallengeTrack.INTENSIVE
+        assert assign_track("A", False) == ChallengeTrack.INTENSIVE
 
     def test_group_b_daily(self):
-        assert assign_track("B", False, 80) == ChallengeTrack.DAILY
+        assert assign_track("B", False) == ChallengeTrack.DAILY
 
     def test_group_c_daily(self):
-        assert assign_track("C", False, 90) == ChallengeTrack.DAILY
+        assert assign_track("C", False) == ChallengeTrack.DAILY
 
     def test_group_d_wellness(self):
-        assert assign_track("D", False, 95) == ChallengeTrack.WELLNESS
+        assert assign_track("D", False) == ChallengeTrack.WELLNESS
 
     def test_unknown_group_defaults_wellness(self):
-        assert assign_track(None, False, None) == ChallengeTrack.WELLNESS
+        assert assign_track(None, False) == ChallengeTrack.WELLNESS
 
 
 class TestMappingIntegrity:
