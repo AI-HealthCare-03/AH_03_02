@@ -41,6 +41,8 @@ async def update_prediction(
     """예측 결과로 health_checks 갱신. eGFR·ckd_stage는 app 동기값을 유지(미갱신).
 
     shap_model1·shap_model2: None이면 DB에 NULL 저장. 값이 있으면 JSONB로 직렬화.
+    app_group: 현재 값이 CKD/DIALYSIS(진단자 그룹)면 모델 점수로 덮어쓰지 않는다
+    (risk_score·shap는 진단자에게도 갱신, app_group만 보호).
     """
     pool = await get_pool()
     shap1_json = json.dumps(shap_model1, ensure_ascii=False) if shap_model1 is not None else None
@@ -49,7 +51,10 @@ async def update_prediction(
         await conn.execute(
             """UPDATE health_checks
                SET ckd_risk_score = $1,
-                   app_group = $2,
+                   app_group = CASE
+                       WHEN app_group IN ('CKD', 'DIALYSIS') THEN app_group
+                       ELSE $2
+                   END,
                    shap_model1 = $3::jsonb,
                    shap_model2 = $4::jsonb
              WHERE id = $5""",

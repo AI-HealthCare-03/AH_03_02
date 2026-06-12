@@ -19,6 +19,8 @@ class AppGroup(StrEnum):
     G2 = "G2"  # eGFR >= 60 + 임상 마커 → Track A (케어)
     G3 = "G3"  # 위험점수 >= 임계값 → Track B (일반)
     G4 = "G4"  # 정상 → Track B (일반)
+    CKD = "CKD"  # CKD 진단 + 투석 안함 → 비투석(보존기) 트랙
+    DIALYSIS = "DIALYSIS"  # CKD 진단 + 혈액투석/복막투석/이식 → 투석·이식 트랙
 
 
 class DialysisType(StrEnum):
