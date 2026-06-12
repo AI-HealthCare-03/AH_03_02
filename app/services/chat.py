@@ -29,7 +29,7 @@ class ChatService:
 
     async def _build_user_context(self, user_id: int) -> dict:
         """최신 검진에서 RAG 가 쓰는 eGFR·risk_group·track + 식이 플래그 추출. 없으면 부분/빈 dict."""
-        hc = await HealthCheck.filter(user_id=user_id).order_by("-checked_date").first()
+        hc = await HealthCheck.filter(user_id=user_id).order_by("-checked_date", "-id").first()
         ctx: dict = {}
         if hc is not None:
             if hc.egfr_estimated is not None:
