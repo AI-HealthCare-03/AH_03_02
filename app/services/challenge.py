@@ -22,7 +22,6 @@ from app.dtos.challenge import (
     JoinChallengeRequest,
     MyTrackResponse,
     TrackCategoryInfo,
-    UpdateMyTrackRequest,
     UserChallengeListResponse,
     UserChallengeResponse,
     WeeklyEmotionResponse,
@@ -111,66 +110,70 @@ class ChallengeService:
 
     # ── 트랙 자동배정 · 조회 ──────────────────────────────────────────────────
 
-    async def get_my_track(self, user_id: int) -> MyTrackResponse:
-        """사용자 트랙 조회: 기존 프로필 반환 또는 자동 배정 후 생성.
+    async def _compute_track(self, user_id: int) -> ChallengeTrack:
+        """최신 검진·문진 기준 트랙 자동배정 (PDF 명세: 항상 자동, 사용자 변경 불가).
 
-        배정 흐름:
-        1. 최신 HealthCheck + LifestyleSurvey 조회
-        2. assign_track 으로 트랙 계산
-        3. UserChallengeProfile 존재 여부 확인
-           - 없음 → 계산된 트랙으로 신규 생성 (auto_assigned=True)
-           - 있음 + auto_assigned=True → 재계산 결과 반영(갱신)
-           - 있음 + auto_assigned=False → 사용자 선택 유지(반환)
+        트랙 결정 입력은 app_group(A~D)·ckd_diagnosed·eGFR 뿐이며 dialysis_type은 쓰지 않는다.
         """
         hc = await self._hc_repo.get_latest(user_id)
         survey = await self._survey_repo.get_latest(user_id)
 
-        # assign_track 입력값 추출
         app_group_letter = _app_group_to_letter(hc.app_group.value if hc and hc.app_group else None)
         ckd_diagnosed: bool = bool(survey.ckd_diagnosed) if survey else False
-        dialysis_type_val: str | None = hc.dialysis_type.value if hc and hc.dialysis_type else None
         egfr: float | None = hc.egfr_estimated if hc else None
 
-        computed_track: ChallengeTrack = assign_track(
+        return assign_track(
             app_group=app_group_letter,
             ckd_diagnosed=ckd_diagnosed,
-            dialysis_type=dialysis_type_val,
             egfr=egfr,
         )
 
+    async def get_my_track(self, user_id: int) -> MyTrackResponse:
+        """사용자 트랙 조회 — 항상 최신 검진·문진으로 자동 재배정 (PDF 명세).
+
+        트랙은 사용자가 변경할 수 없고, 검진/진단 변화 시 동일 로직으로 재스크리닝된다.
+        stage(배지 단계)는 사용자 설정값으로 유지한다.
+        - 프로필 없음 → 자동배정 결과로 신규 생성
+        - 프로필 있음 + 트랙 불일치 → 재배정 결과로 갱신 (stage 유지)
+        """
+        computed_track = await self._compute_track(user_id)
+
         profile = await self._profile_repo.get_by_user(user_id)
         if profile is None:
-            # 신규 사용자: 자동배정 결과로 프로필 생성
             profile = await self._profile_repo.upsert(
                 user_id=user_id,
                 track=computed_track,
                 stage=1,
                 auto_assigned=True,
             )
-        elif profile.auto_assigned:
-            # 자동배정 상태: 재계산 결과 반영 (트랙만 갱신, stage는 유지)
+        elif profile.track != computed_track:
+            # 검진/진단 변화 → 트랙 재배정 (stage는 사용자 값 유지)
             profile = await self._profile_repo.upsert(
                 user_id=user_id,
                 track=computed_track,
                 stage=profile.stage,
                 auto_assigned=True,
             )
-        # auto_assigned=False인 경우: 사용자가 수동으로 선택한 트랙 유지
 
         # 챌린지 스테이지 → 캐릭터 창 배경(proficiency) 동기화 (기존 유저 백필 포함)
         await self._sync_proficiency(user_id, profile.stage)
         return _build_my_track_response(profile)
 
-    async def update_my_track(self, user_id: int, dto: UpdateMyTrackRequest) -> MyTrackResponse:
-        """트랙·스테이지 수동 변경. auto_assigned=False 로 사용자 선택 고정."""
+    async def update_my_track(self, user_id: int, stage: int) -> MyTrackResponse:
+        """배지 단계(stage)만 변경. 트랙은 PDF 명세상 사용자 변경 불가 — 자동배정 유지.
+
+        과거 stage 변경이 트랙을 수동 고정(auto_assigned=False)시켜 그룹↔트랙 연동이
+        끊겼던 버그를 막기 위해, 여기서도 트랙은 항상 재계산 결과로 저장한다.
+        """
+        computed_track = await self._compute_track(user_id)
         profile = await self._profile_repo.upsert(
             user_id=user_id,
-            track=dto.track,
-            stage=dto.stage,
-            auto_assigned=False,
+            track=computed_track,
+            stage=stage,
+            auto_assigned=True,
         )
         # 챌린지 스테이지 → 캐릭터 창 배경(proficiency) 동기화
-        await self._sync_proficiency(user_id, dto.stage)
+        await self._sync_proficiency(user_id, stage)
         return _build_my_track_response(profile)
 
     @staticmethod
@@ -281,6 +284,14 @@ class ChallengeService:
 
         existing = await self._user_repo.get_active(user_id, dto.challenge_id)
         if existing is not None:
+            # 해제(ABANDONED)했던 챌린지를 다시 선택 → 재활성화(ACTIVE 복귀, 이력 유지).
+            # 같은 (user, challenge)에 행이 하나라 새로 create하면 unique 충돌 → 기존 행 재사용.
+            if existing.status == UserChallengeStatus.ABANDONED:
+                existing.status = UserChallengeStatus.ACTIVE
+                existing.started_at = dto.started_at
+                await self._user_repo.save(existing)
+                await self._notif.notify_challenge_joined(user_id, challenge.name, existing.id)
+                return UserChallengeResponse.model_validate(existing)
             raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="이미 참여 중인 챌린지입니다.")
 
         uc = await self._user_repo.create(

@@ -150,8 +150,9 @@ export interface DailyChecklistResponse {
 export const challengeApi = {
   // ── 신버전 (트랙·스테이지·필수체크) ─────────────────────────────────────
   myTrack: () => api.get<MyTrack>("/challenges/my-track"),
-  updateMyTrack: (track: ChallengeTrack, stage: number) =>
-    api.put<MyTrack>("/challenges/my-track", { track, stage }),
+  // 트랙은 자동배정되어 변경 불가 — 배지 단계(stage)만 변경한다.
+  updateMyTrack: (stage: number) =>
+    api.put<MyTrack>("/challenges/my-track", { stage }),
   dailyChecklist: () => api.get<DailyChecklistResponse>("/challenges/daily-checklist"),
   toggleChecklist: (itemKey: string) =>
     api.post<DailyChecklistItem>(`/challenges/daily-checklist/${itemKey}`, {}),

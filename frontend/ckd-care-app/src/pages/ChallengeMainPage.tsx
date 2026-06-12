@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
@@ -6,20 +7,24 @@ import { CheckinResultModal } from "../components/CheckinResultModal";
 import { EggWidget } from "../components/EggWidget";
 import {
   challengeApi,
-  type ChallengeTrack, type ChallengeCategory,
+  type ChallengeCategory,
   type MyTrack, type DailyChecklistItem, type Challenge,
   type UserChallenge, type CheckInResponse,
 } from "../api/challenge";
 import { TRACK_THEME, STAGES } from "../components/challenge/trackTheme";
 import { OnboardView } from "../components/challenge/OnboardView";
-import { TrackSelectView } from "../components/challenge/TrackSelectView";
 import { StageSelectView } from "../components/challenge/StageSelectView";
 import { DailyChecklist } from "../components/challenge/DailyChecklist";
 import { CategoryTabs } from "../components/challenge/CategoryTabs";
 import { OptionalChallengeList, type ChallengeRow } from "../components/challenge/OptionalChallengeList";
+import { TodayProgress } from "../components/challenge/TodayProgress";
 import { WaterTrackingCard } from "../components/record/WaterTrackingCard";
+import { WeightTrackingCard } from "../components/record/WeightTrackingCard";
+import { SleepTrackingCard } from "../components/record/SleepTrackingCard";
+import { StressTrackingCard } from "../components/record/StressTrackingCard";
+import { ExerciseTrackingCard } from "../components/record/ExerciseTrackingCard";
 
-type View = "onboard" | "track" | "stage" | "main";
+type View = "onboard" | "stage" | "main";
 const ONBOARD_KEY = "challenge_onboarded";
 
 function todayStr() {
@@ -28,6 +33,7 @@ function todayStr() {
 
 export function ChallengeMainPage() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [view, setView] = useState<View>("main");
   const [myTrack, setMyTrack] = useState<MyTrack | null>(null);
   const [checklist, setChecklist] = useState<DailyChecklistItem[]>([]);
@@ -38,8 +44,11 @@ export function ChallengeMainPage() {
   const [error, setError] = useState("");
   const [checkBusy, setCheckBusy] = useState<string | null>(null);
   const [chalBusy, setChalBusy] = useState<number | null>(null);
-  const [trackPick, setTrackPick] = useState<ChallengeTrack | null>(null);
+  const [stageToast, setStageToast] = useState<string | null>(null);
+  const [stageSaving, setStageSaving] = useState(false);
+  const [stageError, setStageError] = useState<string | null>(null);
   const [checkinResult, setCheckinResult] = useState<CheckInResponse | null>(null);
+  const [completeBusy, setCompleteBusy] = useState<number | null>(null);
 
   async function loadAll() {
     try {
@@ -77,6 +86,7 @@ export function ChallengeMainPage() {
     queryClient.invalidateQueries({ queryKey: ["dashboard-summary"], refetchType: "all" });
     queryClient.invalidateQueries({ queryKey: ["challenges"], refetchType: "all" });
     queryClient.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
+    queryClient.invalidateQueries({ queryKey: ["points", "balance"], refetchType: "all" }); // TopNav 포인트 갱신
   }
 
   // challenge.id → 내 user_challenge 매핑
@@ -99,12 +109,10 @@ export function ChallengeMainPage() {
   });
   const rows = activeCat ? rowsAll.filter((r) => r.challenge.category === activeCat) : rowsAll;
 
-  // 오늘 전체 진행도 계산 (필수 체크 + 선택 챌린지)
-  const checkedRequired = checklist.filter((i) => i.checked).length;
-  const checkedOptional = rowsAll.filter((r) => r.checkedToday).length;
-  const totalItems = checklist.length + rowsAll.length;
-  const doneItems = checkedRequired + checkedOptional;
-  const pct = totalItems > 0 ? Math.round((doneItems / totalItems) * 100) : 0;
+  // 오늘 진행도 = 선택(join)한 챌린지 (ucByChallenge에 있는 것). 카테고리 무관.
+  const selectedRows = rowsAll
+    .filter((r) => r.userChallengeId !== null)
+    .map((r) => ({ userChallengeId: r.userChallengeId as number, name: r.challenge.name, completed: r.checkedToday }));
 
   async function handleToggleChecklist(itemKey: string) {
     setCheckBusy(itemKey);
@@ -119,30 +127,21 @@ export function ChallengeMainPage() {
     }
   }
 
-  async function handleToggleChallenge(row: ChallengeRow) {
+  // 선택 챌린지 동그라미: 선택(join) / 해제(abandon)
+  async function handleToggleSelect(row: ChallengeRow) {
     setChalBusy(row.challenge.id);
     setError("");
     try {
-      if (row.checkedToday && row.userChallengeId !== null) {
-        // 이미 체크인 된 경우 → 취소
-        await challengeApi.cancelCheckin(row.userChallengeId);
+      if (row.userChallengeId !== null) {
+        await challengeApi.abandon(row.userChallengeId);
       } else {
-        // 미참여면 자동 join → 체크인
-        let ucId = row.userChallengeId;
-        if (ucId === null) {
-          try {
-            const uc = await challengeApi.join(row.challenge.id, todayStr());
-            ucId = uc.id;
-          } catch (e) {
-            // 이미 join된 경우(중복 409 등) → 내 목록에서 찾아 재활용
-            const mine = await challengeApi.myList(100, 0);
-            const found = mine.items.find((u) => u.challenge_id === row.challenge.id);
-            if (!found) throw e;
-            ucId = found.id;
-          }
+        try {
+          await challengeApi.join(row.challenge.id, todayStr());
+        } catch (e) {
+          const mine = await challengeApi.myList(100, 0);
+          const found = mine.items.find((u) => u.challenge_id === row.challenge.id && u.status !== "ABANDONED");
+          if (!found) throw e;
         }
-        const res = await challengeApi.checkin(ucId);
-        setCheckinResult(res);
       }
       invalidateDash();
       await loadAll();
@@ -153,22 +152,53 @@ export function ChallengeMainPage() {
     }
   }
 
-  function handleSelectTrack(track: ChallengeTrack) {
-    setTrackPick(track);
-    setView("stage");
-  }
-
-  async function handleSelectStage(stage: number) {
-    const track = trackPick ?? myTrack?.track;
-    if (!track) return;
+  // 오늘 진행도 완수 버튼: checkin
+  async function handleComplete(userChallengeId: number) {
+    setCompleteBusy(userChallengeId);
     setError("");
     try {
-      await challengeApi.updateMyTrack(track, stage);
-      setActiveCat(null);   // 새 트랙 첫 카테고리로 재설정 유도
-      setView("main");
-      await loadAll();  // myTrack·checklist·challenges·myChallenges 전체 재로드로 정합
+      const res = await challengeApi.checkin(userChallengeId);
+      setCheckinResult(res);
+      invalidateDash();
+      await loadAll();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "트랙 변경 실패");
+      setError(e instanceof Error ? e.message : "완수 처리 실패");
+    } finally {
+      setCompleteBusy(null);
+    }
+  }
+
+  // 오늘 진행도 완료 취소: cancelCheckin (오늘 체크인 롤백 + 포인트 회수)
+  async function handleUncomplete(userChallengeId: number) {
+    setCompleteBusy(userChallengeId);
+    setError("");
+    try {
+      await challengeApi.cancelCheckin(userChallengeId);
+      invalidateDash();
+      await loadAll();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "완료 취소 실패");
+    } finally {
+      setCompleteBusy(null);
+    }
+  }
+
+  async function handleSaveStage(stage: number) {
+    if (!myTrack) return;
+    setStageSaving(true);
+    setStageError(null);
+    try {
+      await challengeApi.updateMyTrack(stage);
+      setView("main");
+      await loadAll();
+      const label = STAGES.find((s) => s.num === stage)?.label ?? `S${stage}`;
+      const key = STAGES.find((s) => s.num === stage)?.key ?? `S${stage}`;
+      setStageToast(`${key} ${label}로 변경되었습니다`);
+      setTimeout(() => setStageToast(null), 2000);
+    } catch (e) {
+      setStageError(e instanceof Error ? e.message : "저장에 실패했습니다. 잠시 후 다시 시도해주세요.");
+    } finally {
+      setStageSaving(false);
     }
   }
 
@@ -211,22 +241,19 @@ export function ChallengeMainPage() {
     );
   }
 
-  // 트랙 선택 뷰
-  if (view === "track" && myTrack) {
+  // 단계 선택 뷰 — 트랙은 자동배정이라 단계만 변경
+  if (view === "stage" && myTrack) {
     return (
       <div className="flex min-h-screen flex-col bg-bg-alt">
-        <ScreenLabel label="11 · 트랙 선택" />
-        <TrackSelectView current={myTrack.track} onSelect={handleSelectTrack} onBack={() => setView("main")} />
-      </div>
-    );
-  }
-  // 스테이지 선택 뷰
-  if (view === "stage" && (trackPick || myTrack)) {
-    const track = trackPick ?? myTrack!.track;
-    return (
-      <div className="flex min-h-screen flex-col bg-bg-alt">
-        <ScreenLabel label="11 · 스테이지 선택" />
-        <StageSelectView track={track} current={myTrack?.stage ?? 1} onSelect={handleSelectStage} onBack={() => setView("track")} />
+        <ScreenLabel label="11 · 단계 선택" />
+        <StageSelectView
+          track={myTrack.track}
+          current={myTrack.stage}
+          onSave={handleSaveStage}
+          onBack={() => { setStageError(null); setView("main"); }}
+          saving={stageSaving}
+          error={stageError}
+        />
       </div>
     );
   }
@@ -247,19 +274,28 @@ export function ChallengeMainPage() {
       <TopNav />
       <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col pb-10">
         {error && <div className="mx-5 mt-3 rounded-sm bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>}
+        {stageToast && (
+          <div className="mx-5 mt-3 rounded-md bg-success/10 px-3 py-2 text-sm text-success" role="status">
+            {stageToast}
+          </div>
+        )}
 
         {/* 헤더 — 날짜·트랙 배지 */}
         <div className="px-5 pt-5">
           <div className="text-xs text-text-secondary">{dateStr}</div>
           <h1 className="mt-1 text-xl font-semibold text-text-primary">오늘의 챌린지</h1>
           {myTrack && theme && (
-            <button
-              onClick={() => setView("track")}
-              className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-medium ${theme.bgClass} ${theme.textClass}`}
-            >
-              {myTrack.track_label} · {stageLabel} {STAGES.find((s) => s.num === myTrack.stage)?.label.replace(" 단계", "")}
-              <span className="text-[11px]">변경 ›</span>
-            </button>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span className={`inline-flex items-center rounded-full px-2.5 py-1.5 text-xs font-medium ${theme.bgClass} ${theme.textClass}`}>
+                {myTrack.track_label}
+              </span>
+              <button
+                onClick={() => { setStageError(null); setView("stage"); }}
+                className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1.5 text-xs font-medium text-text-secondary hover:border-border-strong"
+              >
+                {stageLabel} {STAGES.find((s) => s.num === myTrack.stage)?.label} · 변경 ›
+              </button>
+            </div>
           )}
         </div>
 
@@ -268,16 +304,13 @@ export function ChallengeMainPage() {
           <EggWidget aspectBackground />
         </div>
 
-        {/* 진행도 바 */}
-        <div className="px-5 pb-4 pt-4">
-          <div className="mb-1.5 flex justify-between text-xs text-text-secondary">
-            <span>오늘 진행도</span>
-            <span>{doneItems} / {totalItems} 완료</span>
-          </div>
-          <div className="h-1 overflow-hidden rounded bg-placeholder">
-            <div className="h-full rounded bg-accent transition-all" style={{ width: `${pct}%` }} />
-          </div>
-        </div>
+        {/* 오늘 진행도 — 선택한 챌린지 목록 + 완수 */}
+        <TodayProgress
+          rows={selectedRows}
+          busyId={completeBusy}
+          onComplete={handleComplete}
+          onUncomplete={handleUncomplete}
+        />
 
         {/* 의료 면책 경고 배너 */}
         <div className="mx-5 mb-4 rounded-md border border-warning/30 bg-warning/10 px-3.5 py-3 text-xs leading-relaxed text-warning">
@@ -292,13 +325,55 @@ export function ChallengeMainPage() {
           <WaterTrackingCard onAutoCheckin={() => { void loadAll(); }} />
         </div>
 
+        {/* 체중 기록 */}
+        <div className="px-5 pt-2">
+          <WeightTrackingCard onAutoCheckin={() => { void loadAll(); }} />
+        </div>
+
+        {/* 수면 기록 */}
+        <div className="px-5 pt-2">
+          <SleepTrackingCard onAutoCheckin={() => { void loadAll(); }} />
+        </div>
+
+        {/* 감정 쓰레기통 */}
+        <div className="px-5 pt-2">
+          <StressTrackingCard onAutoCheckin={() => { void loadAll(); }} />
+        </div>
+
+        {/* 운동 피로도 */}
+        <div className="px-5 pt-2">
+          <ExerciseTrackingCard onAutoCheckin={() => { void loadAll(); }} />
+        </div>
+
+        {/* 검사 수치 기록장 (전용 페이지) */}
+        <div className="px-5 pt-2">
+          <button
+            onClick={() => navigate("/records/lab")}
+            className="flex w-full items-center justify-between rounded-xl border border-border bg-bg p-4 text-left"
+          >
+            <span className="font-bold text-text-primary">🧪 검사 수치 기록장</span>
+            <span className="text-text-muted">›</span>
+          </button>
+        </div>
+
+        {/* 병원 진료일 캘린더 (전용 페이지) */}
+        <div className="px-5 pt-2">
+          <button
+            onClick={() => navigate("/records/appointments")}
+            className="flex w-full items-center justify-between rounded-xl border border-border bg-bg p-4 text-left"
+          >
+            <span className="font-bold text-text-primary">📅 병원 진료일 캘린더</span>
+            <span className="text-text-muted">›</span>
+          </button>
+        </div>
+
         {/* 선택 챌린지 — 카테고리 탭 + 목록 */}
         <div className="px-5 pb-10 pt-2">
           <div className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-text-secondary">선택 챌린지</div>
           {myTrack && activeCat && (
             <CategoryTabs categories={myTrack.categories} active={activeCat} onSelect={setActiveCat} />
           )}
-          <OptionalChallengeList rows={rows} busyId={chalBusy} onToggle={handleToggleChallenge} />
+          <OptionalChallengeList rows={rows} busyId={chalBusy} onToggle={handleToggleSelect} />
         </div>
       </main>
     </div>

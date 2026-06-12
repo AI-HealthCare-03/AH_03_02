@@ -1,6 +1,7 @@
 import { User, Bell, LayoutDashboard, Trophy, Coins, Sparkles, Bot, Shield, FileBarChart } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../contexts/AuthContext";
 import { notificationApi } from "../api/notification";
 import { pointsApi } from "../api/gamification";
@@ -13,12 +14,17 @@ export function TopNav({ brand = "CKD CARE" }: TopNavProps) {
   const { token, user } = useAuth();
   const location = useLocation();
   const [unread, setUnread] = useState(0);
-  const [balance, setBalance] = useState<number | null>(null);
+  // 포인트 잔액은 React Query로 — 체크인/완료취소/해제 후 무효화(["points","balance"])하면 즉시 갱신.
+  const { data: balanceData } = useQuery({
+    queryKey: ["points", "balance"],
+    queryFn: () => pointsApi.getBalance(),
+    enabled: !!token,
+  });
+  const balance = balanceData?.balance ?? null;
 
   useEffect(() => {
     if (!token) return;
     notificationApi.list(true, 1).then((r) => setUnread(r.unread_count)).catch(() => {});
-    pointsApi.getBalance().then((r) => setBalance(r.balance)).catch(() => setBalance(null));
   }, [token, location.pathname]);
 
   const navItems = [
