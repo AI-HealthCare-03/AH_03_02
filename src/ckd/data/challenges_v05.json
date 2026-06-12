@@ -10,9 +10,73 @@
   {
     "track": "DIALYSIS",
     "stage": 1,
+    "category": "EDUCATION",
+    "name": "투석 중 수분 제한이 필요한 이유를 설명한 자료 읽기",
+    "description": "투석 중 수분 제한이 필요한 이유를 설명한 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "EDUCATION",
+    "name": "투석 환자에게 칼륨·인 제한이 중요한 이유 자료 확인하기",
+    "description": "투석 환자에게 칼륨·인 제한이 중요한 이유 자료 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "EDUCATION",
+    "name": "의료진이 제공한 투석 관련 교육 자료 1가지 읽기",
+    "description": "의료진이 제공한 투석 관련 교육 자료 1가지 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "EDUCATION",
+    "name": "오늘 배운 투석 관련 내용 한 줄로 적어두기",
+    "description": "오늘 배운 투석 관련 내용 한 줄로 적어두기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
     "category": "RECORD",
     "name": "복약 알림을 스마트폰에 설정하기",
     "description": "복약 알림을 스마트폰에 설정하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "RECORD",
+    "name": "오늘 수분 섭취량을 앱 또는 수첩에 기록하기",
+    "description": "오늘 수분 섭취량을 앱 또는 수첩에 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "RECORD",
+    "name": "오늘 투석 전 체중을 측정하고 기록하기",
+    "description": "오늘 투석 전 체중을 측정하고 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "RECORD",
+    "name": "오늘 복약 여부를 기록하기",
+    "description": "오늘 복약 여부를 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "RECORD",
+    "name": "오늘 섭취한 음식 중 칼륨·인이 많은 식품이 있었는지 간단히 확인하기",
+    "description": "오늘 섭취한 음식 중 칼륨·인이 많은 식품이 있었는지 간단히 확인하기",
     "duration_days": 1
   },
   {
@@ -26,9 +90,73 @@
   {
     "track": "DIALYSIS",
     "stage": 1,
+    "category": "MONITORING",
+    "name": "오늘 투석 전후 체중을 측정하고 기록하기",
+    "description": "오늘 투석 전후 체중을 측정하고 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "MONITORING",
+    "name": "가장 최근 검사 결과의 칼륨(K)·인(P)·헤모글로빈(Hb) 수치 확인하기",
+    "description": "가장 최근 검사 결과의 칼륨(K)·인(P)·헤모글로빈(Hb) 수치 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "MONITORING",
+    "name": "오늘 처방 수분 제한량 목표를 지켰는지 확인하기",
+    "description": "오늘 처방 수분 제한량 목표를 지켰는지 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "MONITORING",
+    "name": "체중·수분 측정 시간을 매일 동일하게 정해두기",
+    "description": "체중·수분 측정 시간을 매일 동일하게 정해두기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "운동 전 의료진에게 허용 운동 범위 확인하기",
+    "description": "운동 전 의료진에게 허용 운동 범위 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "투석이 없다면 자리에서 일어나 5분 걷기",
+    "description": "투석이 없다면 자리에서 일어나 5분 걷기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
     "category": "EXERCISE",
     "name": "앉은 자리에서 가벼운 스트레칭 10분 완료하기",
     "description": "앉은 자리에서 가벼운 스트레칭 10분 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "운동 전 어지럼증·호흡곤란·부종이 없는지 확인하고 이상 없을 때 운동 시작하기",
+    "description": "운동 전 어지럼증·호흡곤란·부종이 없는지 확인하고 이상 없을 때 운동 시작하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "운동 전후 워밍업·쿨다운 스트레칭을 각 5분씩 완료하기",
+    "description": "운동 전후 워밍업·쿨다운 스트레칭을 각 5분씩 완료하기",
     "duration_days": 1
   },
   {
@@ -41,39 +169,7 @@
   },
   {
     "track": "DIALYSIS",
-    "stage": 2,
-    "category": "EDUCATION",
-    "name": "투석 간 체중 증가 허용 범위와 관리 방법을 다룬 자료 읽기",
-    "description": "투석 간 체중 증가 허용 범위와 관리 방법을 다룬 자료 읽기",
-    "duration_days": 1
-  },
-  {
-    "track": "DIALYSIS",
-    "stage": 2,
-    "category": "RECORD",
-    "name": "오늘 수분 섭취량을 앱 또는 수첩에 기록하기",
-    "description": "오늘 수분 섭취량을 앱 또는 수첩에 기록하기",
-    "duration_days": 1
-  },
-  {
-    "track": "DIALYSIS",
-    "stage": 2,
-    "category": "MONITORING",
-    "name": "오늘 투석 전후 체중을 측정하고 기록하기",
-    "description": "오늘 투석 전후 체중을 측정하고 기록하기",
-    "duration_days": 1
-  },
-  {
-    "track": "DIALYSIS",
-    "stage": 2,
-    "category": "EXERCISE",
-    "name": "투석 안 하는 날 평지 걷기 5분 완료하기",
-    "description": "투석 안 하는 날 평지 걷기 5분 완료하기",
-    "duration_days": 1
-  },
-  {
-    "track": "DIALYSIS",
-    "stage": 2,
+    "stage": 1,
     "category": "EMOTION",
     "name": "오늘 좋았던 일 한 줄 적기",
     "description": "오늘 좋았던 일 한 줄 적기",
@@ -81,23 +177,111 @@
   },
   {
     "track": "DIALYSIS",
-    "stage": 3,
+    "stage": 1,
+    "category": "EMOTION",
+    "name": "투석 관리 중 느끼는 걱정을 종이에 한 문장으로 적고 내려놓기",
+    "description": "투석 관리 중 느끼는 걱정을 종이에 한 문장으로 적고 내려놓기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "EMOTION",
+    "name": "가족 또는 가까운 사람과 건강 관련 걱정을 5분 이상 대화로 나누기",
+    "description": "가족 또는 가까운 사람과 건강 관련 걱정을 5분 이상 대화로 나누기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 1,
+    "category": "EMOTION",
+    "name": "스트레스를 느꼈을 때 폭식·음주 대신 10분 산책·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "description": "스트레스를 느꼈을 때 폭식·음주 대신 10분 산책·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
     "category": "EDUCATION",
-    "name": "칼륨·인을 제한해야 하는 이유를 설명한 자료 읽기",
-    "description": "칼륨·인을 제한해야 하는 이유를 설명한 자료 읽기",
+    "name": "투석 간 체중 증가 허용 범위와 관리 방법 자료 읽기",
+    "description": "투석 간 체중 증가 허용 범위와 관리 방법 자료 읽기",
     "duration_days": 1
   },
   {
     "track": "DIALYSIS",
-    "stage": 3,
+    "stage": 2,
+    "category": "EDUCATION",
+    "name": "칼륨·인이 많은 식품과 적은 식품을 구분하는 자료 읽기",
+    "description": "칼륨·인이 많은 식품과 적은 식품을 구분하는 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "EDUCATION",
+    "name": "빈혈(Hb 저하)이 투석 환자에게 미치는 영향 자료 읽기",
+    "description": "빈혈(Hb 저하)이 투석 환자에게 미치는 영향 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "EDUCATION",
+    "name": "인결합제 복용 시기(식사 중·직후)와 이유를 설명한 자료 읽기",
+    "description": "인결합제 복용 시기(식사 중·직후)와 이유를 설명한 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "EDUCATION",
+    "name": "배운 내용 중 실천할 것 1가지를 기록하기",
+    "description": "배운 내용 중 실천할 것 1가지를 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
     "category": "RECORD",
-    "name": "오늘 수분 섭취량·투석 간 체중·복약 여부를 함께 기록하기",
-    "description": "오늘 수분 섭취량·투석 간 체중·복약 여부를 함께 기록하기",
+    "name": "하루 수분 섭취와 복약 여부를 함께 기록하기",
+    "description": "하루 수분 섭취와 복약 여부를 함께 기록하기",
     "duration_days": 1
   },
   {
     "track": "DIALYSIS",
-    "stage": 3,
+    "stage": 2,
+    "category": "RECORD",
+    "name": "오늘 투석 전후 체중을 측정하고 기록하기",
+    "description": "오늘 투석 전후 체중을 측정하고 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "RECORD",
+    "name": "수분·체중·복약 기록을 모두 완료하기",
+    "description": "수분·체중·복약 기록을 모두 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "RECORD",
+    "name": "오늘 섭취 식품 중 칼륨·인 함량을 확인하고 기록하기",
+    "description": "오늘 섭취 식품 중 칼륨·인 함량을 확인하고 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "RECORD",
+    "name": "수분·체중·복약 기록을 완료하고 이번 주 기록 현황 확인하기",
+    "description": "수분·체중·복약 기록을 완료하고 이번 주 기록 현황 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
     "category": "MONITORING",
     "name": "가장 최근 검사 결과의 K·P·Hb 수치를 받아 적기",
     "description": "가장 최근 검사 결과의 K·P·Hb 수치를 받아 적기",
@@ -105,58 +289,514 @@
   },
   {
     "track": "DIALYSIS",
+    "stage": 2,
+    "category": "MONITORING",
+    "name": "오늘 투석 간 체중 증가량이 처방 허용 범위 내인지 확인하기",
+    "description": "오늘 투석 간 체중 증가량이 처방 허용 범위 내인지 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "MONITORING",
+    "name": "K·P·Hb 목표 범위(의료진 지침 기준)를 확인하고 기록하기",
+    "description": "K·P·Hb 목표 범위(의료진 지침 기준)를 확인하고 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "MONITORING",
+    "name": "이전 검사 결과와 이번 결과를 비교해 변화 메모하기",
+    "description": "이전 검사 결과와 이번 결과를 비교해 변화 메모하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "MONITORING",
+    "name": "다음 진료 시 의료진에게 질문할 내용 1가지를 미리 적어두기",
+    "description": "다음 진료 시 의료진에게 질문할 내용 1가지를 미리 적어두기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "투석이 없다면 평지 걷기 10~15분 완료하기",
+    "description": "투석이 없다면 평지 걷기 10~15분 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "앉아서 할 수 있는 상·하체 스트레칭을 20분 완료하기",
+    "description": "앉아서 할 수 있는 상·하체 스트레칭을 20분 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "운동 중 약간 숨차지만 대화 가능한 강도로 10분 이상 유지하기",
+    "description": "운동 중 약간 숨차지만 대화 가능한 강도로 10분 이상 유지하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "매 시간 5분 이상 자리에서 일어나 이동하는 활동을 2회 이상 실천하기",
+    "description": "매 시간 5분 이상 자리에서 일어나 이동하는 활동을 2회 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "의자 스쿼트 10회 × 2세트 가벼운 하체 근력 운동 수행하기",
+    "description": "의자 스쿼트 10회 × 2세트 가벼운 하체 근력 운동 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "EMOTION",
+    "name": "투석 관리 부담을 느낄 때 가족 또는 친구와 10분 이상 직접 대화 나누기",
+    "description": "투석 관리 부담을 느낄 때 가족 또는 친구와 10분 이상 직접 대화 나누기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "EMOTION",
+    "name": "복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 5분 이상 실천하기",
+    "description": "복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 5분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "EMOTION",
+    "name": "복식 호흡 또는 마음챙김 명상을 5분 이상 실시하기",
+    "description": "복식 호흡 또는 마음챙김 명상을 5분 이상 실시하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "EMOTION",
+    "name": "하루를 마치며 오늘 느낀 감정(불안·긴장·안도·감사 중 1가지)을 말로 표현하기",
+    "description": "하루를 마치며 오늘 느낀 감정(불안·긴장·안도·감사 중 1가지)을 말로 표현하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 2,
+    "category": "EMOTION",
+    "name": "부정적인 생각이 들면 종이에 적고 현실적으로 반박하는 문장을 1개 이상 써보기",
+    "description": "부정적인 생각이 들면 종이에 적고 현실적으로 반박하는 문장을 1개 이상 써보기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "EDUCATION",
+    "name": "투석 적절도(Kt/V)와 투석 효율이 건강에 미치는 영향 자료 읽기",
+    "description": "투석 적절도(Kt/V)와 투석 효율이 건강에 미치는 영향 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "EDUCATION",
+    "name": "투석 환자의 심혈관 합병증 예방을 위한 생활습관 자료 읽기",
+    "description": "투석 환자의 심혈관 합병증 예방을 위한 생활습관 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "EDUCATION",
+    "name": "이식 대기 또는 이식 후 관리에 대한 기초 자료 읽기",
+    "description": "이식 대기 또는 이식 후 관리에 대한 기초 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "EDUCATION",
+    "name": "교육 콘텐츠 1개를 시청하고 핵심 내용 메모하기",
+    "description": "교육 콘텐츠 1개를 시청하고 핵심 내용 메모하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "EDUCATION",
+    "name": "배운 내용을 한 줄로 요약하고 실천 계획 1가지 적기",
+    "description": "배운 내용을 한 줄로 요약하고 실천 계획 1가지 적기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "RECORD",
+    "name": "수분·체중·복약 기록을 완료하고 지난 2주 기록 현황 점검하기",
+    "description": "수분·체중·복약 기록을 완료하고 지난 2주 기록 현황 점검하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "RECORD",
+    "name": "최근 2주 기록에서 투석 간 체중 증가가 허용 범위를 벗어난 날을 분석하기",
+    "description": "최근 2주 기록에서 투석 간 체중 증가가 허용 범위를 벗어난 날을 분석하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "RECORD",
+    "name": "식사 일지(칼륨·인 함량 조절 여부)를 기록하기",
+    "description": "식사 일지(칼륨·인 함량 조절 여부)를 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "RECORD",
+    "name": "수분·체중·복약·식사를 통합 기록하기",
+    "description": "수분·체중·복약·식사를 통합 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "RECORD",
+    "name": "최근 3주 기록을 바탕으로 잘 지킨 항목과 부족한 항목을 스스로 정리하기",
+    "description": "최근 3주 기록을 바탕으로 잘 지킨 항목과 부족한 항목을 스스로 정리하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "MONITORING",
+    "name": "최근 2회 검사 결과(K·P·Hb)를 비교해 변화 메모하기",
+    "description": "최근 2회 검사 결과(K·P·Hb)를 비교해 변화 메모하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "MONITORING",
+    "name": "투석 간 체중 증가 기록을 그래프 또는 표로 정리해 추이 파악하기",
+    "description": "투석 간 체중 증가 기록을 그래프 또는 표로 정리해 추이 파악하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "MONITORING",
+    "name": "K·P·Hb 수치 변화 추이를 의료진과 함께 검토하기",
+    "description": "K·P·Hb 수치 변화 추이를 의료진과 함께 검토하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "MONITORING",
+    "name": "다음 진료 시 의료진에게 검사 결과 변화에 대해 질문하기",
+    "description": "다음 진료 시 의료진에게 검사 결과 변화에 대해 질문하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "MONITORING",
+    "name": "검사 수치 추이를 그래프로 관리하며 이전 대비 변화 방향 확인하기",
+    "description": "검사 수치 추이를 그래프로 관리하며 이전 대비 변화 방향 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
     "stage": 3,
     "category": "EXERCISE",
-    "name": "투석 안 하는 날 가벼운 걷기 10~15분 완료하기",
-    "description": "투석 안 하는 날 가벼운 걷기 10~15분 완료하기",
+    "name": "투석이 없다면 가벼운 걷기 15분 이상 완료하기",
+    "description": "투석이 없다면 가벼운 걷기 15분 이상 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "가벼운 저항 운동(탄성 밴드·체중 스쿼트)을 10분 이상 수행하기",
+    "description": "가벼운 저항 운동(탄성 밴드·체중 스쿼트)을 10분 이상 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "가벼운 유산소 운동을 완료하고 피로도를 기록하기",
+    "description": "가벼운 유산소 운동을 완료하고 피로도를 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "운동 후 쿨다운 스트레칭 5분을 수행하고 5분간 앉아서 호흡을 안정시키기",
+    "description": "운동 후 쿨다운 스트레칭 5분을 수행하고 5분간 앉아서 호흡을 안정시키기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "좌식 시간을 전날보다 30분 이상 줄이고 총 좌식 시간을 5시간 이하로 유지하기",
+    "description": "좌식 시간을 전날보다 30분 이상 줄이고 총 좌식 시간을 5시간 이하로 유지하기",
     "duration_days": 1
   },
   {
     "track": "DIALYSIS",
     "stage": 3,
     "category": "EMOTION",
-    "name": "오늘 가벼운 취미 또는 대화로 기분 전환하기",
-    "description": "오늘 가벼운 취미 또는 대화로 기분 전환하기",
+    "name": "마음챙김 명상을 10분 이상 실천하기",
+    "description": "마음챙김 명상을 10분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "EMOTION",
+    "name": "투석 관련 걱정을 통제 가능한 것과 통제 불가능한 것으로 나누고 통제 가능한 것 1가지에만 집중하기",
+    "description": "투석 관련 걱정을 통제 가능한 것과 통제 불가능한 것으로 나누고 통제 가능한 것 1가지에만 집중하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "EMOTION",
+    "name": "스트레스를 느꼈을 때 10분 걷기·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "description": "스트레스를 느꼈을 때 10분 걷기·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "EMOTION",
+    "name": "부정적 감정을 판단 없이 3분간 관찰하는 마음챙김 연습을 1회 이상 하기",
+    "description": "부정적 감정을 판단 없이 3분간 관찰하는 마음챙김 연습을 1회 이상 하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 3,
+    "category": "EMOTION",
+    "name": "환우 커뮤니티 또는 지지 그룹에 참여하거나 활동 살펴보기",
+    "description": "환우 커뮤니티 또는 지지 그룹에 참여하거나 활동 살펴보기",
     "duration_days": 1
   },
   {
     "track": "DIALYSIS",
     "stage": 4,
     "category": "EDUCATION",
-    "name": "오늘 교육 콘텐츠 1개를 보고 핵심 내용을 한 줄로 적기",
-    "description": "오늘 교육 콘텐츠 1개를 보고 핵심 내용을 한 줄로 적기",
+    "name": "이식 대기 등록 절차 및 이식 후 면역억제제 관리에 대한 자료 읽기",
+    "description": "이식 대기 등록 절차 및 이식 후 면역억제제 관리에 대한 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "EDUCATION",
+    "name": "투석 환자의 심혈관·빈혈·골질환 복합 관리 근거 자료 읽기",
+    "description": "투석 환자의 심혈관·빈혈·골질환 복합 관리 근거 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "EDUCATION",
+    "name": "교육 콘텐츠 1개를 시청하고 핵심 내용을 정리하기",
+    "description": "교육 콘텐츠 1개를 시청하고 핵심 내용을 정리하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "EDUCATION",
+    "name": "배운 내용을 한 줄 요약하고 다음 진료 시 의료진과 공유할 준비하기",
+    "description": "배운 내용을 한 줄 요약하고 다음 진료 시 의료진과 공유할 준비하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "EDUCATION",
+    "name": "지난 4주간 배운 내용을 돌아보고 실천 변화를 스스로 평가하기",
+    "description": "지난 4주간 배운 내용을 돌아보고 실천 변화를 스스로 평가하기",
     "duration_days": 1
   },
   {
     "track": "DIALYSIS",
     "stage": 4,
     "category": "RECORD",
-    "name": "오늘 수분 섭취량·투석 간 체중·복약·식사(칼륨·인 조절 여부)를 한 곳에 통합 기록하기",
-    "description": "오늘 수분 섭취량·투석 간 체중·복약·식사(칼륨·인 조절 여부)를 한 곳에 통합 기록하기",
+    "name": "수분·체중·복약 통합 기록을 완료하고 지난 4주 기록 현황 점검하기",
+    "description": "수분·체중·복약 통합 기록을 완료하고 지난 4주 기록 현황 점검하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "RECORD",
+    "name": "최근 4주 기록에서 투석 간 체중 증가가 허용 범위를 벗어난 날을 찾고 원인을 분석하기",
+    "description": "최근 4주 기록에서 투석 간 체중 증가가 허용 범위를 벗어난 날을 찾고 원인을 분석하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "RECORD",
+    "name": "식사 일지를 바탕으로 칼륨·인 목표 달성 일수를 계산하기",
+    "description": "식사 일지를 바탕으로 칼륨·인 목표 달성 일수를 계산하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "RECORD",
+    "name": "지난 4주 기록을 리뷰하고 다음 달 개선 목표 1가지 설정하기",
+    "description": "지난 4주 기록을 리뷰하고 다음 달 개선 목표 1가지 설정하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "RECORD",
+    "name": "기록을 완료하고 지금까지의 기록 지속 현황을 확인하기",
+    "description": "기록을 완료하고 지금까지의 기록 지속 현황을 확인하기",
     "duration_days": 1
   },
   {
     "track": "DIALYSIS",
     "stage": 4,
     "category": "MONITORING",
-    "name": "오늘 K·P·Hb 수치를 이전 결과와 비교해 변화를 메모하기",
-    "description": "오늘 K·P·Hb 수치를 이전 결과와 비교해 변화를 메모하기",
+    "name": "최근 4회 검사 결과(K·P·Hb)를 표로 정리해 추이 파악하기",
+    "description": "최근 4회 검사 결과(K·P·Hb)를 표로 정리해 추이 파악하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "MONITORING",
+    "name": "투석 간 체중 증가 기록을 그래프로 관리하며 목표 범위 달성률 계산하기",
+    "description": "투석 간 체중 증가 기록을 그래프로 관리하며 목표 범위 달성률 계산하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "MONITORING",
+    "name": "검사 수치 변화 추이를 의료진과 함께 검토하기",
+    "description": "검사 수치 변화 추이를 의료진과 함께 검토하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "MONITORING",
+    "name": "지난 2회 이상 검사에서 K·P·Hb 변화 방향을 확인하고 메모하기",
+    "description": "지난 2회 이상 검사에서 K·P·Hb 변화 방향을 확인하고 메모하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "MONITORING",
+    "name": "검사 추이 그래프를 활용해 수치 변화와 식이·수분 실천 간 연관성 파악하기",
+    "description": "검사 추이 그래프를 활용해 수치 변화와 식이·수분 실천 간 연관성 파악하기",
     "duration_days": 1
   },
   {
     "track": "DIALYSIS",
     "stage": 4,
     "category": "EXERCISE",
-    "name": "투석 안 하는 날 가벼운 유산소 운동 20분 완료 후 피로도를 기록하기",
-    "description": "투석 안 하는 날 가벼운 유산소 운동 20분 완료 후 피로도를 기록하기",
+    "name": "투석이 없다면 유산소 운동 20분 + 가벼운 근력 운동 10분으로 총 30분 이상 운동하기",
+    "description": "투석이 없다면 유산소 운동 20분 + 가벼운 근력 운동 10분으로 총 30분 이상 운동하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "근력 운동(스쿼트·밴드 운동 중 2가지 이상)을 각 15회 × 2세트 수행하기",
+    "description": "근력 운동(스쿼트·밴드 운동 중 2가지 이상)을 각 15회 × 2세트 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "숨차지만 짧은 대화는 가능한 강도로 유산소 운동을 20분 이상 유지하기",
+    "description": "숨차지만 짧은 대화는 가능한 강도로 유산소 운동을 20분 이상 유지하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "총 좌식 시간을 4시간 이하로 줄이기",
+    "description": "총 좌식 시간을 4시간 이하로 줄이기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "운동 기록을 작성하고 의료진 승인 범위 내 운동 루틴의 지속 현황 점검하기",
+    "description": "운동 기록을 작성하고 의료진 승인 범위 내 운동 루틴의 지속 현황 점검하기",
     "duration_days": 1
   },
   {
     "track": "DIALYSIS",
     "stage": 4,
     "category": "EMOTION",
-    "name": "오늘 환우 커뮤니티 또는 지지 그룹에 참여하거나 활동 살펴보기",
-    "description": "오늘 환우 커뮤니티 또는 지지 그룹에 참여하거나 활동 살펴보기",
+    "name": "명상·복식 호흡·긍정적 자기 대화를 15분 이상 실천하기",
+    "description": "명상·복식 호흡·긍정적 자기 대화를 15분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "EMOTION",
+    "name": "스트레스 상황에서 즉각 반응하지 않고 5초간 멈춘 뒤 복식 호흡 후 반응하기",
+    "description": "스트레스 상황에서 즉각 반응하지 않고 5초간 멈춘 뒤 복식 호흡 후 반응하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "EMOTION",
+    "name": "투석 관련 부정적 생각이 반복될 때 '지금 이 순간'에 집중하는 마음챙김을 10분 이상 실천하기",
+    "description": "투석 관련 부정적 생각이 반복될 때 '지금 이 순간'에 집중하는 마음챙김을 10분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "EMOTION",
+    "name": "투석 관리의 심리적 부담을 신뢰하는 사람과 10분 이상 직접 대화로 나누기",
+    "description": "투석 관리의 심리적 부담을 신뢰하는 사람과 10분 이상 직접 대화로 나누기",
+    "duration_days": 1
+  },
+  {
+    "track": "DIALYSIS",
+    "stage": 4,
+    "category": "EMOTION",
+    "name": "심리적 부담이 3주 이상 지속되고 있다면 전문 상담 연계 계획을 세우기",
+    "description": "심리적 부담이 3주 이상 지속되고 있다면 전문 상담 연계 계획을 세우기",
     "duration_days": 1
   },
   {
@@ -170,9 +810,73 @@
   {
     "track": "CKD",
     "stage": 1,
+    "category": "EDUCATION",
+    "name": "CKD가 일상생활에 미치는 영향을 다룬 자료 읽기",
+    "description": "CKD가 일상생활에 미치는 영향을 다룬 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "EDUCATION",
+    "name": "CKD 진행을 늦추는 생활습관 3가지를 다룬 자료 확인하기",
+    "description": "CKD 진행을 늦추는 생활습관 3가지를 다룬 자료 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "EDUCATION",
+    "name": "의료진이 제공한 교육 자료 1가지 읽기",
+    "description": "의료진이 제공한 교육 자료 1가지 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "EDUCATION",
+    "name": "오늘 배운 CKD 관련 내용 한 줄로 적어두기",
+    "description": "오늘 배운 CKD 관련 내용 한 줄로 적어두기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
     "category": "RECORD",
     "name": "복약 알림을 스마트폰에 설정하기",
     "description": "복약 알림을 스마트폰에 설정하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "RECORD",
+    "name": "오늘 복약 여부를 앱 또는 수첩에 기록하기",
+    "description": "오늘 복약 여부를 앱 또는 수첩에 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "RECORD",
+    "name": "오늘 수분 섭취량을 간단히 메모하기",
+    "description": "오늘 수분 섭취량을 간단히 메모하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "RECORD",
+    "name": "오늘 체중을 측정하고 기록하기",
+    "description": "오늘 체중을 측정하고 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "RECORD",
+    "name": "오늘 소변량·부종 여부를 간단히 확인하고 기록하기",
+    "description": "오늘 소변량·부종 여부를 간단히 확인하고 기록하기",
     "duration_days": 1
   },
   {
@@ -186,9 +890,73 @@
   {
     "track": "CKD",
     "stage": 1,
+    "category": "MONITORING",
+    "name": "내 eGFR 수치가 어느 단계인지 확인하기",
+    "description": "내 eGFR 수치가 어느 단계인지 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "MONITORING",
+    "name": "오늘 혈압을 측정하고 수치를 기록하기",
+    "description": "오늘 혈압을 측정하고 수치를 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "MONITORING",
+    "name": "가장 최근 검사 결과지를 찾아 eGFR·크레아티닌 수치 확인하기",
+    "description": "가장 최근 검사 결과지를 찾아 eGFR·크레아티닌 수치 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "MONITORING",
+    "name": "혈압·체중 측정 시간을 매일 동일하게 정해두기",
+    "description": "혈압·체중 측정 시간을 매일 동일하게 정해두기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
     "category": "EXERCISE",
-    "name": "오늘 평지 걷기 10분 완료하기 (의료진 승인 범위 내)",
-    "description": "오늘 평지 걷기 10분 완료하기 (의료진 승인 범위 내)",
+    "name": "운동 전 의료진에게 허용 운동 범위 확인하기",
+    "description": "운동 전 의료진에게 허용 운동 범위 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "평지 걷기 10분 완료하기",
+    "description": "평지 걷기 10분 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "운동 전 어지럼증·부종·호흡곤란이 없는지 확인하고 이상 없을 때 운동 시작하기",
+    "description": "운동 전 어지럼증·부종·호흡곤란이 없는지 확인하고 이상 없을 때 운동 시작하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "운동 전 워밍업 5분 + 운동 후 쿨다운 5분 완료하기",
+    "description": "운동 전 워밍업 5분 + 운동 후 쿨다운 5분 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "EXERCISE",
+    "name": "1시간마다 자리에서 일어나 가볍게 스트레칭하는 활동을 2회 이상 실천하기",
+    "description": "1시간마다 자리에서 일어나 가볍게 스트레칭하는 활동을 2회 이상 실천하기",
     "duration_days": 1
   },
   {
@@ -201,18 +969,114 @@
   },
   {
     "track": "CKD",
+    "stage": 1,
+    "category": "EMOTION",
+    "name": "오늘 좋았던 일 한 줄 적기",
+    "description": "오늘 좋았던 일 한 줄 적기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "EMOTION",
+    "name": "만성 질환 관리 중 느끼는 걱정을 종이에 한 문장으로 적고 내려놓기",
+    "description": "만성 질환 관리 중 느끼는 걱정을 종이에 한 문장으로 적고 내려놓기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "EMOTION",
+    "name": "가족 또는 가까운 사람과 건강 관련 걱정을 5분 이상 대화로 나누기",
+    "description": "가족 또는 가까운 사람과 건강 관련 걱정을 5분 이상 대화로 나누기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 1,
+    "category": "EMOTION",
+    "name": "스트레스를 느꼈을 때 폭식·음주 대신 10분 산책·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "description": "스트레스를 느꼈을 때 폭식·음주 대신 10분 산책·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
     "stage": 2,
     "category": "EDUCATION",
-    "name": "내 eGFR 단계의 의미와 관리 목표를 다룬 자료 읽기",
-    "description": "내 eGFR 단계의 의미와 관리 목표를 다룬 자료 읽기",
+    "name": "내 eGFR 단계의 의미와 관리 목표 자료 읽기",
+    "description": "내 eGFR 단계의 의미와 관리 목표 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "EDUCATION",
+    "name": "혈압이 신장 기능에 미치는 영향을 다룬 자료 읽기",
+    "description": "혈압이 신장 기능에 미치는 영향을 다룬 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "EDUCATION",
+    "name": "단백뇨가 CKD 진행에 미치는 영향을 설명한 자료 읽기",
+    "description": "단백뇨가 CKD 진행에 미치는 영향을 설명한 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "EDUCATION",
+    "name": "나트륨·단백질 제한이 신장 보호에 중요한 이유 자료 읽기",
+    "description": "나트륨·단백질 제한이 신장 보호에 중요한 이유 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "EDUCATION",
+    "name": "배운 내용 중 실천할 것 1가지를 기록하기",
+    "description": "배운 내용 중 실천할 것 1가지를 기록하기",
     "duration_days": 1
   },
   {
     "track": "CKD",
     "stage": 2,
     "category": "RECORD",
-    "name": "오늘 복약 여부와 수분 섭취량을 함께 기록하기",
-    "description": "오늘 복약 여부와 수분 섭취량을 함께 기록하기",
+    "name": "하루 복약·수분 섭취를 함께 기록하기",
+    "description": "하루 복약·수분 섭취를 함께 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "RECORD",
+    "name": "오늘 혈압·체중을 측정하고 기록하기",
+    "description": "오늘 혈압·체중을 측정하고 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "RECORD",
+    "name": "복약·수분·체중 기록을 모두 완료하기",
+    "description": "복약·수분·체중 기록을 모두 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "RECORD",
+    "name": "오늘 식사 내용(나트륨·단백질 조절 여부)을 간단히 기록하기",
+    "description": "오늘 식사 내용(나트륨·단백질 조절 여부)을 간단히 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "RECORD",
+    "name": "복약·수분·체중 기록을 완료하고 이번 주 기록 현황 확인하기",
+    "description": "복약·수분·체중 기록을 완료하고 이번 주 기록 현황 확인하기",
     "duration_days": 1
   },
   {
@@ -226,97 +1090,513 @@
   {
     "track": "CKD",
     "stage": 2,
+    "category": "MONITORING",
+    "name": "오늘 혈압을 측정하고 기록하기",
+    "description": "오늘 혈압을 측정하고 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "MONITORING",
+    "name": "혈압 목표 범위(의료진 지침 기준)를 확인하고 기록하기",
+    "description": "혈압 목표 범위(의료진 지침 기준)를 확인하고 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "MONITORING",
+    "name": "이전 검사 결과와 이번 결과를 비교해 변화 메모하기",
+    "description": "이전 검사 결과와 이번 결과를 비교해 변화 메모하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "MONITORING",
+    "name": "다음 진료 시 의료진에게 질문할 내용 1가지를 미리 적어두기",
+    "description": "다음 진료 시 의료진에게 질문할 내용 1가지를 미리 적어두기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
     "category": "EXERCISE",
-    "name": "오늘 3,000보 걷기",
-    "description": "오늘 3,000보 걷기",
+    "name": "3,000보 걷기",
+    "description": "3,000보 걷기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "빠른 걷기 또는 가벼운 실내 자전거를 20분 완료하기",
+    "description": "빠른 걷기 또는 가벼운 실내 자전거를 20분 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "운동 중 약간 숨차지만 대화 가능한 강도로 15분 이상 유지하기",
+    "description": "운동 중 약간 숨차지만 대화 가능한 강도로 15분 이상 유지하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "매 시간 5분 이상 자리에서 일어나 이동하는 활동을 3회 이상 실천하기",
+    "description": "매 시간 5분 이상 자리에서 일어나 이동하는 활동을 3회 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "EXERCISE",
+    "name": "의자 스쿼트 10회 × 2세트 가벼운 하체 근력 운동 수행하기",
+    "description": "의자 스쿼트 10회 × 2세트 가벼운 하체 근력 운동 수행하기",
     "duration_days": 1
   },
   {
     "track": "CKD",
     "stage": 2,
     "category": "EMOTION",
-    "name": "오늘 좋았던 일 한 줄 적기",
-    "description": "오늘 좋았던 일 한 줄 적기",
+    "name": "만성 질환 관리 부담을 느낄 때 가족 또는 친구와 10분 이상 직접 대화 나누기",
+    "description": "만성 질환 관리 부담을 느낄 때 가족 또는 친구와 10분 이상 직접 대화 나누기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "EMOTION",
+    "name": "복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 5분 이상 실천하기",
+    "description": "복식 호흡(4초 들이쉬기-7초 참기-8초 내쉬기)을 5분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "EMOTION",
+    "name": "복식 호흡 또는 마음챙김 명상을 5분 이상 실시하기",
+    "description": "복식 호흡 또는 마음챙김 명상을 5분 이상 실시하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "EMOTION",
+    "name": "하루를 마치며 오늘 느낀 감정(불안·긴장·안도·감사 중 1가지)을 말로 표현하기",
+    "description": "하루를 마치며 오늘 느낀 감정(불안·긴장·안도·감사 중 1가지)을 말로 표현하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 2,
+    "category": "EMOTION",
+    "name": "부정적인 생각이 들면 종이에 적고 현실적으로 반박하는 문장을 1개 이상 써보기",
+    "description": "부정적인 생각이 들면 종이에 적고 현실적으로 반박하는 문장을 1개 이상 써보기",
     "duration_days": 1
   },
   {
     "track": "CKD",
     "stage": 3,
     "category": "EDUCATION",
-    "name": "혈압이 신장 기능에 미치는 영향을 다룬 자료 읽기",
-    "description": "혈압이 신장 기능에 미치는 영향을 다룬 자료 읽기",
+    "name": "혈압·혈당·단백뇨가 CKD 진행에 미치는 복합적 영향 자료 읽기",
+    "description": "혈압·혈당·단백뇨가 CKD 진행에 미치는 복합적 영향 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "EDUCATION",
+    "name": "나트륨 제한이 혈압과 신장 보호에 미치는 근거 자료 읽기",
+    "description": "나트륨 제한이 혈압과 신장 보호에 미치는 근거 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "EDUCATION",
+    "name": "운동이 CKD 환자의 신장 기능 보호에 미치는 효과 자료 읽기",
+    "description": "운동이 CKD 환자의 신장 기능 보호에 미치는 효과 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "EDUCATION",
+    "name": "교육 콘텐츠 1개를 시청하고 핵심 내용 메모하기",
+    "description": "교육 콘텐츠 1개를 시청하고 핵심 내용 메모하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "EDUCATION",
+    "name": "배운 내용을 한 줄로 요약하고 실천 계획 1가지 적기",
+    "description": "배운 내용을 한 줄로 요약하고 실천 계획 1가지 적기",
     "duration_days": 1
   },
   {
     "track": "CKD",
     "stage": 3,
     "category": "RECORD",
-    "name": "오늘 복약·수분·체중을 빠짐없이 기록하기",
-    "description": "오늘 복약·수분·체중을 빠짐없이 기록하기",
+    "name": "복약·수분·체중 기록을 완료하고 지난 2주 기록 현황 점검하기",
+    "description": "복약·수분·체중 기록을 완료하고 지난 2주 기록 현황 점검하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "RECORD",
+    "name": "최근 2주 기록에서 빠진 날을 확인하고 원인 분석하기",
+    "description": "최근 2주 기록에서 빠진 날을 확인하고 원인 분석하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "RECORD",
+    "name": "식사 일지(나트륨·단백질 조절 여부)를 기록하기",
+    "description": "식사 일지(나트륨·단백질 조절 여부)를 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "RECORD",
+    "name": "혈압·체중·복약·수분을 한 곳에 통합 기록하기",
+    "description": "혈압·체중·복약·수분을 한 곳에 통합 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "RECORD",
+    "name": "최근 3주 기록을 바탕으로 잘 지킨 항목과 부족한 항목을 스스로 정리하기",
+    "description": "최근 3주 기록을 바탕으로 잘 지킨 항목과 부족한 항목을 스스로 정리하기",
     "duration_days": 1
   },
   {
     "track": "CKD",
     "stage": 3,
     "category": "MONITORING",
-    "name": "오늘 혈압을 측정하고 수치를 기록하기",
-    "description": "오늘 혈압을 측정하고 수치를 기록하기",
+    "name": "오늘 혈압을 측정하고 목표 범위 달성 여부 확인하기",
+    "description": "오늘 혈압을 측정하고 목표 범위 달성 여부 확인하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "MONITORING",
+    "name": "최근 2회 검사 결과(eGFR·크레아티닌·단백뇨)를 비교해 변화 메모하기",
+    "description": "최근 2회 검사 결과(eGFR·크레아티닌·단백뇨)를 비교해 변화 메모하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "MONITORING",
+    "name": "혈압 기록을 그래프 또는 표로 정리해 추이 파악하기",
+    "description": "혈압 기록을 그래프 또는 표로 정리해 추이 파악하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "MONITORING",
+    "name": "다음 진료 시 의료진에게 검사 결과 변화에 대해 질문하기",
+    "description": "다음 진료 시 의료진에게 검사 결과 변화에 대해 질문하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "MONITORING",
+    "name": "검사 수치 추이를 그래프로 관리하며 이전 대비 변화 방향 확인하기",
+    "description": "검사 수치 추이를 그래프로 관리하며 이전 대비 변화 방향 확인하기",
     "duration_days": 1
   },
   {
     "track": "CKD",
     "stage": 3,
     "category": "EXERCISE",
-    "name": "오늘 가벼운 유산소 운동 20분 완료하기",
-    "description": "오늘 가벼운 유산소 운동 20분 완료하기",
+    "name": "가벼운 유산소 운동(걷기·실내 자전거)을 20분 이상 완료하기",
+    "description": "가벼운 유산소 운동(걷기·실내 자전거)을 20분 이상 완료하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "저항 운동(탄성 밴드·체중 스쿼트)을 10분 이상 수행하기",
+    "description": "저항 운동(탄성 밴드·체중 스쿼트)을 10분 이상 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "운동 중 10분마다 짧은 대화가 가능한 강도인지 확인하며 30분 이상 유지하기",
+    "description": "운동 중 10분마다 짧은 대화가 가능한 강도인지 확인하며 30분 이상 유지하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "운동 후 피로도를 기록하기",
+    "description": "운동 후 피로도를 기록하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "EXERCISE",
+    "name": "좌식 시간을 전날보다 30분 이상 줄이고 총 좌식 시간을 5시간 이하로 유지하기",
+    "description": "좌식 시간을 전날보다 30분 이상 줄이고 총 좌식 시간을 5시간 이하로 유지하기",
     "duration_days": 1
   },
   {
     "track": "CKD",
     "stage": 3,
     "category": "EMOTION",
-    "name": "오늘 가벼운 취미 또는 산책으로 기분 전환하기",
-    "description": "오늘 가벼운 취미 또는 산책으로 기분 전환하기",
+    "name": "마음챙김 명상을 10분 이상 실천하기",
+    "description": "마음챙김 명상을 10분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "EMOTION",
+    "name": "CKD 관련 걱정을 통제 가능한 것과 통제 불가능한 것으로 나누고 통제 가능한 것 1가지에만 집중하기",
+    "description": "CKD 관련 걱정을 통제 가능한 것과 통제 불가능한 것으로 나누고 통제 가능한 것 1가지에만 집중하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "EMOTION",
+    "name": "스트레스를 느꼈을 때 10분 걷기·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "description": "스트레스를 느꼈을 때 10분 걷기·5분 호흡·5분 대화 중 1가지로 해소하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "EMOTION",
+    "name": "부정적 감정을 판단 없이 3분간 관찰하는 마음챙김 연습을 1회 이상 하기",
+    "description": "부정적 감정을 판단 없이 3분간 관찰하는 마음챙김 연습을 1회 이상 하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 3,
+    "category": "EMOTION",
+    "name": "환우 커뮤니티 또는 지지 그룹에 참여하거나 활동 살펴보기",
+    "description": "환우 커뮤니티 또는 지지 그룹에 참여하거나 활동 살펴보기",
     "duration_days": 1
   },
   {
     "track": "CKD",
     "stage": 4,
     "category": "EDUCATION",
-    "name": "오늘 교육 콘텐츠 1개를 보고 핵심 내용을 한 줄로 적기",
-    "description": "오늘 교육 콘텐츠 1개를 보고 핵심 내용을 한 줄로 적기",
+    "name": "CKD 단계 진행 시 투석·이식 준비 시점에 대한 자료 읽기",
+    "description": "CKD 단계 진행 시 투석·이식 준비 시점에 대한 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "EDUCATION",
+    "name": "신장 보호를 위한 식이·운동·약물 병행 관리의 근거 자료 읽기",
+    "description": "신장 보호를 위한 식이·운동·약물 병행 관리의 근거 자료 읽기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "EDUCATION",
+    "name": "교육 콘텐츠 1개를 시청하고 핵심 내용을 정리하기",
+    "description": "교육 콘텐츠 1개를 시청하고 핵심 내용을 정리하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "EDUCATION",
+    "name": "배운 내용을 한 줄 요약하고 다음 진료 시 의료진과 공유할 준비하기",
+    "description": "배운 내용을 한 줄 요약하고 다음 진료 시 의료진과 공유할 준비하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "EDUCATION",
+    "name": "지난 4주간 배운 내용을 돌아보고 실천 변화를 스스로 평가하기",
+    "description": "지난 4주간 배운 내용을 돌아보고 실천 변화를 스스로 평가하기",
     "duration_days": 1
   },
   {
     "track": "CKD",
     "stage": 4,
     "category": "RECORD",
-    "name": "오늘 복약·수분·체중·혈압을 한 곳에 통합 기록하기",
-    "description": "오늘 복약·수분·체중·혈압을 한 곳에 통합 기록하기",
+    "name": "복약·수분·체중·혈압 통합 기록을 완료하고 지난 4주 기록 현황 점검하기",
+    "description": "복약·수분·체중·혈압 통합 기록을 완료하고 지난 4주 기록 현황 점검하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "RECORD",
+    "name": "최근 4주 기록에서 빠진 날과 수치 변동이 큰 날을 분석하기",
+    "description": "최근 4주 기록에서 빠진 날과 수치 변동이 큰 날을 분석하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "RECORD",
+    "name": "식사 일지를 바탕으로 나트륨·단백질 목표 달성 일수를 계산하기",
+    "description": "식사 일지를 바탕으로 나트륨·단백질 목표 달성 일수를 계산하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "RECORD",
+    "name": "지난 4주 기록을 리뷰하고 다음 달 개선 목표 1가지 설정하기",
+    "description": "지난 4주 기록을 리뷰하고 다음 달 개선 목표 1가지 설정하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "RECORD",
+    "name": "기록을 완료하고 지금까지의 기록 지속 현황을 확인하기",
+    "description": "기록을 완료하고 지금까지의 기록 지속 현황을 확인하기",
     "duration_days": 1
   },
   {
     "track": "CKD",
     "stage": 4,
     "category": "MONITORING",
-    "name": "오늘 검사 결과를 이전 수치와 비교해 변화를 메모하기",
-    "description": "오늘 검사 결과를 이전 수치와 비교해 변화를 메모하기",
+    "name": "최근 4회 검사 결과(eGFR·크레아티닌·단백뇨)를 표로 정리해 추이 파악하기",
+    "description": "최근 4회 검사 결과(eGFR·크레아티닌·단백뇨)를 표로 정리해 추이 파악하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "MONITORING",
+    "name": "혈압 기록을 그래프로 관리하며 목표 범위 달성률 계산하기",
+    "description": "혈압 기록을 그래프로 관리하며 목표 범위 달성률 계산하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "MONITORING",
+    "name": "검사 수치 변화 추이를 의료진과 함께 검토하기",
+    "description": "검사 수치 변화 추이를 의료진과 함께 검토하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "MONITORING",
+    "name": "지난 2회 이상 검사에서 eGFR 변화 방향을 확인하고 메모하기",
+    "description": "지난 2회 이상 검사에서 eGFR 변화 방향을 확인하고 메모하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "MONITORING",
+    "name": "검사 추이 그래프를 활용해 수치 변화와 생활습관 실천 간 연관성 파악하기",
+    "description": "검사 추이 그래프를 활용해 수치 변화와 생활습관 실천 간 연관성 파악하기",
     "duration_days": 1
   },
   {
     "track": "CKD",
     "stage": 4,
     "category": "EXERCISE",
-    "name": "오늘 유산소 운동 30분 완료 후 피로도를 기록하기",
-    "description": "오늘 유산소 운동 30분 완료 후 피로도를 기록하기",
+    "name": "유산소 25분 + 가벼운 근력 운동 15분으로 총 40분 이상 운동하기",
+    "description": "유산소 25분 + 가벼운 근력 운동 15분으로 총 40분 이상 운동하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "근력 운동(스쿼트·런지·플랭크 중 2가지 이상)을 각 15회 × 2세트 수행하기",
+    "description": "근력 운동(스쿼트·런지·플랭크 중 2가지 이상)을 각 15회 × 2세트 수행하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "숨이 차고 땀이 나지만 짧은 대화는 가능한 강도로 유산소 운동을 25분 이상 유지하기",
+    "description": "숨이 차고 땀이 나지만 짧은 대화는 가능한 강도로 유산소 운동을 25분 이상 유지하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "총 좌식 시간을 4시간 이하로 줄이기",
+    "description": "총 좌식 시간을 4시간 이하로 줄이기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "EXERCISE",
+    "name": "운동 기록을 작성하고 의료진 승인 범위 내 운동 루틴의 지속 현황 점검하기",
+    "description": "운동 기록을 작성하고 의료진 승인 범위 내 운동 루틴의 지속 현황 점검하기",
     "duration_days": 1
   },
   {
     "track": "CKD",
     "stage": 4,
     "category": "EMOTION",
-    "name": "오늘 환우 커뮤니티 또는 지지 그룹에 참여하거나 활동 살펴보기",
-    "description": "오늘 환우 커뮤니티 또는 지지 그룹에 참여하거나 활동 살펴보기",
+    "name": "명상·복식 호흡·긍정적 자기 대화를 15분 이상 실천하기",
+    "description": "명상·복식 호흡·긍정적 자기 대화를 15분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "EMOTION",
+    "name": "스트레스 상황에서 즉각 반응하지 않고 5초간 멈춘 뒤 복식 호흡 후 반응하기",
+    "description": "스트레스 상황에서 즉각 반응하지 않고 5초간 멈춘 뒤 복식 호흡 후 반응하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "EMOTION",
+    "name": "CKD 관련 부정적 생각이 반복될 때 '지금 이 순간'에 집중하는 마음챙김을 10분 이상 실천하기",
+    "description": "CKD 관련 부정적 생각이 반복될 때 '지금 이 순간'에 집중하는 마음챙김을 10분 이상 실천하기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "EMOTION",
+    "name": "CKD 관리의 심리적 부담을 신뢰하는 사람과 10분 이상 직접 대화로 나누기",
+    "description": "CKD 관리의 심리적 부담을 신뢰하는 사람과 10분 이상 직접 대화로 나누기",
+    "duration_days": 1
+  },
+  {
+    "track": "CKD",
+    "stage": 4,
+    "category": "EMOTION",
+    "name": "심리적 부담이 3주 이상 지속되고 있다면 전문 상담 연계 계획을 세우기",
+    "description": "심리적 부담이 3주 이상 지속되고 있다면 전문 상담 연계 계획을 세우기",
     "duration_days": 1
   },
   {
