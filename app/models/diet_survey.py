@@ -14,6 +14,14 @@ class DietSurvey(models.Model):
     fried_food_per_week = fields.IntField(description="주 튀긴 음식 섭취 횟수")
     # Q4: 식이섬유 — 매 끼 채소 반찬 여부
     vegetables_every_meal = fields.BooleanField(description="매 끼 채소 반찬 섭취 여부")
+    # Q5: 칼륨 — 과일·채소·콩류 하루 횟수 (A·B·진단자만 응답, null=미응답)
+    potassium_food_freq = fields.IntField(
+        null=True, description="칼륨: 과일·채소·콩류 하루 횟수 (0 적음/1 보통/2 많음)"
+    )
+    # Q6: 단백질 — 고기·생선·계란 하루 횟수 (A·B·진단자만 응답, null=미응답)
+    protein_food_freq = fields.IntField(
+        null=True, description="단백질: 고기·생선·계란 하루 횟수 (0 적음/1 보통/2 많음)"
+    )
 
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)

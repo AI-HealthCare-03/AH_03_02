@@ -12,6 +12,8 @@ class DietSurveyRepository:
         sweet_drink_per_day: int,
         fried_food_per_week: int,
         vegetables_every_meal: bool,
+        potassium_food_freq: int | None = None,
+        protein_food_freq: int | None = None,
     ) -> DietSurvey:
         return await DietSurvey.create(
             user_id=user_id,
@@ -20,6 +22,8 @@ class DietSurveyRepository:
             sweet_drink_per_day=sweet_drink_per_day,
             fried_food_per_week=fried_food_per_week,
             vegetables_every_meal=vegetables_every_meal,
+            potassium_food_freq=potassium_food_freq,
+            protein_food_freq=protein_food_freq,
         )
 
     async def get_by_user(

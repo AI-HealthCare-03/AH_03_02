@@ -16,6 +16,7 @@ from app.core.redis_client import get_redis
 from app.dtos.health_check import HealthCheckCreateRequest
 from app.models.lifestyle_survey import LifestyleSurvey
 from app.models.users import Gender
+from app.services.diet_flags import dialysis_to_track, load_diet_flags
 
 logger = setup_logger("ckd_publisher")
 
@@ -78,6 +79,19 @@ async def publish_ckd_job(
     """예측 job 발행(fire-and-forget). 호출부에서 예외를 격리한다."""
     ls = await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date").first()
     payload = _build_payload(user_age, user_gender, bmi, dto, ls)
+
+    # 식이 플래그(리포트 가이드용) — 없으면 미주입. mapping은 FEATURES 키만 보므로 추가 키 무해.
+    flags = await load_diet_flags(user_id)
+    if flags is not None:
+        payload["diet_flags"] = {
+            "flags": list(flags.flags),
+            "consult_cards": list(flags.consult_cards),
+            "search_hints": list(flags.search_hints),
+        }
+    track = dialysis_to_track(str(dto.dialysis_type)) if dto.dialysis_type is not None else None
+    if track:
+        payload["track"] = track
+
     redis = get_redis()
     await redis.xadd(
         config.CKD_JOBS_STREAM,
