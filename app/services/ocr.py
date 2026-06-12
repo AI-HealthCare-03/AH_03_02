@@ -56,8 +56,14 @@ _FIELD_KEYWORDS: list[tuple[str, list[str]]] = [
 _BP_PATTERN = re.compile(r"(\d{2,3})\s*/\s*(\d{2,3})")
 # 키+몸무게 슬래시 패턴 "172 / 68" (소수 허용)
 _PAIR_PATTERN = re.compile(r"(\d{2,3}(?:\.\d+)?)\s*/\s*(\d{2,3}(?:\.\d+)?)")
-# 숫자 (소수 허용)
-_NUMBER_PATTERN = re.compile(r"\d+(?:\.\d+)?")
+# 숫자 (천단위 콤마·소수 허용) — "1,200"·"118"·"0.9". 콤마버전을 우선 매칭.
+_NUMBER_PATTERN = re.compile(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?")
+
+
+def _to_float(s: str) -> float:
+    """천단위 콤마를 제거하고 float 변환. '1,200'→1200.0, '118'→118.0 (중성지방 등 4자리+ 값 오류 방지)."""
+    return float(s.replace(",", ""))
+
 
 # 판정·체크박스·정상범위 표현 — 이런 라인은 진짜 라벨이 아니라 정상/의심 판정·설명이라
 # 키워드 매칭에서 제외 (예: "□ 낮은 고밀도 콜레스테롤 의심"이 진짜 라벨 가로채는 문제 차단).
@@ -356,7 +362,7 @@ def _try_map_with_lookahead(lines: list[dict], idx: int, mapped: dict[str, dict]
             num_match = _NUMBER_PATTERN.search(next_text)
             if num_match:
                 mapped[pending_field] = {
-                    "value": float(num_match.group()),
+                    "value": _to_float(num_match.group()),
                     "confidence": next_conf,
                     "source_text": f"{text} → {next_text}",
                 }
@@ -403,7 +409,7 @@ def _map_lines_to_health_fields(lines: list[dict]) -> dict[str, dict]:
     return mapped
 
 
-_PURE_NUMBER_RE = re.compile(r"^\d+(?:\.\d+)?$")
+_PURE_NUMBER_RE = re.compile(r"^(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?$")
 _SKIP_TOKEN_WORDS = (
     "이상",
     "미만",
@@ -435,7 +441,7 @@ def _classify_tokens(items: list[dict]) -> tuple[list[tuple[str, dict]], list[di
             pairs.append({**it, "v1": float(pm.group(1)), "v2": float(pm.group(2))})
             continue
         if _PURE_NUMBER_RE.fullmatch(text):
-            numbers.append({**it, "value": float(text)})
+            numbers.append({**it, "value": _to_float(text)})
             continue
         if any(w in text for w in _SKIP_TOKEN_WORDS):
             continue
@@ -535,7 +541,7 @@ def _try_hdl_strict_row(items: list[dict], mapped: dict[str, dict]) -> bool:
         return False
     if not any("콜레스테롤" in it["text"] for it in items):
         return False
-    nums = [{**it, "value": float(it["text"])} for it in items if _PURE_NUMBER_RE.fullmatch(it["text"])]
+    nums = [{**it, "value": _to_float(it["text"])} for it in items if _PURE_NUMBER_RE.fullmatch(it["text"])]
     for kt in kw_tokens:
         # 다음 행 라벨(중성지방·저밀도) y_top — 셀 아래 경계
         next_y_tops = [
@@ -590,7 +596,7 @@ def _try_fallback_one_page(items: list[dict], field: str, kw: str, mapped: dict[
     cho_tokens = [it for it in items if "콜레스테롤" in it["text"] and any(u in it["text"] for u in _LABEL_UNIT_HINTS)]
     if not cho_tokens:
         return False
-    nums = [{**it, "value": float(it["text"])} for it in items if _PURE_NUMBER_RE.fullmatch(it["text"])]
+    nums = [{**it, "value": _to_float(it["text"])} for it in items if _PURE_NUMBER_RE.fullmatch(it["text"])]
     bad_words = ("낮은", "의심", "고위험", "전단계", "이상자", "유질환자")
     for kt in kw_tokens:
         if any(any(w in it["text"] for w in bad_words) for it in items if it is not kt and _same_row(kt, it)):
@@ -758,6 +764,37 @@ def _parse_clova_response(resp: httpx.Response) -> list[dict]:
     return fields_raw
 
 
+# 검진 항목별 생리적 유효 범위 — 범위 밖 매핑은 오인식(정상범위 컬럼·소수점 오류·콤마 잔류 등)으로
+# 보고 제거한다. 자동입력에 비현실 값이 들어가는 것보다 빈칸으로 두고 사용자가 직접 입력하는 편이 안전.
+_VALID_RANGES: dict[str, tuple[float, float]] = {
+    "systolic_bp": (60.0, 260.0),
+    "diastolic_bp": (30.0, 160.0),
+    "fasting_glucose": (20.0, 600.0),
+    "creatinine": (0.2, 20.0),
+    "total_cholesterol": (50.0, 500.0),
+    "hdl_cholesterol": (10.0, 150.0),
+    "triglycerides": (20.0, 5000.0),
+    "height": (100.0, 220.0),
+    "weight": (20.0, 250.0),
+    "waist_circumference": (40.0, 200.0),
+}
+
+
+def _drop_out_of_range(mapped: dict[str, dict]) -> list[str]:
+    """생리적 범위를 벗어난 매핑값을 제거(오인식 차단). 제거한 필드명 리스트 반환."""
+    dropped: list[str] = []
+    for field, (lo, hi) in _VALID_RANGES.items():
+        m = mapped.get(field)
+        if m is None:
+            continue
+        value = m.get("value")
+        if value is None or not (lo <= value <= hi):
+            mapped.pop(field, None)
+            if value is not None:
+                dropped.append(f"{field}={value}")
+    return dropped
+
+
 async def extract_text(*, file_bytes: bytes, content_type: str, filename: str) -> dict:
     """Clova OCR API 호출 → 텍스트·신뢰도 추출."""
     invoke_url = os.getenv("CLOVA_OCR_INVOKE_URL")
@@ -821,6 +858,10 @@ async def extract_text(*, file_bytes: bytes, content_type: str, filename: str) -
     _fallback_hdl_strict_row(page_raws, mapped)
     # 분리된 "고밀도" + "콜레스테롤(mg/dL)" 토큰 일반 fallback (옵션 D가 못 잡았을 때만)
     _fallback_split_cholesterol(page_raws, mapped)
+    # 생리적 범위 벗어난 매핑값 제거 (콤마 잔류·정상범위 컬럼·소수점 오류 등 오인식 차단)
+    out_of_range = _drop_out_of_range(mapped)
+    if out_of_range:
+        logger.info("OCR 범위초과 매핑 제거: %s", out_of_range)
 
     logger.info(
         "Clova OCR 추출 성공 pages=%d fields=%d lines=%d mapped=%d low_conf=%d errors=%d mapped_keys=%s",
