@@ -56,6 +56,7 @@ TRACK_NON_DIALYSIS = "non_dialysis"
 TRACK_HEMODIALYSIS = "hemodialysis"
 TRACK_PERITONEAL = "peritoneal"
 TRACK_DIALYSIS = "dialysis"  # 혈액·복막 구분 없는 투석 공통
+TRACK_TRANSPLANT = "transplant"
 TRACK_COMMON = "common"
 
 # hemodialysis/peritoneal 검색 시 dialysis(투석 공통) 도 포함할 트랙 집합

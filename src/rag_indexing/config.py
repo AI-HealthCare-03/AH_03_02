@@ -131,6 +131,7 @@ TRACK_NON_DIALYSIS = "non_dialysis"
 TRACK_HEMODIALYSIS = "hemodialysis"
 TRACK_PERITONEAL = "peritoneal"
 TRACK_DIALYSIS = "dialysis"  # 혈액·복막 구분 없는 투석 공통 (신규 — N.N.N 분할 결과)
+TRACK_TRANSPLANT = "transplant"
 TRACK_COMMON = "common"
 
 # 파일명 부분 문자열 → track (doc_type=nutrition 파일에만 적용)
