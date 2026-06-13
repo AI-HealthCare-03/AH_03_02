@@ -23,6 +23,7 @@ DOC_TYPE_BY_FOLDER = {
     "kdigo": "clinical",  # KDIGO 공식 국제 가이드라인 (영문)
     "ksn_guideline": "clinical",  # 국내 임상 진료지침 (KSN 신장학회) + 영문 임상연구
     "knsn": "nutrition",  # 국문 영양·환자교육 (KSN 영양 + 질병관리청 바로알기)
+    "nutrition": "nutrition",  # 직접 작성 영양 MD 문서 (칼륨·인 식품 분류 등)
     "lifestyle": "lifestyle",  # 생활습관 (운동·금연·절주·수면·스트레스)
 }
 
@@ -42,6 +43,7 @@ MD_GLOBS = [
     "lifestyle/alcohol/*.md",
     "lifestyle/sleep/*.md",
     "lifestyle/stress/*.md",
+    "nutrition/*.md",  # 직접 작성 영양 MD (칼륨·인 식품 분류 등)
 ]
 
 # ─────────────────────────────────────────────
