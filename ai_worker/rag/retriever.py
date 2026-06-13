@@ -36,6 +36,7 @@ SYNONYM_GROUPS: list[frozenset[str]] = [
     frozenset({"포타슘", "칼륨"}),
     frozenset({"소듐", "나트륨"}),
     frozenset({"phosphorus", "인"}),
+    frozenset({"이상지질혈증", "고지혈증"}),
 ]
 
 # 긴 항 우선 매칭 (만성신부전>신부전, 신장병>신장) — 모듈 로드 시 1회 계산.
