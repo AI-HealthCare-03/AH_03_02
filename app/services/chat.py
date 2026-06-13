@@ -28,7 +28,7 @@ class ChatService:
     def __init__(self) -> None:
         self._repo = ChatRepository()
 
-    async def _build_user_context(self, user_id: int) -> dict:
+    async def _build_user_context(self, user_id: int) -> dict:  # noqa: C901
         """최신 검진·생활습관설문에서 eGFR·risk_group·track·ckd_cause + 식이 플래그 추출. 없으면 부분/빈 dict."""
         hc = await HealthCheck.filter(user_id=user_id).order_by("-checked_date", "-id").first()
         ctx: dict = {}
@@ -57,6 +57,8 @@ class ChatService:
             ]
             if causes:
                 ctx["ckd_cause"] = causes
+            if ls.ckd_diagnosed:
+                ctx["ckd_diagnosed"] = True
         # 식이 플래그(챗봇 배경 컨텍스트 — P1 단방향, Q&A 모드라 자동 우회 안 함)
         flags = await load_diet_flags(user_id)
         if flags is not None and (flags.flags or flags.search_hints):

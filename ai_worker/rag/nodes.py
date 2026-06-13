@@ -36,7 +36,8 @@ def guard_node(state: RAGState) -> dict:
 def retrieve_node(state: RAGState) -> dict:
     user_ctx = state.get("user_context") or {}
     track = user_ctx.get("track")  # None 이면 track 필터 미적용 (하위 호환)
-    docs, parent_context, top = retriever.retrieve(_q(state), track=track)
+    ckd_diagnosed = bool(user_ctx.get("ckd_diagnosed"))
+    docs, parent_context, top = retriever.retrieve(_q(state), track=track, ckd_diagnosed=ckd_diagnosed)
     return {"documents": docs, "parent_context": parent_context, "top_score": top}
 
 

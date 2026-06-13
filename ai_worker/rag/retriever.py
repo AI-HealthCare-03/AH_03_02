@@ -50,6 +50,63 @@ _SYN_SORTED: list[tuple[int, str, frozenset[str]]] = sorted(
 # 신장이식·신장암·신장결석 등 임상 복합어는 "콩팥OO"도 통용되므로 보호 불필요.
 _PROTECTED_COMPOUNDS: frozenset[str] = frozenset({"신장내과", "신장전문의", "신장학회", "신장학"})
 
+# ── CKD 진단자 후처리 필터 상수 ───────────────────────────────────────────────
+# GENERAL_SOURCES: 일반인 대상 출처 — CKD 식이·수치 기준과 상충 가능
+GENERAL_SOURCES: frozenset[str] = frozenset(
+    {
+        "16.대한고혈압학회 - 2026 제6판 고혈압 진료지침",
+        "당뇨병과 고혈압·이상지질혈증 _ 지식백과",
+        "저혈당 대처법 _ 지식백과",
+        "당뇨인의 식사요법 원칙 _ 지식백과",
+    }
+)
+# MIXED_SOURCE: general+CKD 혼재 — h2로 CKD 챕터 구분 (B2 확인: 완전일치)
+MIXED_SOURCE = "2025 당뇨병 진료지침_전문_최종본"
+# M1 확인: 6개 키워드로 MIXED_SOURCE CKD h2 34청크 전량 포착 (누락 없음)
+_CKD_H2_KEYWORDS: frozenset[str] = frozenset(
+    {
+        "신장질환",
+        "콩팥",
+        "신장내과",
+        "만성신장",
+        "신대체",
+        "CKD",
+    }
+)
+# 주의: "인" 단독 금지(오탐) — "인산"/"인 제한"/"고인산"으로만 매칭
+CONFLICT_KEYWORDS: tuple[str, ...] = (
+    "나트륨",
+    "소금",
+    "저염",
+    "칼륨",
+    "포타슘",
+    "인산",
+    "인 제한",
+    "고인산",
+    "단백질",
+    "수분 제한",
+    "물 제한",
+    "혈압 목표",
+    "목표 혈압",
+)
+
+
+def _is_ckd_h2(h2: str) -> bool:
+    """MIXED_SOURCE 청크가 CKD 챕터인지 h2로 판정 — CKD 챕터는 필터 제외."""
+    return any(kw in h2 for kw in _CKD_H2_KEYWORDS)
+
+
+def _is_general_conflicting(h) -> bool:  # noqa: ANN001
+    """CKD 진단자에게 상충될 수 있는 general 출처 청크인지 판정."""
+    p = h.payload or {}
+    src = p.get("source", "")
+    h2 = p.get("h2") or ""
+    is_general = src in GENERAL_SOURCES or (src == MIXED_SOURCE and not _is_ckd_h2(h2))
+    if not is_general:
+        return False
+    combined = h2 + " " + (p.get("text") or "")
+    return any(kw in combined for kw in CONFLICT_KEYWORDS)
+
 
 def get_client() -> QdrantClient:
     global _client
@@ -223,6 +280,7 @@ def retrieve(
     track: str | None = None,
     client: QdrantClient | None = None,
     query_vector: list[float] | None = None,
+    ckd_diagnosed: bool = False,
 ) -> tuple[list[Document], str, float]:
     """질문 → child 검색(age_group 필터, 선택적 track OR 필터) → parent 맥락 조회.
 
@@ -237,6 +295,12 @@ def retrieve(
     flt = _build_filter(age_group, track)
     queries = [query] if query_vector is not None else _expand_queries(query)
     hits, raw_max_score = _multi_search(queries, flt, client, query_vector, top_k, query)
+
+    if ckd_diagnosed and hits:
+        before = len(hits)
+        hits = [h for h in hits if not _is_general_conflicting(h)]
+        if len(hits) < before:
+            logger.info("[RAG-FILTER] ckd_diagnosed removed=%d remaining=%d", before - len(hits), len(hits))
 
     documents: list[Document] = []
     parent_ids: list[str] = []
@@ -269,5 +333,5 @@ def retrieve(
         logger.info("[RAG-TIMING]   retrieve.qdrant_parent elapsed=%.3fs", time.perf_counter() - _t)
         parent_context = "\n\n".join((pt.payload or {}).get("text", "") for pt in parents)
 
-    top_score = raw_max_score
+    top_score = max((h.score for h in hits), default=0.0) if ckd_diagnosed else raw_max_score
     return documents, parent_context, top_score
