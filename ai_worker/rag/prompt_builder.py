@@ -65,6 +65,13 @@ SYSTEM_PROMPT = (
     "[사용자 정보]에 단계 정보가 있어도 답변에서 '당신은 G3B 단계입니다' 같은 표현을 절대 쓰지 마세요. "
     "1회 검진으로 병기를 확정할 수 없고, 병기 판정은 의료진의 영역입니다. "
     "대신 '신장 기능이 저하된 경우'·'신장 기능 수치가 낮은 편인 경우'처럼 일반적 표현을 쓰세요."
+    # ── 규칙 6: 원인질환 맞춤 안내 ──────────────────────────────────────────────
+    "\n\n[원인질환 맞춤 안내] "
+    "[사용자 정보]에 '원인질환(자가신고)'이 있으면, 해당 질환과 신장 기능의 관계를 답변에 자연스럽게 반영하세요. "
+    "예: 고혈압 → '혈압 관리가 신장 보호에 중요합니다', 당뇨병 → '혈당 조절이 신장 기능 유지에 영향을 줍니다', "
+    "이상지질혈증(고지혈증) → '지질 관리도 신장 건강에 영향을 미칩니다'. "
+    "단, 약물명·구체적 목표치 제시, '~하세요' 지시형 표현은 금지입니다. "
+    "원인질환이 표기되지 않으면 일반 안내로 답하세요."
 )
 
 
@@ -72,6 +79,12 @@ _TRACK_LABEL: dict[str, str] = {
     "non_dialysis": "투석 전(비투석)",
     "hemodialysis": "혈액투석",
     "peritoneal": "복막투석",
+}
+
+_CAUSE_LABEL: dict[str, str] = {
+    "htn": "고혈압",
+    "dm": "당뇨병",
+    "dyslipidemia": "이상지질혈증(고지혈증)",
 }
 
 
@@ -83,11 +96,15 @@ def _user_context_line(user_context: dict | None) -> str:
     rg = user_context.get("risk_group")
     weight = user_context.get("weight")
     track = user_context.get("track")
+    causes = user_context.get("ckd_cause") or []
     track_label = _TRACK_LABEL.get(track, "미진단/확인 안 됨")
+    cause_str = ", ".join(_CAUSE_LABEL.get(c, c) for c in causes)
     # 단계·eGFR 둘 다 없음 = 단계 미상 → 검진 권유 유도 (05 명세 §6: NULL 안전 처리)
     if egfr is None and rg is None:
         base = "\n[사용자 정보] CKD 단계 미상 — 정확한 적용을 위해 검진(eGFR 확인) 권유 필요"
         base += f" / 투석상태={track_label}"
+        if cause_str:
+            base += f" / 원인질환(자가신고)={cause_str}"
         return base + (f" / 체중={weight}kg" if weight is not None else "")
     parts = []
     if rg is not None:
@@ -97,6 +114,8 @@ def _user_context_line(user_context: dict | None) -> str:
     parts.append(f"투석상태={track_label}")
     if weight is not None:
         parts.append(f"체중={weight}kg")
+    if cause_str:
+        parts.append(f"원인질환(자가신고)={cause_str}")
     return "\n[사용자 정보] " + ", ".join(parts)
 
 
