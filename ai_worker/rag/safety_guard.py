@@ -110,17 +110,44 @@ def pre_retrieval_guard(query: str, user_context: dict | None = None) -> str | N
 # ─────────────────────────────────────────────────────────────────────────────
 # Post-generation 금지표현 (05 명세 — 검출 시 면책 강화 / 재생성 후보)
 # ─────────────────────────────────────────────────────────────────────────────
+_PROTEIN_PRESCRIPTION_RX = re.compile(
+    r"(?:"
+    r"단백질.{0,40}\d{2,3}\s*g(?!\s*/\s*kg)"
+    r"|\d{2,3}\s*g(?!\s*/\s*kg).{0,15}단백질"
+    r"|(?:하루|일일|섭취량|권장량).{0,25}\d{2,3}\s*g(?!\s*/\s*kg)"
+    r")",
+    re.DOTALL,
+)
+
 _FORBIDDEN: list[tuple[re.Pattern, str]] = [
     (re.compile(r"(확진(합니다|됩니다|이?에요)|진단합니다|진단됩니다)"), "확정진단"),
     (re.compile(r"(완치|치료됩니다|치료해\s*드|낫습니다|나아집니다)"), "치료약속"),
     (re.compile(r"(막을\s*수\s*있습니다|예방됩니다|예방할\s*수\s*있습니다)"), "예방단정"),
     (re.compile(r"([가-힣A-Za-z]*\s*약)\s*(을|를)?\s*(드세요|복용하세요|드시면\s*됩니다)"), "약물직접권고"),
+    (_PROTEIN_PRESCRIPTION_RX, "단백질처방수치"),
 ]
 
 
 def find_forbidden(text: str) -> list[str]:
     """생성 답변에서 금지표현 카테고리를 검출 (없으면 빈 리스트)."""
     return [cat for rx, cat in _FORBIDDEN if rx.search(text)]
+
+
+_PROTEIN_CAVEAT_PHRASES = ("일반인 기준", "순수 체중만", "체중만 반영", "비만·부종")
+_PROTEIN_CAVEAT = (
+    "\n\n(※ 위 수치는 일반인 기준으로 순수 체중만 반영한 참고치입니다. "
+    "비만·부종 등은 반영되지 않았으며, 정확한 양은 신장 기능·투석 상태에 따라 "
+    "달라지므로 영양사·의료진 상담으로 확인하세요.)"
+)
+
+
+def add_protein_caveat_if_missing(text: str) -> str:
+    """단백질처방수치 감지 시 참고치 단서 누락이면 답변 끝에 추가. 단백질 없거나 이미 있으면 불변."""
+    if "단백질" not in text:
+        return text
+    if any(phrase in text for phrase in _PROTEIN_CAVEAT_PHRASES):
+        return text
+    return text + _PROTEIN_CAVEAT
 
 
 def with_disclaimer(text: str) -> str:

@@ -98,8 +98,11 @@ def analogy_node(state: RAGState) -> dict:
 
 def post_guard_node(state: RAGState) -> dict:
     ans = state.get("generation") or "확실한 근거를 찾지 못했습니다. 신장내과 전문의와 상담하세요."
-    if safety_guard.find_forbidden(ans):
-        # 금지표현 검출 → 면책 강화 (Phase 4: 면책, 재생성 루프는 Phase 6)
+    forbidden = safety_guard.find_forbidden(ans)
+    if "단백질처방수치" in forbidden:
+        ans = safety_guard.add_protein_caveat_if_missing(ans)
+        forbidden = [f for f in forbidden if f != "단백질처방수치"]
+    if forbidden:
         ans += "\n\n※ 위 내용은 참고용 안내이며 단정적 의미가 아닙니다."
     return {"generation": safety_guard.with_disclaimer(ans)}
 
