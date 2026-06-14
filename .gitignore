@@ -53,3 +53,6 @@ data/ckd/
 qdrant_backup_*/
 qdrant_backup_*.tar.gz
 probe_headers.py
+
+# RAG 테스트 결과물 (재생성 가능 — git 제외)
+results/
