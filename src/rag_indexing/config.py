@@ -23,6 +23,7 @@ DOC_TYPE_BY_FOLDER = {
     "kdigo": "clinical",  # KDIGO 공식 국제 가이드라인 (영문)
     "ksn_guideline": "clinical",  # 국내 임상 진료지침 (KSN 신장학회) + 영문 임상연구
     "knsn": "nutrition",  # 국문 영양·환자교육 (KSN 영양 + 질병관리청 바로알기)
+    "nutrition": "nutrition",  # 직접 작성 영양 MD 문서 (칼륨·인 식품 분류 등)
     "lifestyle": "lifestyle",  # 생활습관 (운동·금연·절주·수면·스트레스)
 }
 
@@ -42,6 +43,7 @@ MD_GLOBS = [
     "lifestyle/alcohol/*.md",
     "lifestyle/sleep/*.md",
     "lifestyle/stress/*.md",
+    "nutrition/*.md",  # 직접 작성 영양 MD (칼륨·인 식품 분류 등)
 ]
 
 # ─────────────────────────────────────────────
@@ -131,6 +133,7 @@ TRACK_NON_DIALYSIS = "non_dialysis"
 TRACK_HEMODIALYSIS = "hemodialysis"
 TRACK_PERITONEAL = "peritoneal"
 TRACK_DIALYSIS = "dialysis"  # 혈액·복막 구분 없는 투석 공통 (신규 — N.N.N 분할 결과)
+TRACK_TRANSPLANT = "transplant"
 TRACK_COMMON = "common"
 
 # 파일명 부분 문자열 → track (doc_type=nutrition 파일에만 적용)
@@ -142,6 +145,13 @@ TRACK_BY_SOURCE_KO: dict = {
     "투석전": TRACK_NON_DIALYSIS,
     "투석 전": TRACK_NON_DIALYSIS,
     "비투석": TRACK_NON_DIALYSIS,
+}
+
+# 파일명 stem → track 강제 지정 (doc_type 우선도 무시 — clinical 파일 수동 트랙 지정용)
+# 키: path.stem 완전일치 / 값: TRACK_* 상수
+SOURCE_TRACK_OVERRIDE: dict = {
+    "2021 적절한 혈액투석 치료 근거기반 진료지침": TRACK_HEMODIALYSIS,
+    "(2012)복막투석 복막염 진료지침": TRACK_PERITONEAL,
 }
 
 # ─────────────────────────────────────────────

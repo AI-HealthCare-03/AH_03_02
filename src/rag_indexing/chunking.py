@@ -185,7 +185,10 @@ def _track_for(doc_type: str, source: str) -> str:
     파일 전체에 동일 트랙을 적용하므로 h2 소제목 변경에 흔들리지 않고
     비교 섹션 h2로 인한 교차 오염도 방지된다.
     clinical·lifestyle·기타 knsn 은 항상 common.
+    SOURCE_TRACK_OVERRIDE 에 등록된 파일은 doc_type 무관하게 강제 지정.
     """
+    if source in cfg.SOURCE_TRACK_OVERRIDE:
+        return cfg.SOURCE_TRACK_OVERRIDE[source]
     if doc_type != "nutrition":
         return cfg.TRACK_COMMON
     for keyword, track in cfg.TRACK_BY_SOURCE_KO.items():

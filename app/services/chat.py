@@ -14,6 +14,7 @@ from app.core.redis_client import get_redis
 from app.dtos.chat import ChatMessageResponse
 from app.models.chat import ChatRole
 from app.models.health_check import HealthCheck
+from app.models.lifestyle_survey import LifestyleSurvey
 from app.repositories.chat_repository import ChatRepository
 from app.services.diet_flags import dialysis_to_track, load_diet_flags
 
@@ -27,8 +28,8 @@ class ChatService:
     def __init__(self) -> None:
         self._repo = ChatRepository()
 
-    async def _build_user_context(self, user_id: int) -> dict:
-        """최신 검진에서 RAG 가 쓰는 eGFR·risk_group·track + 식이 플래그 추출. 없으면 부분/빈 dict."""
+    async def _build_user_context(self, user_id: int) -> dict:  # noqa: C901
+        """최신 검진·생활습관설문에서 eGFR·risk_group·track·ckd_cause + 식이 플래그 추출. 없으면 부분/빈 dict."""
         hc = await HealthCheck.filter(user_id=user_id).order_by("-checked_date", "-id").first()
         ctx: dict = {}
         if hc is not None:
@@ -42,6 +43,22 @@ class ChatService:
                 track = dialysis_to_track(str(hc.dialysis_type))
                 if track:
                     ctx["track"] = track
+        # 원인질환 — load_diet_flags 가 LS 를 조회하나 DietFlagResult 만 반환해 재사용 불가 → 별도 조회
+        ls = await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date").first()
+        if ls is not None:
+            causes = [
+                c
+                for c, flag in [
+                    ("htn", ls.htn_diagnosed),
+                    ("dm", ls.dm_diagnosed),
+                    ("dyslipidemia", ls.dyslipidemia_diagnosed),
+                ]
+                if flag
+            ]
+            if causes:
+                ctx["ckd_cause"] = causes
+            if ls.ckd_diagnosed:
+                ctx["ckd_diagnosed"] = True
         # 식이 플래그(챗봇 배경 컨텍스트 — P1 단방향, Q&A 모드라 자동 우회 안 함)
         flags = await load_diet_flags(user_id)
         if flags is not None and (flags.flags or flags.search_hints):

@@ -31,6 +31,7 @@ rag = [
     "langchain-qdrant",
     "langgraph>=0.2",
     "langfuse>=3.0",
+    "rank-bm25>=0.2.2",
     "pypdf>=4.0",
     "pymupdf4llm>=0.0.17",
     "tiktoken",

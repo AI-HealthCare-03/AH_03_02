@@ -50,3 +50,9 @@ data/ckd/
 # 협업 자산 패키징 산출물 (scripts/setup/dump_*.sh 생성 → Google Drive 공유, git 추적 X)
 /models_ckd.tar.gz
 /qdrant_snapshot.tar.gz
+qdrant_backup_*/
+qdrant_backup_*.tar.gz
+probe_headers.py
+
+# RAG 테스트 결과물 (재생성 가능 — git 제외)
+results/

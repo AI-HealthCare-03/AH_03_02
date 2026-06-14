@@ -36,17 +36,17 @@ def guard_node(state: RAGState) -> dict:
 def retrieve_node(state: RAGState) -> dict:
     user_ctx = state.get("user_context") or {}
     track = user_ctx.get("track")  # None 이면 track 필터 미적용 (하위 호환)
-    docs, parent_context, top = retriever.retrieve(_q(state), track=track)
+    ckd_diagnosed = bool(user_ctx.get("ckd_diagnosed"))
+    docs, parent_context, top = retriever.retrieve(_q(state), track=track, ckd_diagnosed=ckd_diagnosed)
     return {"documents": docs, "parent_context": parent_context, "top_score": top}
 
 
 def grade_node(state: RAGState) -> dict:
-    # PoC 보완: top_score≥0.5 면 grade LLM 건너뛰고 relevant (정답 청크 과필터 방지)
-    if state.get("top_score", 0.0) >= cfg.SCORE_PREPASS:
-        return {"relevance": "relevant"}
     joined = "\n\n".join(d.page_content for d in state["documents"])
     if not joined.strip():
         return {"relevance": "not_relevant"}
+    if state.get("top_score", 0.0) >= cfg.SCORE_PREPASS:
+        return {"relevance": "relevant"}
     g = llm_client.doc_grader().invoke(f"질문: {_q(state)}\n문서:\n{joined}\n이 문서에 질문에 답할 정보가 있습니까?")
     return {"relevance": g.relevance}
 
@@ -98,8 +98,11 @@ def analogy_node(state: RAGState) -> dict:
 
 def post_guard_node(state: RAGState) -> dict:
     ans = state.get("generation") or "확실한 근거를 찾지 못했습니다. 신장내과 전문의와 상담하세요."
-    if safety_guard.find_forbidden(ans):
-        # 금지표현 검출 → 면책 강화 (Phase 4: 면책, 재생성 루프는 Phase 6)
+    forbidden = safety_guard.find_forbidden(ans)
+    if "단백질처방수치" in forbidden:
+        ans = safety_guard.add_protein_caveat_if_missing(ans)
+        forbidden = [f for f in forbidden if f != "단백질처방수치"]
+    if forbidden:
         ans += "\n\n※ 위 내용은 참고용 안내이며 단정적 의미가 아닙니다."
     return {"generation": safety_guard.with_disclaimer(ans)}
 

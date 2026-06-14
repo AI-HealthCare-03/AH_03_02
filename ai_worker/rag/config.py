@@ -27,9 +27,12 @@ GRADE_TEMPERATURE = 0.0  # 채점·재작성: 결정적
 # ─────────────────────────────────────────────
 # 검색
 # ─────────────────────────────────────────────
-TOP_K = 3
+TOP_K = 5
 AGE_GROUP = "adult"  # 성인 서비스 — 소아(pediatric) 청크 격리 (P1-4 태깅 활용)
-SCORE_PREPASS = 0.5  # top_score≥0.5 면 grade LLM 건너뛰고 relevant 사전통과
+SCORE_PREPASS = 0.55  # top_score≥이 값이면 grade LLM 건너뛰고 relevant 자동통과 (over-refusal 방지)
+
+BM25_OVER_FETCH = 15  # RRF용 후보 over-fetch 수 (TOP_K * 3)
+RRF_K = 60  # RRF 표준 상수
 # (PoC 발견: grade LLM이 정답 청크 score 0.6도 과필터)
 
 # ─────────────────────────────────────────────
@@ -53,6 +56,7 @@ TRACK_NON_DIALYSIS = "non_dialysis"
 TRACK_HEMODIALYSIS = "hemodialysis"
 TRACK_PERITONEAL = "peritoneal"
 TRACK_DIALYSIS = "dialysis"  # 혈액·복막 구분 없는 투석 공통
+TRACK_TRANSPLANT = "transplant"
 TRACK_COMMON = "common"
 
 # hemodialysis/peritoneal 검색 시 dialysis(투석 공통) 도 포함할 트랙 집합
