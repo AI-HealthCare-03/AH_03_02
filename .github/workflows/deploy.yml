@@ -84,6 +84,17 @@ jobs:
     # workflow_dispatch 입력의 deploy_to_ec2가 false면 스킵
     if: ${{ github.event_name == 'push' || inputs.deploy_to_ec2 == true }}
     steps:
+      # 2-1) docker-compose.yml + nginx 설정을 EC2 호스트로 동기화 (수동 SCP 자동화)
+      - name: Sync compose + nginx config to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "infra/docker/docker-compose.prod.yml,infra/nginx/prod.conf"
+          target: "/tmp/ci-sync"
+
+      # 2-2) EC2 안에서 파일 정위치로 이동 + 컨테이너 재시작
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -91,19 +102,24 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           # 명령어 흐름:
-          # 1) 최신 이미지 pull
-          # 2) fastapi + ai-worker 재시작 (ai-worker는 volumes로 모델·data 영구 마운트되어 안전)
-          # 3) nginx restart — upstream DNS 캐시 갱신 (fastapi 컨테이너 IP 바뀐 후 502 방지)
-          # 4) DB 마이그레이션 (idempotent, 실패해도 무시)
-          # 5) 사용 안 하는 이미지 정리 (디스크 절약)
+          # 1) SCP된 설정 파일 정위치 이동 (compose·nginx)
+          # 2) 최신 이미지 pull
+          # 3) fastapi + ai-worker up -d (compose 변경 시 자동 재생성, 변경 없으면 no-op)
+          # 4) nginx restart — 설정 갱신 + upstream DNS 캐시 갱신
+          # 5) DB 마이그레이션 (idempotent)
+          # 6) 사용 안 하는 이미지 정리
           script: |
             set -e
             cd ~/ai_project
+            echo "=== sync config files ==="
+            cp /tmp/ci-sync/infra/docker/docker-compose.prod.yml ./docker-compose.yml
+            cp /tmp/ci-sync/infra/nginx/prod.conf ./nginx/default.conf
+            rm -rf /tmp/ci-sync
             echo "=== docker compose pull ==="
             docker compose pull fastapi ai-worker
-            echo "=== restart fastapi + ai-worker (no deps) ==="
+            echo "=== up -d --no-deps fastapi + ai-worker (compose 변경 시 자동 재생성) ==="
             docker compose up -d --no-deps fastapi ai-worker
-            echo "=== nginx restart (upstream DNS 캐시 갱신, fastapi IP 변경 대응) ==="
+            echo "=== nginx restart (설정 갱신 + DNS 캐시 갱신) ==="
             docker compose restart nginx
             echo "=== run aerich upgrade (idempotent) ==="
             docker compose exec -T fastapi uv run aerich upgrade || echo "no migrations to apply"
