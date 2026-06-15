@@ -65,13 +65,14 @@ class TestMappingIntegrity:
                 assert c in CATEGORY_LABEL
 
     def test_required_checklist_items(self):
-        # PDF 수정사항4: 투석 트랙(DIALYSIS·CKD)은 4종 유지, 비투석 스크리닝(INTENSIVE/DAILY/WELLNESS)은 수분·체중·수면 3종
+        # 비진단자 챌린지 재설계(A~D그룹 PDF): 투석 트랙(DIALYSIS·CKD) 4종 유지,
+        # 비진단자(INTENSIVE/DAILY/WELLNESS)는 수분·식단·운동·수면 4종(체중 제거, 식단·운동 추가)
         assert set(REQUIRED_CHECKLIST.keys()) == {"DIALYSIS", "CKD", "INTENSIVE", "DAILY", "WELLNESS"}
-        expected_len = {"DIALYSIS": 4, "CKD": 4, "INTENSIVE": 3, "DAILY": 3, "WELLNESS": 3}
+        expected_len = {"DIALYSIS": 4, "CKD": 4, "INTENSIVE": 4, "DAILY": 4, "WELLNESS": 4}
         for track, items in REQUIRED_CHECKLIST.items():
             assert len(items) == expected_len[track], (track, len(items))
             for key, text in items:
                 assert isinstance(key, str) and isinstance(text, str) and text
-        # INTENSIVE/DAILY/WELLNESS는 동일한 수분·체중·수면 3종
+        # INTENSIVE/DAILY/WELLNESS는 동일한 수분·식단·운동·수면 4종 item_key (식단 문구만 트랙별 상이)
         for track in ("INTENSIVE", "DAILY", "WELLNESS"):
-            assert [k for k, _ in REQUIRED_CHECKLIST[track]] == ["hydration", "weight", "sleep"]
+            assert [k for k, _ in REQUIRED_CHECKLIST[track]] == ["hydration", "diet", "exercise", "sleep"]
