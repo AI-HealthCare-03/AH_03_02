@@ -44,7 +44,8 @@ class ChatService:
                 if track:
                     ctx["track"] = track
         # 원인질환 — load_diet_flags 가 LS 를 조회하나 DietFlagResult 만 반환해 재사용 불가 → 별도 조회
-        ls = await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date").first()
+        # 같은 날 재제출 시 최신 문진을 보장하려면 id tiebreaker 필요(다른 최신-조회와 정합)
+        ls = await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date", "-id").first()
         if ls is not None:
             causes = [
                 c

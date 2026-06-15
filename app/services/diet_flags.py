@@ -203,12 +203,13 @@ async def load_diet_flags(user_id: int) -> DietFlagResult | None:
     from app.models.health_check import HealthCheck
     from app.models.lifestyle_survey import LifestyleSurvey
 
-    diet_row = await DietSurvey.filter(user_id=user_id).order_by("-surveyed_date").first()
+    # 같은 날 재제출 시 최신 설문 보장 — id tiebreaker (다른 최신-조회와 정합)
+    diet_row = await DietSurvey.filter(user_id=user_id).order_by("-surveyed_date", "-id").first()
     if diet_row is None:
         return None
 
     hc = await HealthCheck.filter(user_id=user_id).order_by("-checked_date", "-id").first()
-    ls = await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date").first()
+    ls = await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date", "-id").first()
 
     app_group = str(hc.app_group) if (hc and hc.app_group is not None) else None
     track = dialysis_to_track(str(hc.dialysis_type)) if (hc and hc.dialysis_type is not None) else None
