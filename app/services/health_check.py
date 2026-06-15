@@ -693,6 +693,7 @@ class HealthCheckService:
             family_history=family_hist,
             peer_top_pct=peer_top_pct,
             peer_relative=peer_relative,
+            report_available=group_str not in ("CKD", "DIALYSIS"),
         )
 
     async def get_report(

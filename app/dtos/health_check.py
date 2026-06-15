@@ -153,6 +153,7 @@ class ReportMeta(BaseModel):
     family_history: list[str]  # 가족력 (고혈압/당뇨/심장질환)
     peer_top_pct: int | None
     peer_relative: str | None
+    report_available: bool = True  # 진단자(CKD/DIALYSIS)면 False — 위험도 예측·리포트 비대상
 
 
 class ReportResponse(BaseSerializerModel):
