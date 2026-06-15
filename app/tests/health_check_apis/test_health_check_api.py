@@ -139,3 +139,75 @@ class TestHealthCheckDetailAPI(TestCase):
             )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+class TestDiagnosedSkipsPrediction(TestCase):
+    """CKD 진단자는 예측 job 발행을 스킵한다(모듈 ①)."""
+
+    async def _signup_login(self, client: AsyncClient) -> tuple[int, str]:
+        await client.post("/api/v1/auth/signup", json=_SIGNUP_DATA)
+        resp = await client.post("/api/v1/auth/login", json=_LOGIN_DATA)
+        token = resp.json()["access_token"]
+        from app.models.users import User
+
+        user = await User.get(email=_SIGNUP_DATA["email"])
+        return user.id, token
+
+    async def test_diagnosed_user_skips_publish(self):
+        """ckd_diagnosed=True면 예측 job 발행을 스킵한다."""
+        from unittest.mock import patch
+
+        from app.models.lifestyle_survey import (
+            DrinkingFrequency,
+            LifestyleSurvey,
+            SmokingStatus,
+        )
+        from app.services import health_check as hc_service
+
+        calls: list = []
+
+        async def _spy(**kwargs):  # noqa: ANN003
+            calls.append(kwargs)
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            user_id, token = await self._signup_login(client)
+            await LifestyleSurvey.create(
+                user_id=user_id,
+                surveyed_date="2026-05-19",
+                smoking_status=SmokingStatus.NEVER,
+                drinking_frequency=DrinkingFrequency.NEVER,
+                exercise_days_per_week=3,
+                ckd_diagnosed=True,
+            )
+            with patch.object(hc_service.ckd_publisher, "publish_ckd_job", _spy):
+                resp = await client.post(
+                    "/api/v1/health-checks",
+                    json=_HEALTH_CHECK_PAYLOAD,
+                    headers={"Authorization": f"Bearer {token}"},
+                )
+
+        assert resp.status_code == status.HTTP_201_CREATED
+        assert calls == []  # 진단자 → 발행 스킵
+
+    async def test_nondiagnosed_user_publishes(self):
+        """ckd_diagnosed=False(설문 없음)면 예측 job을 발행한다."""
+        from unittest.mock import patch
+
+        from app.services import health_check as hc_service
+
+        calls: list = []
+
+        async def _spy(**kwargs):  # noqa: ANN003
+            calls.append(kwargs)
+
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            _user_id, token = await self._signup_login(client)
+            with patch.object(hc_service.ckd_publisher, "publish_ckd_job", _spy):
+                resp = await client.post(
+                    "/api/v1/health-checks",
+                    json=_HEALTH_CHECK_PAYLOAD,
+                    headers={"Authorization": f"Bearer {token}"},
+                )
+
+        assert resp.status_code == status.HTTP_201_CREATED
+        assert len(calls) == 1  # 비진단자 → 발행

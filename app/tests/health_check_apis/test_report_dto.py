@@ -155,3 +155,45 @@ def test_lifestyle_item_has_domain() -> None:
         domain="diet",
     )
     assert it_explicit.model_dump()["domain"] == "diet"
+
+
+def test_report_meta_available_default_true() -> None:
+    """ReportMeta.report_available 기본값은 True(비진단자)."""
+    from app.dtos.health_check import ReportMeta
+
+    meta = ReportMeta(
+        group="G4",
+        group_title="건강 습관 형성군",
+        grade="낮음",
+        score=3.0,
+        group_message="msg",
+        age=45,
+        gender="남성",
+        conditions=[],
+        family_history=[],
+        peer_top_pct=None,
+        peer_relative=None,
+    )
+    assert meta.report_available is True
+
+
+def test_build_report_meta_unavailable_for_diagnosed() -> None:
+    """_build_report_meta — 진단자(CKD/DIALYSIS)는 report_available=False, 비진단자(G4)는 True.
+
+    DB 모델은 non-nullable 필드(birthday 등)로 부분 인스턴스화가 불가하므로,
+    _build_report_meta가 실제 접근하는 속성만 가진 stub으로 검증한다.
+    """
+    from types import SimpleNamespace
+
+    from app.models.health_check import AppGroup
+    from app.models.users import Gender
+    from app.services.health_check import HealthCheckService
+
+    def _hc(group: AppGroup) -> SimpleNamespace:
+        return SimpleNamespace(app_group=group, ckd_risk_score=None, shap_model2=None, egfr_estimated=None)
+
+    user = SimpleNamespace(gender=Gender.MALE, birthday=None)
+
+    assert HealthCheckService._build_report_meta(_hc(AppGroup.G4), user, None).report_available is True
+    assert HealthCheckService._build_report_meta(_hc(AppGroup.CKD), user, None).report_available is False
+    assert HealthCheckService._build_report_meta(_hc(AppGroup.DIALYSIS), user, None).report_available is False
