@@ -85,13 +85,16 @@ jobs:
     if: ${{ github.event_name == 'push' || inputs.deploy_to_ec2 == true }}
     steps:
       # 2-1) docker-compose.yml + nginx 설정을 EC2 호스트로 동기화 (수동 SCP 자동화)
+      # 쉼표 구분 source가 이 환경에서 "tar: empty archive" 에러 — multi-line yaml로 수정
       - name: Sync compose + nginx config to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "infra/docker/docker-compose.prod.yml,infra/nginx/prod.conf"
+          source: |
+            infra/docker/docker-compose.prod.yml
+            infra/nginx/prod.conf
           target: "/tmp/ci-sync"
 
       # 2-2) EC2 안에서 파일 정위치로 이동 + 컨테이너 재시작
