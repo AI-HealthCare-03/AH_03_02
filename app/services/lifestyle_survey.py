@@ -45,6 +45,7 @@ class LifestyleSurveyService:
             dm_diagnosed=dto.dm_diagnosed,
             dyslipidemia_diagnosed=dto.dyslipidemia_diagnosed,
             ckd_diagnosed=dto.ckd_diagnosed,
+            dialysis_type=dto.dialysis_type,
             is_pregnant=dto.is_pregnant,
         )
 
