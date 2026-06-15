@@ -68,10 +68,26 @@ export function RAGChatbotPage() {
         onReset: () => {},
         onDone: (answer) => {
           setLoading(false);
-          setMessages((prev) => [
-            ...prev,
-            { role: "assistant", content: answer, created_at: new Date().toISOString() },
-          ]);
+          // 빈 어시스턴트 메시지를 추가하고 청크 단위로 누적(가짜 스트리밍 — 약 1초 내 완료).
+          // 서버는 최종 답변만 보내므로 Self-RAG 재생성 리셋과 무관하다.
+          let assistantIdx = -1;
+          setMessages((prev) => {
+            assistantIdx = prev.length;
+            return [...prev, { role: "assistant", content: "", created_at: new Date().toISOString() }];
+          });
+          const step = Math.max(3, Math.ceil(answer.length / 60)); // 약 60프레임(≈1초)에 완료
+          let shown = 0;
+          const timer = setInterval(() => {
+            shown = Math.min(shown + step, answer.length);
+            const slice = answer.slice(0, shown);
+            setMessages((prev) => {
+              if (assistantIdx < 0 || assistantIdx >= prev.length) return prev;
+              const updated = [...prev];
+              updated[assistantIdx] = { ...updated[assistantIdx], content: slice };
+              return updated;
+            });
+            if (shown >= answer.length) clearInterval(timer);
+          }, 16);
         },
         onError: (msg) => {
           setLoading(false);
