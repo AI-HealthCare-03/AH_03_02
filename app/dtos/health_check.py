@@ -28,10 +28,7 @@ class HealthCheckCreateRequest(BaseModel):
     weight: Annotated[float, Field(ge=20.0, le=300.0, description="체중 (kg)")]
     height: Annotated[float, Field(ge=100.0, le=250.0, description="신장 (cm)")]
     waist_circumference: Annotated[float | None, Field(None, ge=40.0, le=200.0, description="허리둘레 (cm)")]
-    dialysis_type: Annotated[
-        DialysisType | None,
-        Field(None, description="투석 종류 (진단자만; 미진단은 null/생략)"),
-    ]
+    # dialysis_type 입력 제거 — 최신 문진(LifestyleSurvey)에서 조회·미러링(단일 진실)
 
 
 class HealthCheckResponse(BaseSerializerModel):
