@@ -2,6 +2,8 @@ from enum import StrEnum
 
 from tortoise import fields, models
 
+from app.models.health_check import DialysisType
+
 
 class SmokingStatus(StrEnum):
     NEVER = "NEVER"
@@ -68,6 +70,11 @@ class LifestyleSurvey(models.Model):
     dyslipidemia_diagnosed = fields.BooleanField(default=False, description="본인 이상지질혈증 진단")
     ckd_diagnosed = fields.BooleanField(
         default=False, description="본인 만성콩팥병(CKD) 진단 — True 시 챌린지 대신 주치의 지시 안내"
+    )
+    dialysis_type = fields.CharEnumField(
+        enum_type=DialysisType,
+        null=True,
+        description="투석 종류 (CKD 진단자만, null=미진단/미입력) — 챌린지 트랙·app_group 판정용",
     )
 
     # 임신 여부 — 임신 중에는 신장 수치·정상 범위 해석이 일반과 달라 본 선별 결과를 그대로 적용하기 어려움.
