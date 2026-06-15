@@ -996,6 +996,7 @@ export function LLMActionGuidePage() {
   });
 
   const [guideTimedOut, setGuideTimedOut] = useState(false);
+  const [copied, setCopied] = useState(false); // 복사 버튼 클릭 피드백
 
   // shap 준비 후 ai_guide가 빈 채로 GUIDE_TIMEOUT_MS 경과하면 실패 표시로 전환
   useEffect(() => {
@@ -1241,10 +1242,13 @@ export function LLMActionGuidePage() {
 
             <div className="flex gap-[12px]">
               <BtnSecondary
-                label="복사"
+                label={copied ? "복사됨 ✓" : "복사"}
                 className="flex-1"
                 onClick={() => {
-                  if (hasGuide) navigator.clipboard.writeText(aiGuide);
+                  if (!hasGuide) return;
+                  navigator.clipboard.writeText(aiGuide);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
                 }}
               />
             </div>

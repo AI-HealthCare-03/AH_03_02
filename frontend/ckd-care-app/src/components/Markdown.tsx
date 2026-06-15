@@ -7,6 +7,10 @@ import remarkGfm from "remark-gfm";
  * 프로젝트 Tailwind 토큰(text-text-primary 등)에 맞춘 컴포넌트 매핑.
  */
 export function Markdown({ children }: { children: string }) {
+  // 옛 답변·가이드의 box-drawing 구분선(─────/———)을 마크다운 hr로 정규화한다.
+  // 서버는 신규 답변에 ---(hr)를 쓰지만, 이미 DB에 캐시된 답변은 ─ 문자라
+  // 면책이 가로선과 한 줄로 붙어 보이던 문제를 프론트에서 함께 해결(기존·신규 호환).
+  const normalized = children.replace(/\n*[─—]{3,}\n*/g, "\n\n---\n\n");
   return (
     <div className="text-sm leading-[1.7] text-text-primary">
       <ReactMarkdown
@@ -36,7 +40,7 @@ export function Markdown({ children }: { children: string }) {
           ),
         }}
       >
-        {children}
+        {normalized}
       </ReactMarkdown>
     </div>
   );
