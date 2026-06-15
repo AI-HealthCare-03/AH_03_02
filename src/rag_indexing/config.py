@@ -33,7 +33,7 @@ DOC_TYPE_BY_FOLDER = {
 #   MD  (47개): ## 구조 전무(# 제목 1개씩) → MarkdownHeader 스킵, 제목 주입 + Recursive
 # ─────────────────────────────────────────────
 PDF_GLOBS = [
-    "kdigo/*.pdf",
+    # "kdigo/*.pdf",  # KDIGO 가이드라인 미반입(파일 없음, 인덱싱 0건) — 자료 추가 시 활성화
     "ksn_guideline/*.pdf",
     "knsn/*.pdf",
     "lifestyle/*.pdf",

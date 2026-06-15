@@ -55,6 +55,8 @@ def age_group_for(payload: dict) -> str:
     source = payload.get("source", "") or ""
     if source.startswith(cfg.PEDIATRIC_SOURCE_PREFIX) and cfg.PEDIATRIC_H2_KEYWORD_KO in h2:
         return cfg.AGE_GROUP_PEDIATRIC
+    if cfg.PEDIATRIC_H2_KEYWORD_KO in h2:
+        return cfg.AGE_GROUP_PEDIATRIC
     h2_lower = h2.lower()
     if any(k in h2_lower for k in cfg.PEDIATRIC_H2_KEYWORDS_EN):
         return cfg.AGE_GROUP_PEDIATRIC
