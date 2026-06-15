@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { ClipboardCheck, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import { Markdown } from "../components/Markdown";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -1229,14 +1230,7 @@ export function LLMActionGuidePage() {
                 </p>
               )}
 
-              {!isLoading && hasGuide && (
-                <p
-                  className="text-sm leading-[1.8] text-text-secondary"
-                  style={{ whiteSpace: "pre-wrap" }}
-                >
-                  {aiGuide}
-                </p>
-              )}
+              {!isLoading && hasGuide && <Markdown>{aiGuide}</Markdown>}
 
               {/* 면책 문구 */}
               <div className="mt-[2px] rounded-md border border-warning bg-[#fef3c7] p-[12px]">

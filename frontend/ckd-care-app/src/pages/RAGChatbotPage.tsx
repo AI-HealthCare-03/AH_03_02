@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { TopNav } from "../components/TopNav";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { askStream } from "../api/chat";
+import { Markdown } from "../components/Markdown";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -22,6 +23,7 @@ export function RAGChatbotPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [elapsed, setElapsed] = useState(0); // 답변 생성 경과 시간(초)
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -29,6 +31,13 @@ export function RAGChatbotPage() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, loading]);
+
+  // 생성 중 경과 초 카운트 (로딩 표시용)
+  useEffect(() => {
+    if (!loading) return;
+    const timer = setInterval(() => setElapsed((e) => e + 1), 1000);
+    return () => clearInterval(timer);
+  }, [loading]);
 
   async function send(question: string) {
     const trimmed = question.trim();
@@ -40,77 +49,33 @@ export function RAGChatbotPage() {
     setError(null);
     setInput("");
 
-    // 사용자 메시지 추가
+    // 사용자 메시지 추가 (어시스턴트는 최종 답변 도착 시에만 추가)
     const userMsg: ChatMessage = {
       role: "user",
       content: trimmed,
       created_at: new Date().toISOString(),
     };
-
-    // 어시스턴트 플레이스홀더 메시지를 미리 삽입하고 인덱스를 기억한다
-    let assistantIndex = -1;
-    setMessages((prev) => {
-      assistantIndex = prev.length + 1; // user 다음 인덱스
-      return [
-        ...prev,
-        userMsg,
-        { role: "assistant", content: "", created_at: new Date().toISOString() },
-      ];
-    });
+    setMessages((prev) => [...prev, userMsg]);
 
     setLoading(true);
-
-    // 인덱스 기반 업데이트 헬퍼 (stale closure 방지를 위해 함수형 업데이트 사용)
-    function updateAssistant(updater: (prev: string) => string) {
-      setMessages((prev) => {
-        // assistantIndex 가 아직 -1이면 배열 마지막 assistant 를 대상으로 한다
-        const idx = assistantIndex >= 0 ? assistantIndex : prev.length - 1;
-        if (idx < 0 || idx >= prev.length) return prev;
-        const updated = [...prev];
-        updated[idx] = { ...updated[idx], content: updater(updated[idx].content) };
-        return updated;
-      });
-    }
+    setElapsed(0);
 
     try {
       await askStream(trimmed, {
-        // 첫 토큰이 도착하면 로딩(타이핑 인디케이터)을 숨긴다
-        onToken: (text) => {
-          setLoading(false);
-          updateAssistant((prev) => prev + text);
-        },
-        onReset: () => {
-          // 재생성 시작 — 진행 중인 어시스턴트 메시지를 초기화
-          updateAssistant(() => "");
-        },
+        // 생성 과정(중간 토큰·Self-RAG 재생성)은 화면에 노출하지 않는다 — 로딩만 표시하고
+        // 최종 답변(onDone)만 출력해 재생성 시 리셋·깜빡임을 없앤다.
+        onToken: () => {},
+        onReset: () => {},
         onDone: (answer) => {
-          // 최종본(음식 비유·면책 문구 포함)으로 교체 — append 가 아닌 replace
           setLoading(false);
-          setMessages((prev) => {
-            const idx = assistantIndex >= 0 ? assistantIndex : prev.length - 1;
-            if (idx < 0 || idx >= prev.length) return prev;
-            const updated = [...prev];
-            updated[idx] = {
-              ...updated[idx],
-              content: answer,
-              created_at: new Date().toISOString(),
-            };
-            return updated;
-          });
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: answer, created_at: new Date().toISOString() },
+          ]);
         },
         onError: (msg) => {
           setLoading(false);
           setError(msg);
-          // 빈 플레이스홀더 어시스턴트 메시지 제거
-          setMessages((prev) => {
-            const idx = assistantIndex >= 0 ? assistantIndex : prev.length - 1;
-            if (idx < 0 || idx >= prev.length) return prev;
-            // 내용이 비어 있는 플레이스홀더만 제거
-            if (prev[idx].content === "") {
-              return prev.filter((_, i) => i !== idx);
-            }
-            return prev;
-          });
         },
       });
     } catch (e) {
@@ -193,7 +158,7 @@ export function RAGChatbotPage() {
                   <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-text-muted" />
                   <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-text-muted [animation-delay:150ms]" />
                   <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-text-muted [animation-delay:300ms]" />
-                  <span className="ml-[6px] text-xs text-text-secondary">답변을 생성하고 있어요…</span>
+                  <span className="ml-[6px] text-xs text-text-secondary">답변 생성 중 · {elapsed}초</span>
                 </div>
               </div>
             )}
@@ -255,8 +220,8 @@ function MessageBubble({ message }: { message: ChatMessage }) {
       <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-accent">
         <Bot size={18} className="text-bg" />
       </div>
-      <div className="max-w-[80%] whitespace-pre-wrap rounded-md bg-bg-alt px-[12px] py-[10px] text-sm leading-[1.6] text-text-primary">
-        {message.content}
+      <div className="max-w-[80%] rounded-md bg-bg-alt px-[12px] py-[10px]">
+        <Markdown>{message.content}</Markdown>
       </div>
     </div>
   );
