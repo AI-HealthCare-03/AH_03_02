@@ -39,8 +39,21 @@ function egfrWarning(v: number | null): { text: string; cls: string } | null {
   };
 }
 
-function EgfrGauge({ value }: { value: number | null }) {
-  if (value === null) return <div className="flex h-[360px] items-center justify-center text-sm text-text-muted">데이터 없음</div>;
+function EgfrGauge({ value, calculating }: { value: number | null; calculating?: boolean }) {
+  if (value === null)
+    return (
+      <div className="flex h-[360px] flex-col items-center justify-center gap-2 text-sm text-text-muted">
+        {calculating ? (
+          <>
+            <span className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-border border-t-text-secondary" />
+            <span>eGFR 계산 중…</span>
+            <span className="text-xs text-text-muted/70">잠시 후 자동으로 표시됩니다</span>
+          </>
+        ) : (
+          "데이터 없음"
+        )}
+      </div>
+    );
   const max = 120;
   const pct = Math.min(value / max, 1);
   const color = value >= 60 ? "#059669" : value >= 30 ? "#D97706" : "#DC2626";
@@ -403,13 +416,13 @@ export function DashboardPage() {
         {/* Row1: 계기판 + 헬스 알 (진단자는 위험도 게이지 제외 — risk 예측 없음) */}
         {isDiagnosed ? (
           <div className="mt-[24px] grid grid-cols-1 items-stretch gap-[16px] md:grid-cols-2">
-            <EgfrGauge value={h?.egfr_estimated ?? null} />
+            <EgfrGauge value={h?.egfr_estimated ?? null} calculating={!!h && h.egfr_estimated == null} />
             <EggWidget />
           </div>
         ) : (
           <div className="mt-[24px] grid grid-cols-1 items-stretch gap-[16px] md:grid-cols-3">
             <div className="grid grid-cols-2 gap-[16px] md:col-span-2">
-              <EgfrGauge value={h?.egfr_estimated ?? null} />
+              <EgfrGauge value={h?.egfr_estimated ?? null} calculating={!!h && h.egfr_estimated == null} />
               <RiskGauge
                 score={h?.ckd_risk_score != null ? h.ckd_risk_score * 100 : null}
                 calculating={!!h && h.ckd_risk_score == null}
