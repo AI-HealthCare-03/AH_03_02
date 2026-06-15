@@ -222,20 +222,23 @@ class HealthCheckService:
         # 위험 감지 시 SafetyEvent 영구 기록 (관리자 모니터링용)
         await self._record_safety_events(user_id=user_id, health_check=hc, dto=dto, egfr=egfr)
 
-        # 비동기 CKD 예측 job 발행 — 실패해도 검진 저장은 유지(graceful)
-        try:
-            await ckd_publisher.publish_ckd_job(
-                health_check_id=hc.id,
-                user_id=user_id,
-                user_age=user_age,
-                user_gender=user_gender,
-                checked_date=dto.checked_date,
-                bmi=bmi,
-                egfr=egfr,
-                dto=dto,
-            )
-        except Exception:  # noqa: BLE001 — 예측 발행 실패가 검진 API를 깨지 않도록
-            logger.exception("CKD 예측 job 발행 실패 — 검진은 저장됨 hc=%s", hc.id)
+        # 비동기 CKD 예측 job 발행 — 진단자는 스킵(이미 의료영역, 위험도 예측·리포트 비대상)
+        if not ckd_diagnosed:
+            try:
+                await ckd_publisher.publish_ckd_job(
+                    health_check_id=hc.id,
+                    user_id=user_id,
+                    user_age=user_age,
+                    user_gender=user_gender,
+                    checked_date=dto.checked_date,
+                    bmi=bmi,
+                    egfr=egfr,
+                    dto=dto,
+                )
+            except Exception:  # noqa: BLE001 — 예측 발행 실패가 검진 API를 깨지 않도록
+                logger.exception("CKD 예측 job 발행 실패 — 검진은 저장됨 hc=%s", hc.id)
+        else:
+            logger.info("CKD 진단자 — 예측 job 미발행(위험도·리포트 비대상) hc=%s", hc.id)
 
         response = HealthCheckResponse.model_validate(hc)
         response.safety_warning = safety_warning
