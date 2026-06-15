@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 import { BtnPrimary } from "../components/BtnPrimary";
@@ -9,6 +9,8 @@ import {
   type DrinkingFrequency,
   type StressLevel,
   type MaritalStatus,
+  type DialysisType,
+  type LifestyleSurveyResponse,
 } from "../api/lifestyleSurvey";
 
 function SelectGroup<T extends string>({
@@ -64,31 +66,36 @@ function StepperInput({ label, value, onChange, min = 0, max = 7 }: {
 
 export function LifestyleSurveyPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  // 문진 이력 "수정" 진입 시 기존 레코드(API 응답, snake_case)를 prefill로 전달받음 (Task 7)
+  const prefill = (location.state as { prefill?: LifestyleSurveyResponse } | null)?.prefill;
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const [smoking, setSmoking] = useState<SmokingStatus | "">("");
-  const [drinking, setDrinking] = useState<DrinkingFrequency | "">("");
-  const [stress, setStress] = useState<StressLevel | "">("");
-  const [exerciseDays, setExerciseDays] = useState(0);
-  const [sleepHours, setSleepHours] = useState(7);
-  const [waterIntake, setWaterIntake] = useState(1.5);
+  const [smoking, setSmoking] = useState<SmokingStatus | "">(prefill?.smoking_status ?? "");
+  const [drinking, setDrinking] = useState<DrinkingFrequency | "">(prefill?.drinking_frequency ?? "");
+  const [stress, setStress] = useState<StressLevel | "">(prefill?.stress_level ?? "");
+  const [exerciseDays, setExerciseDays] = useState(prefill?.exercise_days_per_week ?? 0);
+  const [sleepHours, setSleepHours] = useState(prefill?.sleep_hours_per_day ?? 7);
+  const [waterIntake, setWaterIntake] = useState(prefill?.daily_water_intake ?? 1.5);
   // REQ-DATA-006 신규
-  const [vigorousDays, setVigorousDays] = useState(0);
-  const [vigorousMinutes, setVigorousMinutes] = useState(0);
-  const [moderateDays, setModerateDays] = useState(0);
-  const [moderateMinutes, setModerateMinutes] = useState(0);
-  const [sittingHours, setSittingHours] = useState(8);
-  const [marital, setMarital] = useState<MaritalStatus | "">("");
-  const [famDiabetes, setFamDiabetes] = useState(false);
-  const [famHypertension, setFamHypertension] = useState(false);
-  const [famHeart, setFamHeart] = useState(false);
+  const [vigorousDays, setVigorousDays] = useState(prefill?.vigorous_exercise_days ?? 0);
+  const [vigorousMinutes, setVigorousMinutes] = useState(prefill?.vigorous_exercise_minutes ?? 0);
+  const [moderateDays, setModerateDays] = useState(prefill?.moderate_exercise_days ?? 0);
+  const [moderateMinutes, setModerateMinutes] = useState(prefill?.moderate_exercise_minutes ?? 0);
+  const [sittingHours, setSittingHours] = useState(prefill?.sitting_hours_per_day ?? 8);
+  const [marital, setMarital] = useState<MaritalStatus | "">(prefill?.marital_status ?? "");
+  const [famDiabetes, setFamDiabetes] = useState(prefill?.family_history_diabetes ?? false);
+  const [famHypertension, setFamHypertension] = useState(prefill?.family_history_hypertension ?? false);
+  const [famHeart, setFamHeart] = useState(prefill?.family_history_heart_disease ?? false);
   // 본인 진단력 (작업3)
-  const [htnDiagnosed, setHtnDiagnosed] = useState(false);
-  const [dmDiagnosed, setDmDiagnosed] = useState(false);
-  const [dyslipidemiadiagnosed, setDyslipidemiadiagnosed] = useState(false);
-  const [ckdDiagnosed, setCkdDiagnosed] = useState(false);
-  const [isPregnant, setIsPregnant] = useState(false);
+  const [htnDiagnosed, setHtnDiagnosed] = useState(prefill?.htn_diagnosed ?? false);
+  const [dmDiagnosed, setDmDiagnosed] = useState(prefill?.dm_diagnosed ?? false);
+  const [dyslipidemiadiagnosed, setDyslipidemiadiagnosed] = useState(prefill?.dyslipidemia_diagnosed ?? false);
+  const [ckdDiagnosed, setCkdDiagnosed] = useState(prefill?.ckd_diagnosed ?? false);
+  const [dialysisType, setDialysisType] = useState<DialysisType>(prefill?.dialysis_type ?? "none");
+  const [isPregnant, setIsPregnant] = useState(prefill?.is_pregnant ?? false);
 
   async function handleSubmit() {
     if (!smoking || !drinking) {
@@ -119,6 +126,7 @@ export function LifestyleSurveyPage() {
         dm_diagnosed: dmDiagnosed,
         dyslipidemia_diagnosed: dyslipidemiadiagnosed,
         ckd_diagnosed: ckdDiagnosed,
+        dialysis_type: ckdDiagnosed ? dialysisType : null,
         is_pregnant: isPregnant,
       });
       navigate("/dashboard");
@@ -335,7 +343,20 @@ export function LifestyleSurveyPage() {
                   <span className="text-sm text-text-primary">만성콩팥병(CKD) 진단</span>
                 </label>
                 {ckdDiagnosed && (
-                  <p className="text-xs text-danger">진단받으셨다면 주치의 지시를 우선하세요.</p>
+                  <div className="mt-[8px] flex flex-col gap-[8px]">
+                    <SelectGroup<DialysisType>
+                      label="투석 종류"
+                      value={dialysisType}
+                      onChange={setDialysisType}
+                      options={[
+                        { value: "none", label: "투석 안 함" },
+                        { value: "hemodialysis", label: "혈액투석" },
+                        { value: "peritoneal", label: "복막투석" },
+                        { value: "transplant", label: "이식" },
+                      ]}
+                    />
+                    <p className="text-xs text-danger">진단받으셨다면 주치의 지시를 우선하세요.</p>
+                  </div>
                 )}
               </div>
             </div>
