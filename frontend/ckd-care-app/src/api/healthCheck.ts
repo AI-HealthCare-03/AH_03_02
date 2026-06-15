@@ -14,7 +14,7 @@ export interface HealthCheckCreateRequest {
   weight: number;
   height: number;
   waist_circumference?: number | null;
-  dialysis_type?: DialysisType | null;
+  // dialysis_type 제거 — CKD 진단·투석 종류는 문진(LifestyleSurvey)이 단일 진실
 }
 
 export interface HealthCheckResponse {

@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-# HealthCheck.dialysis_type → RAG 트랙 (chat.py에서 승격, 단일 진실)
+# LifestyleSurvey.dialysis_type이 단일 진실 — HealthCheck.dialysis_type은 검진 생성 시 미러링된 캐시 (chat.py에서 RAG 트랙으로 승격)
 DIALYSIS_TO_TRACK: dict[str, str] = {
     "none": "non_dialysis",
     "hemodialysis": "hemodialysis",

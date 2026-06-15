@@ -28,6 +28,7 @@ function SelectGroup<T extends string>({
         {options.map((o) => (
           <button
             key={o.value}
+            type="button"
             onClick={() => onChange(o.value)}
             className={`flex-1 rounded-sm border px-[12px] py-[8px] text-sm ${
               value === o.value
@@ -51,11 +52,13 @@ function StepperInput({ label, value, onChange, min = 0, max = 7 }: {
       <label className="text-sm font-normal text-text-secondary">{label}</label>
       <div className="flex items-center gap-[12px]">
         <button
+          type="button"
           onClick={() => onChange(Math.max(min, value - 1))}
           className="flex h-[36px] w-[36px] items-center justify-center rounded-sm border border-border-strong bg-bg text-lg"
         >−</button>
         <span className="w-[40px] text-center text-lg font-bold text-text-primary">{value}</span>
         <button
+          type="button"
           onClick={() => onChange(Math.min(max, value + 1))}
           className="flex h-[36px] w-[36px] items-center justify-center rounded-sm border border-border-strong bg-bg text-lg"
         >+</button>
