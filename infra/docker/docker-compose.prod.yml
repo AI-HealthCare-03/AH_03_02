@@ -88,6 +88,9 @@ services:
       # 모델 파일은 Docker 이미지에 안 넣고 EC2에 SCP로 올린 후 read-only 마운트
       # EC2 경로: /home/ubuntu/ai_project/models/ckd
       - ./models/ckd:/app/models/ckd:ro
+      # RAG indexing용 의료 문서 (~79MB, .dockerignore로 이미지 미포함) — EC2에 SCP로 올린 후 ro 마운트
+      # EC2 경로: /home/ubuntu/ai_project/rag_data (Qdrant indexing 시점에만 필요, 검색은 qdrant_data 볼륨 사용)
+      - ./rag_data:/app/src/rag_indexing/data:ro
     restart: always
     mem_limit: 4G
     networks:

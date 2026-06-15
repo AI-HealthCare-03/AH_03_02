@@ -25,4 +25,6 @@ COPY ./ai_worker ./ai_worker
 COPY ./src ./src
 
 # 5. RAG Redis Stream consumer 기동 (rag_jobs 처리 → rag_resp:{job_id}).
-CMD ["uv", "run", "python", "-m", "ai_worker.main"]
+#    --no-sync: 빌드 시 sync된 venv 그대로 사용. 미설정 시 매 시작마다 default group만 재sync해서
+#    ai/rag 그룹 패키지(pymupdf4llm·openai·qdrant-client 등) 제거됨.
+CMD ["uv", "run", "--no-sync", "python", "-m", "ai_worker.main"]

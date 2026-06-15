@@ -92,7 +92,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           # 명령어 흐름:
           # 1) 최신 이미지 pull
-          # 2) fastapi만 재시작 (ai-worker는 모델 파일 없으면 실패하므로 별도 관리)
+          # 2) fastapi + ai-worker 재시작 (ai-worker는 volumes로 모델·data 영구 마운트되어 안전)
           # 3) DB 마이그레이션 (idempotent, 실패해도 무시)
           # 4) 사용 안 하는 이미지 정리 (디스크 절약)
           script: |
@@ -100,8 +100,8 @@ jobs:
             cd ~/ai_project
             echo "=== docker compose pull ==="
             docker compose pull fastapi ai-worker
-            echo "=== restart fastapi (no deps) ==="
-            docker compose up -d --no-deps fastapi
+            echo "=== restart fastapi + ai-worker (no deps) ==="
+            docker compose up -d --no-deps fastapi ai-worker
             echo "=== run aerich upgrade (idempotent) ==="
             docker compose exec -T fastapi uv run aerich upgrade || echo "no migrations to apply"
             echo "=== cleanup dangling images ==="
