@@ -93,8 +93,9 @@ jobs:
           # 명령어 흐름:
           # 1) 최신 이미지 pull
           # 2) fastapi + ai-worker 재시작 (ai-worker는 volumes로 모델·data 영구 마운트되어 안전)
-          # 3) DB 마이그레이션 (idempotent, 실패해도 무시)
-          # 4) 사용 안 하는 이미지 정리 (디스크 절약)
+          # 3) nginx restart — upstream DNS 캐시 갱신 (fastapi 컨테이너 IP 바뀐 후 502 방지)
+          # 4) DB 마이그레이션 (idempotent, 실패해도 무시)
+          # 5) 사용 안 하는 이미지 정리 (디스크 절약)
           script: |
             set -e
             cd ~/ai_project
@@ -102,6 +103,8 @@ jobs:
             docker compose pull fastapi ai-worker
             echo "=== restart fastapi + ai-worker (no deps) ==="
             docker compose up -d --no-deps fastapi ai-worker
+            echo "=== nginx restart (upstream DNS 캐시 갱신, fastapi IP 변경 대응) ==="
+            docker compose restart nginx
             echo "=== run aerich upgrade (idempotent) ==="
             docker compose exec -T fastapi uv run aerich upgrade || echo "no migrations to apply"
             echo "=== cleanup dangling images ==="
