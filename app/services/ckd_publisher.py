@@ -77,7 +77,8 @@ async def publish_ckd_job(
     dto: HealthCheckCreateRequest,
 ) -> None:
     """예측 job 발행(fire-and-forget). 호출부에서 예외를 격리한다."""
-    ls = await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date").first()
+    # 같은 날 재제출 시 최신 문진을 보장하려면 id tiebreaker 필요(다른 최신-조회와 정합)
+    ls = await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date", "-id").first()
     payload = _build_payload(user_age, user_gender, bmi, dto, ls)
 
     # 식이 플래그(리포트 가이드용) — 없으면 미주입. mapping은 FEATURES 키만 보므로 추가 키 무해.

@@ -23,10 +23,11 @@ interface Props {
 }
 
 /**
- * CKD 진단자(트랙 CKD/DIALYSIS) 전용 챌린지 화면.
- * 상단 서브탭 7탭(챌린지·수분·체중·수면·감정·운동·케어). 데이터는 useChallengeData 훅 prop.
+ * 진단자/비진단자 공용 챌린지 화면 (모든 트랙).
+ * 2분할 세그먼트 탭(🏆 챌린지 / 📋 기록). 기록 탭은 수분·체중·수면·감정·운동·케어 세로 나열.
+ * 데이터는 useChallengeData 훅 prop.
  */
-export function CkdChallengeMainPage({ cd, onStageEdit }: Props) {
+export function ChallengeMainView({ cd, onStageEdit }: Props) {
   const navigate = useNavigate();
   const [tab, setTab] = useState<RecordTab>("challenge");
   const theme = cd.theme;
@@ -34,7 +35,7 @@ export function CkdChallengeMainPage({ cd, onStageEdit }: Props) {
   return (
     <div className="flex min-h-screen flex-col bg-bg-alt">
       <CheckinResultModal result={cd.checkinResult} onClose={() => cd.setCheckinResult(null)} />
-      <ScreenLabel label="11 · CKD 챌린지 (진단자)" />
+      <ScreenLabel label="11 · 챌린지 메인 (REQ-CHG-01)" />
       <TopNav />
       <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col pb-10">
         <RecordTabNav active={tab} onSelect={setTab} />

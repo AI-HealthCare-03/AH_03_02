@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { ClipboardCheck, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import { Markdown } from "../components/Markdown";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -980,7 +981,6 @@ export function LLMActionGuidePage() {
     data: report,
     isLoading: reportLoading,
     error: reportError,
-    refetch,
   } = useQuery({
     queryKey: ["shap-report", latestId],
     queryFn: () => healthCheckApi.getReport(latestId!),
@@ -996,6 +996,7 @@ export function LLMActionGuidePage() {
   });
 
   const [guideTimedOut, setGuideTimedOut] = useState(false);
+  const [copied, setCopied] = useState(false); // 복사 버튼 클릭 피드백
 
   // shap 준비 후 ai_guide가 빈 채로 GUIDE_TIMEOUT_MS 경과하면 실패 표시로 전환
   useEffect(() => {
@@ -1229,14 +1230,7 @@ export function LLMActionGuidePage() {
                 </p>
               )}
 
-              {!isLoading && hasGuide && (
-                <p
-                  className="text-sm leading-[1.8] text-text-secondary"
-                  style={{ whiteSpace: "pre-wrap" }}
-                >
-                  {aiGuide}
-                </p>
-              )}
+              {!isLoading && hasGuide && <Markdown>{aiGuide}</Markdown>}
 
               {/* 면책 문구 */}
               <div className="mt-[2px] rounded-md border border-warning bg-[#fef3c7] p-[12px]">
@@ -1248,15 +1242,13 @@ export function LLMActionGuidePage() {
 
             <div className="flex gap-[12px]">
               <BtnSecondary
-                label="다시 생성"
-                className="flex-1"
-                onClick={() => refetch()}
-              />
-              <BtnSecondary
-                label="복사"
+                label={copied ? "복사됨 ✓" : "복사"}
                 className="flex-1"
                 onClick={() => {
-                  if (hasGuide) navigator.clipboard.writeText(aiGuide);
+                  if (!hasGuide) return;
+                  navigator.clipboard.writeText(aiGuide);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
                 }}
               />
             </div>

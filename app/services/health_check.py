@@ -716,9 +716,9 @@ class HealthCheckService:
         if hc is None:
             return None
 
-        # 사용자 정보 및 최신 생활습관 설문 로드
+        # 사용자 정보 및 최신 생활습관 설문 로드 (같은 날 재제출 시 최신 보장 — id tiebreaker)
         user = await User.get(id=user_id)
-        ls = await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date").first()
+        ls = await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date", "-id").first()
 
         # gender int 변환: MALE=1, FEMALE=0
         gender_int = 1 if user.gender == Gender.MALE else 0
