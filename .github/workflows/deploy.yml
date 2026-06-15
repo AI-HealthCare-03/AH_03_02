@@ -84,8 +84,12 @@ jobs:
     # workflow_dispatch 입력의 deploy_to_ec2가 false면 스킵
     if: ${{ github.event_name == 'push' || inputs.deploy_to_ec2 == true }}
     steps:
+      # 2-0) 코드 checkout — scp-action이 source 파일 찾으려면 runner에 코드 필요.
+      # 누락 시 "tar: empty archive" 에러 (build-and-deploy-frontend는 checkout 있어서 OK)
+      - name: Checkout
+        uses: actions/checkout@v4
+
       # 2-1) docker-compose.yml + nginx 설정을 EC2 호스트로 동기화 (수동 SCP 자동화)
-      # 쉼표 구분 source가 이 환경에서 "tar: empty archive" 에러 — multi-line yaml로 수정
       - name: Sync compose + nginx config to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
