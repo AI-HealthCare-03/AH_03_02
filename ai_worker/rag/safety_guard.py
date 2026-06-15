@@ -114,23 +114,39 @@ _PROTEIN_PRESCRIPTION_RX = re.compile(
     r"(?:"
     r"단백질.{0,40}\d{2,3}\s*g(?!\s*/\s*kg)"
     r"|\d{2,3}\s*g(?!\s*/\s*kg).{0,15}단백질"
-    r"|(?:하루|일일|섭취량|권장량).{0,25}\d{2,3}\s*g(?!\s*/\s*kg)"
     r")",
     re.DOTALL,
 )
+_PROTEIN_CONTEXT_RX = re.compile(
+    r"(?:하루|일일|섭취량|권장량).{0,25}\d{2,3}\s*g(?!\s*/\s*kg)",
+    re.DOTALL,
+)
+
+
+def _is_protein_prescription(text: str) -> bool:
+    if _PROTEIN_PRESCRIPTION_RX.search(text):
+        return True
+    for m in _PROTEIN_CONTEXT_RX.finditer(text):
+        window = text[max(0, m.start() - 200) : min(len(text), m.end() + 200)]
+        if "단백질" in window:
+            return True
+    return False
+
 
 _FORBIDDEN: list[tuple[re.Pattern, str]] = [
     (re.compile(r"(확진(합니다|됩니다|이?에요)|진단합니다|진단됩니다)"), "확정진단"),
     (re.compile(r"(완치|치료됩니다|치료해\s*드|낫습니다|나아집니다)"), "치료약속"),
     (re.compile(r"(막을\s*수\s*있습니다|예방됩니다|예방할\s*수\s*있습니다)"), "예방단정"),
     (re.compile(r"([가-힣A-Za-z]*\s*약)\s*(을|를)?\s*(드세요|복용하세요|드시면\s*됩니다)"), "약물직접권고"),
-    (_PROTEIN_PRESCRIPTION_RX, "단백질처방수치"),
 ]
 
 
 def find_forbidden(text: str) -> list[str]:
     """생성 답변에서 금지표현 카테고리를 검출 (없으면 빈 리스트)."""
-    return [cat for rx, cat in _FORBIDDEN if rx.search(text)]
+    result = [cat for rx, cat in _FORBIDDEN if rx.search(text)]
+    if _is_protein_prescription(text):
+        result.append("단백질처방수치")
+    return result
 
 
 _PROTEIN_CAVEAT_PHRASES = ("일반인 기준", "순수 체중만", "체중만 반영", "비만·부종")
