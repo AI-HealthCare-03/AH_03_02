@@ -122,7 +122,8 @@ class ChallengeService:
 
         app_group_letter = _app_group_to_letter(hc.app_group.value if hc and hc.app_group else None)
         ckd_diagnosed: bool = bool(survey.ckd_diagnosed) if survey else False
-        dialysis_type: str | None = hc.dialysis_type.value if hc and hc.dialysis_type else None
+        # dialysis_type은 문진(survey) 단일 진실에서 직접 참조 — 검진 없이도 DIALYSIS 판정 가능
+        dialysis_type: str | None = survey.dialysis_type.value if survey and survey.dialysis_type else None
 
         return assign_track(
             app_group=app_group_letter,
