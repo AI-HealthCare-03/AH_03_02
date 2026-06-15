@@ -10,15 +10,15 @@ interface Props {
   onSelect: (tab: RecordTab) => void;
 }
 
-/** CKD 진단자 챌린지 화면 상단 서브탭 네비 (가로 스크롤, CategoryTabs 패턴). */
+/** CKD 진단자 챌린지 화면 상단 서브탭 네비 (2분할 세그먼트, 각 탭이 화면 폭 절반). */
 export function RecordTabNav({ active, onSelect }: Props) {
   return (
-    <nav className="flex gap-2 overflow-x-auto px-5 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <nav className="flex gap-2 px-5 py-3">
       {TABS.map((t) => (
         <button
           key={t.key}
           onClick={() => onSelect(t.key)}
-          className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] transition-colors ${
+          className={`flex-1 whitespace-nowrap rounded-full px-4 py-3 text-center text-[15px] font-semibold transition-colors ${
             t.key === active
               ? "bg-accent text-bg"
               : "border border-border bg-bg text-text-secondary hover:border-border-strong"
