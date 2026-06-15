@@ -981,7 +981,6 @@ export function LLMActionGuidePage() {
     data: report,
     isLoading: reportLoading,
     error: reportError,
-    refetch,
   } = useQuery({
     queryKey: ["shap-report", latestId],
     queryFn: () => healthCheckApi.getReport(latestId!),
@@ -1241,11 +1240,6 @@ export function LLMActionGuidePage() {
             </div>
 
             <div className="flex gap-[12px]">
-              <BtnSecondary
-                label="다시 생성"
-                className="flex-1"
-                onClick={() => refetch()}
-              />
               <BtnSecondary
                 label="복사"
                 className="flex-1"
