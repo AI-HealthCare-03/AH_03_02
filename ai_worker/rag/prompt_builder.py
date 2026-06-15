@@ -194,3 +194,18 @@ def build_fallback_messages(query: str) -> list[dict]:
         {"role": "system", "content": FALLBACK_SYSTEM_PROMPT},
         {"role": "user", "content": query},
     ]
+
+
+def build_classification_context_hint(user_context: dict | None) -> str:
+    """ckd_diagnosed=True 일 때 domain_grader 프롬프트에 주입할 맥락 힌트.
+
+    비진단자·user_context 없음이면 빈 문자열 → 기존 CLASSIFICATION_SYSTEM_PROMPT 동작 그대로.
+    """
+    if not (user_context or {}).get("ckd_diagnosed"):
+        return ""
+    return (
+        "\n\n[사용자 맥락] 이 사용자는 만성콩팥병(CKD) 관련 건강 검진을 받은 분입니다. "
+        "식이(음식·나트륨·칼륨·인·수분·단백질)·영양 보충제·생활습관(운동·수면)에 관한 질문은 "
+        "신장 관리와 직결되므로 DOMAIN_1로 분류하세요. "
+        "날씨·코딩·여행·금융 등 명백히 비의료 주제는 DOMAIN_3으로 분류하세요."
+    )

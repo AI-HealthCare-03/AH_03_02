@@ -138,8 +138,9 @@ def classify_fallback_node(state: RAGState) -> dict:
     blocked = safety_guard.pre_retrieval_guard(q, state.get("user_context"))
     if blocked:
         return {"blocked": blocked, "generation": blocked}
+    ctx_hint = prompt_builder.build_classification_context_hint(state.get("user_context"))
     g = llm_client.domain_grader().invoke(
-        f"{prompt_builder.CLASSIFICATION_SYSTEM_PROMPT}\n\n질문: {q}\n위 기준으로 분류하세요."
+        f"{prompt_builder.CLASSIFICATION_SYSTEM_PROMPT}{ctx_hint}\n\n질문: {q}\n위 기준으로 분류하세요."
     )
     return {"domain": g.domain}
 
