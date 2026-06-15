@@ -4,6 +4,7 @@ export type SmokingStatus = "NEVER" | "PAST" | "CURRENT";
 export type DrinkingFrequency = "NEVER" | "OCCASIONALLY" | "WEEKLY" | "DAILY";
 export type StressLevel = "VERY_LOW" | "LOW" | "MODERATE" | "HIGH" | "VERY_HIGH";
 export type MaritalStatus = "SINGLE" | "MARRIED" | "DIVORCED" | "WIDOWED" | "OTHER";
+export type DialysisType = "none" | "hemodialysis" | "peritoneal" | "transplant";
 
 export interface LifestyleSurveyCreateRequest {
   surveyed_date: string;
@@ -28,6 +29,7 @@ export interface LifestyleSurveyCreateRequest {
   dm_diagnosed?: boolean;
   dyslipidemia_diagnosed?: boolean;
   ckd_diagnosed?: boolean;
+  dialysis_type?: DialysisType | null;
   is_pregnant?: boolean;
 }
 
@@ -55,6 +57,7 @@ export interface LifestyleSurveyResponse {
   dm_diagnosed: boolean;
   dyslipidemia_diagnosed: boolean;
   ckd_diagnosed: boolean;
+  dialysis_type: DialysisType | null;
   is_pregnant: boolean;
   created_at: string;
 }

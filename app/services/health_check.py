@@ -188,13 +188,14 @@ class HealthCheckService:
         # CKD 진단 여부 조회(LifestyleSurvey) — 그룹 배정에 반영. 없으면 미진단(False).
         lifestyle = await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date", "-id").first()
         ckd_diagnosed = bool(lifestyle.ckd_diagnosed) if lifestyle else False
+        dialysis_type = lifestyle.dialysis_type if (lifestyle and ckd_diagnosed) else None  # 문진 단일 진실 + 미러링
         app_group = self._assign_app_group(
             egfr,
             dto.systolic_bp,
             dto.diastolic_bp,
             dto.fasting_glucose,
             ckd_diagnosed=ckd_diagnosed,
-            dialysis_type=dto.dialysis_type,
+            dialysis_type=dialysis_type,
         )
 
         hc = await self._repo.create(
@@ -214,7 +215,7 @@ class HealthCheckService:
             egfr_estimated=egfr,
             ckd_stage=ckd_stage,
             app_group=app_group,
-            dialysis_type=dto.dialysis_type,
+            dialysis_type=dialysis_type,
         )
 
         safety_warning = self._check_safety_warning(dto.systolic_bp, dto.diastolic_bp, dto.fasting_glucose, egfr)

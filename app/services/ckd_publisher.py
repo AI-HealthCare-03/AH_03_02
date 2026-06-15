@@ -88,7 +88,9 @@ async def publish_ckd_job(
             "consult_cards": list(flags.consult_cards),
             "search_hints": list(flags.search_hints),
         }
-    track = dialysis_to_track(str(dto.dialysis_type)) if dto.dialysis_type is not None else None
+    # 투석 종류는 최신 문진(LifestyleSurvey)이 단일 진실 — 검진 DTO에서 제거됨
+    dialysis_type = ls.dialysis_type if ls else None
+    track = dialysis_to_track(str(dialysis_type)) if dialysis_type is not None else None
     if track:
         payload["track"] = track
 
@@ -139,7 +141,6 @@ async def republish_for_latest_health_check(user_id: int) -> int | None:
         weight=hc.weight,
         height=hc.height,
         waist_circumference=hc.waist_circumference,
-        dialysis_type=hc.dialysis_type,
     )
     await publish_ckd_job(
         health_check_id=hc.id,

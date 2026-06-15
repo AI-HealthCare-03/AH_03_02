@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { TopNav } from "../components/TopNav";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { BtnPrimary } from "../components/BtnPrimary";
@@ -78,8 +78,8 @@ export function LifestyleSurveyHistoryPage() {
         {!isLoading && items.length > 0 && (
           <div className="overflow-hidden rounded-md border border-border bg-bg">
             {/* 헤더 */}
-            <div className="grid grid-cols-[120px_90px_100px_100px_1fr_60px] gap-[12px] bg-bg-alt px-[16px] py-[8px]">
-              {["응답일", "흡연", "음주", "운동(일/주)", "가족력·기타", "삭제"].map((h) => (
+            <div className="grid grid-cols-[120px_90px_100px_100px_1fr_60px_60px] gap-[12px] bg-bg-alt px-[16px] py-[8px]">
+              {["응답일", "흡연", "음주", "운동(일/주)", "가족력·기타", "수정", "삭제"].map((h) => (
                 <span key={h} className="text-xs font-bold text-text-secondary">{h}</span>
               ))}
             </div>
@@ -105,7 +105,7 @@ export function LifestyleSurveyHistoryPage() {
               return (
                 <div
                   key={r.id}
-                  className="grid grid-cols-[120px_90px_100px_100px_1fr_60px] items-center gap-[12px] border-t border-border px-[16px] py-[12px]"
+                  className="grid grid-cols-[120px_90px_100px_100px_1fr_60px_60px] items-center gap-[12px] border-t border-border px-[16px] py-[12px]"
                 >
                   <span className={`text-sm ${idx === 0 ? "font-bold text-text-primary" : "text-text-primary"}`}>
                     {r.surveyed_date}
@@ -132,6 +132,14 @@ export function LifestyleSurveyHistoryPage() {
                     {r.stress_level ? ` · 스트레스 ${STRESS_LABEL[r.stress_level] ?? r.stress_level}` : ""}
                     {r.is_pregnant ? " · 임신" : ""}
                   </span>
+                  <button
+                    className="flex items-center justify-center text-accent hover:bg-accent/10 rounded-sm p-1"
+                    onClick={() => navigate("/lifestyle-survey", { state: { prefill: r } })}
+                    aria-label="설문 수정"
+                    title="수정"
+                  >
+                    <Pencil size={16} />
+                  </button>
                   <button
                     className="flex items-center justify-center text-danger hover:bg-danger/10 rounded-sm p-1"
                     onClick={() => setConfirmingId(r.id)}

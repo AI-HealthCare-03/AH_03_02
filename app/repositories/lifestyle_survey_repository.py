@@ -1,5 +1,6 @@
 from datetime import date
 
+from app.models.health_check import DialysisType
 from app.models.lifestyle_survey import (
     DrinkingFrequency,
     LifestyleSurvey,
@@ -34,6 +35,7 @@ class LifestyleSurveyRepository:
         dm_diagnosed: bool = False,
         dyslipidemia_diagnosed: bool = False,
         ckd_diagnosed: bool = False,
+        dialysis_type: DialysisType | None = None,
         is_pregnant: bool = False,
     ) -> LifestyleSurvey:
         return await LifestyleSurvey.create(
@@ -58,6 +60,7 @@ class LifestyleSurveyRepository:
             dm_diagnosed=dm_diagnosed,
             dyslipidemia_diagnosed=dyslipidemia_diagnosed,
             ckd_diagnosed=ckd_diagnosed,
+            dialysis_type=dialysis_type,
             is_pregnant=is_pregnant,
         )
 

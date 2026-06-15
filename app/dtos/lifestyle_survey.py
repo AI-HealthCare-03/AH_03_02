@@ -4,6 +4,7 @@ from typing import Annotated
 from pydantic import BaseModel, Field
 
 from app.dtos.base import BaseSerializerModel
+from app.models.health_check import DialysisType
 from app.models.lifestyle_survey import DrinkingFrequency, MaritalStatus, SmokingStatus, StressLevel
 
 
@@ -35,6 +36,8 @@ class LifestyleSurveyCreateRequest(BaseModel):
     dm_diagnosed: Annotated[bool, Field(False, description="본인 당뇨 진단")] = False
     dyslipidemia_diagnosed: Annotated[bool, Field(False, description="본인 이상지질혈증 진단")] = False
     ckd_diagnosed: Annotated[bool, Field(False, description="본인 만성콩팥병(CKD) 진단")] = False
+    # CKD 진단자 투석 종류 (none/hemodialysis/peritoneal/transplant), 미진단/미입력은 null
+    dialysis_type: DialysisType | None = None
     is_pregnant: Annotated[bool, Field(False, description="임신 여부 (체크 시 대시보드 안전 안내 노출)")] = False
 
 
@@ -61,6 +64,7 @@ class LifestyleSurveyResponse(BaseSerializerModel):
     dm_diagnosed: bool
     dyslipidemia_diagnosed: bool
     ckd_diagnosed: bool
+    dialysis_type: DialysisType | None = None
     is_pregnant: bool
     created_at: datetime
 
