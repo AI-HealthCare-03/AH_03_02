@@ -5,10 +5,12 @@ name: Build & Deploy to EC2
 # - workflow_dispatch: GitHub UI에서 수동 실행 가능
 on:
   push:
-    branches: [develop]
+    # feat/cicd-deploy는 머지 전 검증용 임시 — PR 머지 직전 제거
+    branches: [develop, feat/cicd-deploy]
     paths:
       - "app/**"
       - "ai_worker/**"
+      - "infra/**"
       - "pyproject.toml"
       - "uv.lock"
       - ".github/workflows/deploy.yml"
