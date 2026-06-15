@@ -18,7 +18,7 @@ function todayStr() {
 
 /**
  * 챌린지 데이터·핸들러 공유 훅.
- * ChallengeMainPage(비CKD)와 CkdChallengeMainPage(진단자 서브탭)가 공유한다.
+ * 모든 트랙 공용 ChallengeMainView(2탭)가 사용한다.
  * view/onboard/stage 전환 같은 UI 상태는 호출 컴포넌트가 담당하고,
  * 여기선 데이터 로드·액션·파생값만 제공한다(순수 데이터 레이어).
  */
