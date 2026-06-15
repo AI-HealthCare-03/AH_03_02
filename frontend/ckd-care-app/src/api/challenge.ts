@@ -19,6 +19,9 @@ export type ChallengeTrack =
   | "DAILY"
   | "WELLNESS";
 
+// CKD 진단자 트랙 — 이 트랙이면 챌린지 화면을 진단자 전용(서브탭)으로 분기
+export const CKD_TRACKS: ChallengeTrack[] = ["CKD", "DIALYSIS"];
+
 export type UserChallengeStatus = "ACTIVE" | "COMPLETED" | "ABANDONED";
 
 export interface Challenge {
