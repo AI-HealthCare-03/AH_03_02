@@ -1,0 +1,108 @@
+name: Build & Deploy to EC2
+
+# 트리거:
+# - develop 브랜치에 push되면 자동 (app/ai_worker 변경 시)
+# - workflow_dispatch: GitHub UI에서 수동 실행 가능
+on:
+  push:
+    branches: [develop]
+    paths:
+      - "app/**"
+      - "ai_worker/**"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+    inputs:
+      deploy_to_ec2:
+        description: "빌드 후 EC2에 자동 배포 (EC2가 실행 중이어야)"
+        type: boolean
+        default: true
+
+env:
+  DOCKERHUB_REPO: ckd-care
+  APP_VERSION: v1.0.0
+  AI_WORKER_VERSION: v1.0.0
+
+jobs:
+  # ===== 1) Docker 이미지 빌드 + Hub 푸시 =====
+  build-and-push:
+    runs-on: ubuntu-latest
+    outputs:
+      app_tag: ${{ steps.tags.outputs.app_tag }}
+      ai_tag: ${{ steps.tags.outputs.ai_tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Compute image tags
+        id: tags
+        run: |
+          APP_TAG="${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_REPO }}:app-${{ env.APP_VERSION }}"
+          AI_TAG="${{ secrets.DOCKERHUB_USERNAME }}/${{ env.DOCKERHUB_REPO }}:ai-${{ env.AI_WORKER_VERSION }}"
+          echo "app_tag=$APP_TAG" >> $GITHUB_OUTPUT
+          echo "ai_tag=$AI_TAG"   >> $GITHUB_OUTPUT
+
+      - name: Build & push FastAPI (amd64)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./app/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.tags.outputs.app_tag }}
+          cache-from: type=gha,scope=fastapi
+          cache-to: type=gha,scope=fastapi,mode=max
+
+      - name: Build & push AI Worker (amd64)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./ai_worker/Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.tags.outputs.ai_tag }}
+          cache-from: type=gha,scope=ai-worker
+          cache-to: type=gha,scope=ai-worker,mode=max
+
+  # ===== 2) EC2 자동 배포 (이미지 pull + 컨테이너 재시작) =====
+  # EC2가 실행 중일 때만 동작. stop 상태면 SSH 실패 → 빌드 단계는 성공으로 남고 이 job만 fail.
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    # workflow_dispatch 입력의 deploy_to_ec2가 false면 스킵
+    if: ${{ github.event_name == 'push' || inputs.deploy_to_ec2 == true }}
+    steps:
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          # 명령어 흐름:
+          # 1) 최신 이미지 pull
+          # 2) fastapi만 재시작 (ai-worker는 모델 파일 없으면 실패하므로 별도 관리)
+          # 3) DB 마이그레이션 (idempotent, 실패해도 무시)
+          # 4) 사용 안 하는 이미지 정리 (디스크 절약)
+          script: |
+            set -e
+            cd ~/ai_project
+            echo "=== docker compose pull ==="
+            docker compose pull fastapi ai-worker
+            echo "=== restart fastapi (no deps) ==="
+            docker compose up -d --no-deps fastapi
+            echo "=== run aerich upgrade (idempotent) ==="
+            docker compose exec -T fastapi uv run aerich upgrade || echo "no migrations to apply"
+            echo "=== cleanup dangling images ==="
+            docker image prune -f
+            echo "=== final state ==="
+            docker compose ps
