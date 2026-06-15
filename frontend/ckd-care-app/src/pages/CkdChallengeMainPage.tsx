@@ -99,38 +99,48 @@ export function CkdChallengeMainPage({ cd, onStageEdit }: Props) {
           </>
         )}
 
-        {tab === "water" && (
-          <div className="px-5 pt-2"><WaterTrackingCard onAutoCheckin={() => { void cd.reload(); }} /></div>
-        )}
-        {tab === "weight" && (
-          <div className="px-5 pt-2"><WeightTrackingCard onAutoCheckin={() => { void cd.reload(); }} /></div>
-        )}
-        {tab === "sleep" && (
-          <div className="px-5 pt-2"><SleepTrackingCard onAutoCheckin={() => { void cd.reload(); }} /></div>
-        )}
-        {tab === "stress" && (
-          <div className="px-5 pt-2"><StressTrackingCard onAutoCheckin={() => { void cd.reload(); }} /></div>
-        )}
-        {tab === "exercise" && (
-          <div className="px-5 pt-2"><ExerciseTrackingCard onAutoCheckin={() => { void cd.reload(); }} /></div>
-        )}
-
-        {tab === "care" && (
-          <div className="flex flex-col gap-2 px-5 pt-2">
-            <button
-              onClick={() => navigate("/records/lab")}
-              className="flex w-full items-center justify-between rounded-xl border border-border bg-bg p-4 text-left"
-            >
-              <span className="font-bold text-text-primary">🧪 검사 수치 기록장</span>
-              <span className="text-text-muted">›</span>
-            </button>
-            <button
-              onClick={() => navigate("/records/appointments")}
-              className="flex w-full items-center justify-between rounded-xl border border-border bg-bg p-4 text-left"
-            >
-              <span className="font-bold text-text-primary">📅 병원 진료일 캘린더</span>
-              <span className="text-text-muted">›</span>
-            </button>
+        {tab === "record" && (
+          <div className="flex flex-col gap-6 px-5 pb-10 pt-2">
+            {/* 기록 — 수분·체중·수면·감정·운동·케어를 순서대로 세로 나열 */}
+            <section>
+              <h2 className="mb-2 text-sm font-semibold text-text-secondary">💧 수분</h2>
+              <WaterTrackingCard onAutoCheckin={() => { void cd.reload(); }} />
+            </section>
+            <section>
+              <h2 className="mb-2 text-sm font-semibold text-text-secondary">⚖️ 체중</h2>
+              <WeightTrackingCard onAutoCheckin={() => { void cd.reload(); }} />
+            </section>
+            <section>
+              <h2 className="mb-2 text-sm font-semibold text-text-secondary">🌙 수면</h2>
+              <SleepTrackingCard onAutoCheckin={() => { void cd.reload(); }} />
+            </section>
+            <section>
+              <h2 className="mb-2 text-sm font-semibold text-text-secondary">😮 감정</h2>
+              <StressTrackingCard onAutoCheckin={() => { void cd.reload(); }} />
+            </section>
+            <section>
+              <h2 className="mb-2 text-sm font-semibold text-text-secondary">🏃 운동</h2>
+              <ExerciseTrackingCard onAutoCheckin={() => { void cd.reload(); }} />
+            </section>
+            <section>
+              <h2 className="mb-2 text-sm font-semibold text-text-secondary">🏥 케어</h2>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => navigate("/records/lab")}
+                  className="flex w-full items-center justify-between rounded-xl border border-border bg-bg p-4 text-left"
+                >
+                  <span className="font-bold text-text-primary">🧪 검사 수치 기록장</span>
+                  <span className="text-text-muted">›</span>
+                </button>
+                <button
+                  onClick={() => navigate("/records/appointments")}
+                  className="flex w-full items-center justify-between rounded-xl border border-border bg-bg p-4 text-left"
+                >
+                  <span className="font-bold text-text-primary">📅 병원 진료일 캘린더</span>
+                  <span className="text-text-muted">›</span>
+                </button>
+              </div>
+            </section>
           </div>
         )}
       </main>

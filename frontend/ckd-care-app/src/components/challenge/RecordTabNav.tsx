@@ -1,13 +1,8 @@
-export type RecordTab = "challenge" | "water" | "weight" | "sleep" | "stress" | "exercise" | "care";
+export type RecordTab = "challenge" | "record";
 
 const TABS: { key: RecordTab; label: string }[] = [
   { key: "challenge", label: "🏆 챌린지" },
-  { key: "water", label: "💧 수분" },
-  { key: "weight", label: "⚖️ 체중" },
-  { key: "sleep", label: "🌙 수면" },
-  { key: "stress", label: "😮 감정" },
-  { key: "exercise", label: "🏃 운동" },
-  { key: "care", label: "🏥 케어" },
+  { key: "record", label: "📋 기록" },
 ];
 
 interface Props {
