@@ -60,11 +60,11 @@ _HARM_OTHERS = re.compile(r"(죽이고\s*싶|해치고\s*싶|죽여\s*버리)")
 # 약물 변경·복용 의도 (약/약물 + 변경·중단·복용 동사) + 자가 용량조절(분리 표현, 2026-06-04 E2E 발견)
 _MEDICATION = re.compile(
     # A. 약+조사+조절동사 인접 ("혈압약을 끊어도")
-    r"(약물|약)\s*(을|를|\s)*\s*(바꾸|변경|끊|중단|줄이|늘리|복용|드셔도|먹어도|처방)"
+    r"(약물|약)\s*(을|를|\s)*\s*(바꾸|바꿔|변경|끊|중단|줄이|줄여|늘리|늘려|복용|드셔도|먹어도|처방)"
     # B. 복용/처방+조절동사
-    r"|(복용|처방)\s*(을|를)?\s*(바꾸|변경|중단|늘리|줄이)"
+    r"|(복용|처방)\s*(을|를)?\s*(바꾸|바꿔|변경|중단|늘리|늘려|줄이|줄여)"
     # C. 약 … 용량/복용량/양/개수/알/정 … 조절 ("혈압약 용량을 제가 두 배로 늘려도")
-    r"|(약물|약).{0,15}(용량|복용량|투여량|양|개수|알|정).{0,15}(늘리|늘려|줄이|줄여|바꾸|변경|조절|두\s*배|세\s*배|배로|증량|감량)"
+    r"|(약물|약).{0,15}(용량|복용량|투여량|양|개수|알|정).{0,15}(늘리|늘려|줄이|줄여|바꾸|바꿔|변경|조절|두\s*배|세\s*배|배로|증량|감량)"
     # D. 약 … 두 배/증량 … (용량 단어 없이 직접 조절, "혈압약을 두 배로 먹어도")
     r"|(약물|약).{0,12}(두\s*배|세\s*배|배로|증량|감량|반으로).{0,8}(늘|줄|먹|복용|드)"
 )
@@ -114,23 +114,39 @@ _PROTEIN_PRESCRIPTION_RX = re.compile(
     r"(?:"
     r"단백질.{0,40}\d{2,3}\s*g(?!\s*/\s*kg)"
     r"|\d{2,3}\s*g(?!\s*/\s*kg).{0,15}단백질"
-    r"|(?:하루|일일|섭취량|권장량).{0,25}\d{2,3}\s*g(?!\s*/\s*kg)"
     r")",
     re.DOTALL,
 )
+_PROTEIN_CONTEXT_RX = re.compile(
+    r"(?:하루|일일|섭취량|권장량).{0,25}\d{2,3}\s*g(?!\s*/\s*kg)",
+    re.DOTALL,
+)
+
+
+def _is_protein_prescription(text: str) -> bool:
+    if _PROTEIN_PRESCRIPTION_RX.search(text):
+        return True
+    for m in _PROTEIN_CONTEXT_RX.finditer(text):
+        window = text[max(0, m.start() - 200) : min(len(text), m.end() + 200)]
+        if "단백질" in window:
+            return True
+    return False
+
 
 _FORBIDDEN: list[tuple[re.Pattern, str]] = [
     (re.compile(r"(확진(합니다|됩니다|이?에요)|진단합니다|진단됩니다)"), "확정진단"),
     (re.compile(r"(완치|치료됩니다|치료해\s*드|낫습니다|나아집니다)"), "치료약속"),
     (re.compile(r"(막을\s*수\s*있습니다|예방됩니다|예방할\s*수\s*있습니다)"), "예방단정"),
     (re.compile(r"([가-힣A-Za-z]*\s*약)\s*(을|를)?\s*(드세요|복용하세요|드시면\s*됩니다)"), "약물직접권고"),
-    (_PROTEIN_PRESCRIPTION_RX, "단백질처방수치"),
 ]
 
 
 def find_forbidden(text: str) -> list[str]:
     """생성 답변에서 금지표현 카테고리를 검출 (없으면 빈 리스트)."""
-    return [cat for rx, cat in _FORBIDDEN if rx.search(text)]
+    result = [cat for rx, cat in _FORBIDDEN if rx.search(text)]
+    if _is_protein_prescription(text):
+        result.append("단백질처방수치")
+    return result
 
 
 _PROTEIN_CAVEAT_PHRASES = ("일반인 기준", "순수 체중만", "체중만 반영", "비만·부종")
@@ -161,7 +177,7 @@ def with_disclaimer(text: str) -> str:
 # 폴백 답변은 가이드라인 근거가 없으므로 RAG 답변보다 더 엄격히 검사한다. 매칭 시 답변을 대체.
 _FALLBACK_FORBIDDEN: list[tuple[re.Pattern, str]] = [
     # 약물·용량 수치 (숫자+단위) — "아세트아미노펜 500mg", "0.8 g", "5 mEq". kg(체중)은 미포함.
-    (re.compile(r"\d[\d,\.]*\s*(mg|mcg|μg|mL|ml|IU|mmol|mEq|g|정|캡슐)\b"), "약물·용량수치"),
+    (re.compile(r"\d[\d,\.]*\s*(mg|mcg|μg|mL|ml|IU|mmol|mEq|g|정|캡슐)(?![A-Za-z/])"), "약물·용량수치"),
     (re.compile(r"(과용|독성|치사량|치명적|과다\s*복용|중독)"), "독성·과용"),
     # 식이 제한 수치 (CKD 개인별 처방 사항)
     (re.compile(r"(칼륨|포타슘|인|나트륨|소금).{0,20}(mg|g|mmol|mEq).{0,12}(이하|미만|이상|초과)"), "식이제한수치"),
