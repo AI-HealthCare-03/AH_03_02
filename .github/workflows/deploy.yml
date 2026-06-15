@@ -5,11 +5,11 @@ name: Build & Deploy to EC2
 # - workflow_dispatch: GitHub UI에서 수동 실행 가능
 on:
   push:
-    # feat/cicd-deploy는 머지 전 검증용 임시 — PR 머지 직전 제거
-    branches: [develop, feat/cicd-deploy]
+    branches: [develop]
     paths:
       - "app/**"
       - "ai_worker/**"
+      - "frontend/**"
       - "infra/**"
       - "pyproject.toml"
       - "uv.lock"
@@ -111,3 +111,38 @@ jobs:
             docker image prune -f
             echo "=== final state ==="
             docker compose ps
+
+  # ===== 3) React 프론트엔드 빌드 + EC2 SCP =====
+  # frontend/ckd-care-app/dist 를 nginx 정적 서빙 경로(~/ai_project/frontend_dist)에 동기화.
+  # nginx restart 불필요 (정적 파일은 즉시 반영).
+  build-and-deploy-frontend:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' || inputs.deploy_to_ec2 == true }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/ckd-care-app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend/ckd-care-app
+        run: npm ci
+
+      - name: Build (vite production)
+        working-directory: frontend/ckd-care-app
+        run: npm run build
+
+      - name: Upload dist to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "frontend/ckd-care-app/dist/*"
+          target: "/home/ubuntu/ai_project/frontend_dist"
+          strip_components: 3
