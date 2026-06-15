@@ -286,6 +286,8 @@ export function DashboardPage() {
   const h = summary?.latest_health;
   const cs = summary?.challenge_stats;
   const ls = summary?.latest_lifestyle;
+  // CKD 진단자(본인 진단=예)는 위험도 예측·시뮬레이션·추세가 없다(모듈①). 위험도 섹션을 숨기고 현재 상태·관리 중심으로 노출.
+  const isDiagnosed = !!ls?.ckd_diagnosed;
 
   return (
     <div className="flex min-h-screen flex-col bg-bg-alt">
@@ -398,21 +400,28 @@ export function DashboardPage() {
           </Link>
         </div>
 
-        {/* Row1: 계기판 + 헬스 알 */}
-        <div className="mt-[24px] grid grid-cols-1 items-stretch gap-[16px] md:grid-cols-3">
-          <div className="grid grid-cols-2 gap-[16px] md:col-span-2">
+        {/* Row1: 계기판 + 헬스 알 (진단자는 위험도 게이지 제외 — risk 예측 없음) */}
+        {isDiagnosed ? (
+          <div className="mt-[24px] grid grid-cols-1 items-stretch gap-[16px] md:grid-cols-2">
             <EgfrGauge value={h?.egfr_estimated ?? null} />
-            <RiskGauge
-              score={h?.ckd_risk_score != null ? h.ckd_risk_score * 100 : null}
-              calculating={!!h && h.ckd_risk_score == null}
-            />
+            <EggWidget />
           </div>
-          <EggWidget />
-        </div>
+        ) : (
+          <div className="mt-[24px] grid grid-cols-1 items-stretch gap-[16px] md:grid-cols-3">
+            <div className="grid grid-cols-2 gap-[16px] md:col-span-2">
+              <EgfrGauge value={h?.egfr_estimated ?? null} />
+              <RiskGauge
+                score={h?.ckd_risk_score != null ? h.ckd_risk_score * 100 : null}
+                calculating={!!h && h.ckd_risk_score == null}
+              />
+            </div>
+            <EggWidget />
+          </div>
+        )}
 
         {/* eGFR 경고 — 선별군 전용 (진단자 제외) */}
         {(() => {
-          if (ls?.ckd_diagnosed) return null;
+          if (isDiagnosed) return null;
           const w = egfrWarning(h?.egfr_estimated ?? null);
           if (!w) return null;
           const isAmber = w.cls.includes("amber");
@@ -426,13 +435,15 @@ export function DashboardPage() {
           );
         })()}
 
-        {/* Row2: eGFR 추세 + 시뮬레이션 */}
-        <div className="mt-[24px] grid grid-cols-1 items-stretch gap-[16px] md:grid-cols-3">
-          <div className="h-full md:col-span-2">
-            <EgfrTrendChart trend={trend ?? null} />
+        {/* Row2: eGFR 추세 + 시뮬레이션 (진단자는 전체 숨김 — 위험 예측 기반이라 무의미) */}
+        {!isDiagnosed && (
+          <div className="mt-[24px] grid grid-cols-1 items-stretch gap-[16px] md:grid-cols-3">
+            <div className="h-full md:col-span-2">
+              <EgfrTrendChart trend={trend ?? null} />
+            </div>
+            <EgfrSimulationWidget />
           </div>
-          <EgfrSimulationWidget />
-        </div>
+        )}
 
         {/* Row2b: 챌린지 잔디 히트맵 */}
         <div className="mt-[24px]">
