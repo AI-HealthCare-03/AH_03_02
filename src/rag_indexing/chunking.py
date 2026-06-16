@@ -63,6 +63,54 @@ _MIN_CHUNK_CHARS = 20  # 헤더만 남은 빈 그룹·공백 청크 제거 기�
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# 노이즈 child 필터 (2026-06-15 감사 기반 — 10,709청크 중 117건 제거)
+# ① URL/저작권 파편  ② 참고문헌·검색식 파편  ④ 표지 반복
+# short(≤63자) 509건은 이 필터 대상 외 (정상 정의문·수치 혼재)
+# ─────────────────────────────────────────────────────────────────────────────
+_NOISE_COPYRIGHT = re.compile(
+    r"저작권.*https?://"
+    r"|무단\s*이용.{0,30}법적책임"
+    r"|외부\s*저작권자",
+    re.DOTALL,
+)
+_NOISE_URL_DOMINANT = re.compile(r"^[\s\-\d\.\)]*https?://\S+[\s\S]{0,80}$")
+_NOISE_REF_ITEM = re.compile(
+    r"^\s*\[?\d{1,3}\]?\s+\w[\w\s,\.\-]{0,60}"
+    r"(?:https?://|doi:|doi\.org|J\s+\w|JAMA|N\s*Engl|Lancet|BMJ|Kidney\s+Int"
+    r"|Nephrol|Clin\s+J\s+Am\s+Soc|Am\s+J\s+Kidney|JASN)",
+    re.IGNORECASE,
+)
+_NOISE_SEARCH_QUERY = re.compile(
+    r"^\s*\d+\s+(?:exp\s+)?[\w\s\/\(\)]+\/\s*\d{3,}",
+    re.MULTILINE,
+)
+_NOISE_COVER_ONLY = re.compile(r"^\s*\*{0,2}[\w\s()가-힣]+진료지침\*{0,2}\s*\n\s*\*{0,2}[\w\s()A-Za-z]+\*{0,2}\s*$")
+
+
+def _is_noise_child(text: str) -> bool:
+    """URL 파편·참고문헌·검색식 등 임베딩 불요 child인지 판정.
+
+    True → _emit_parent_children에서 child 스킵 (parent는 유지 — 참조 무결성 보존).
+    본문이 있는 경계 케이스(통계표 파편, 본문+URL 잘림)는 False — 수동 삭제 대상.
+    """
+    t = text.strip()
+    if not t:
+        return False
+    if _NOISE_COPYRIGHT.search(t):
+        return True
+    if _NOISE_URL_DOMINANT.match(t) and len(t) < 200:
+        return True
+    if _NOISE_REF_ITEM.search(t) and len(t) < 300:
+        return True
+    lines = t.splitlines()
+    if len(lines) >= 2 and all(_NOISE_SEARCH_QUERY.match(ln) for ln in lines if ln.strip()):
+        return True
+    if _NOISE_COVER_ONLY.match(t) and len(t) < 120:
+        return True
+    return False
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # reference 번호 제거 (단위·소수점 권고번호 보호)
 # ─────────────────────────────────────────────────────────────────────────────
 # 영문 임상 PDF에서 pymupdf4llm 변환 시 본문에 섞이는 상위첨자형 인용번호를 제거한다.
@@ -386,6 +434,8 @@ def _emit_parent_children(
         for cidx, child_text in enumerate(_child_splitter.split_text(parent_text)):
             child_text = child_text.strip()
             if len(child_text) < _MIN_CHUNK_CHARS:
+                continue
+            if _is_noise_child(child_text):
                 continue
             children.append(
                 {
