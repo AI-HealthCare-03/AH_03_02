@@ -32,6 +32,13 @@ class DialysisType(StrEnum):
     TRANSPLANT = "transplant"  # 이식
 
 
+class UrineResult(StrEnum):
+    """요검사 정성 결과 (요단백·요당)."""
+
+    POSITIVE = "POSITIVE"  # 양성(의심)
+    NEGATIVE = "NEGATIVE"  # 음성(정상)
+
+
 class HealthCheck(models.Model):
     id = fields.BigIntField(primary_key=True)
     user = fields.ForeignKeyField("models.User", related_name="health_checks")
@@ -47,6 +54,14 @@ class HealthCheck(models.Model):
     total_cholesterol = fields.FloatField(null=True, description="총 콜레스테롤 mg/dL")
     hdl_cholesterol = fields.FloatField(null=True, description="HDL 콜레스테롤 mg/dL")
     triglycerides = fields.FloatField(null=True, description="중성지방 mg/dL")
+    ldl_cholesterol = fields.FloatField(
+        null=True, description="LDL 콜레스테롤 mg/dL (입력값; 미입력 시 Friedewald 계산)"
+    )
+    hemoglobin = fields.FloatField(null=True, description="헤모글로빈 g/dL")
+    ast = fields.FloatField(null=True, description="AST U/L")
+    alt = fields.FloatField(null=True, description="ALT U/L")
+    urine_protein = fields.CharEnumField(enum_type=UrineResult, null=True, description="요단백")
+    urine_glucose = fields.CharEnumField(enum_type=UrineResult, null=True, description="요당")
 
     # 신체 측정
     weight = fields.FloatField(description="체중 kg")

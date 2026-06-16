@@ -24,6 +24,8 @@ export interface LifestyleSurveyCreateRequest {
   family_history_diabetes?: boolean;
   family_history_hypertension?: boolean;
   family_history_heart_disease?: boolean;
+  family_history_dyslipidemia?: boolean;
+  family_history_stroke?: boolean;
   // 본인 진단력 (작업3)
   htn_diagnosed?: boolean;
   dm_diagnosed?: boolean;
@@ -52,6 +54,8 @@ export interface LifestyleSurveyResponse {
   family_history_diabetes: boolean;
   family_history_hypertension: boolean;
   family_history_heart_disease: boolean;
+  family_history_dyslipidemia: boolean;
+  family_history_stroke: boolean;
   // 본인 진단력 (작업3)
   htn_diagnosed: boolean;
   dm_diagnosed: boolean;

@@ -1,6 +1,7 @@
 import { api } from "./client";
 
 export type DialysisType = "none" | "hemodialysis" | "peritoneal" | "transplant";
+export type UrineResult = "POSITIVE" | "NEGATIVE";
 
 export interface HealthCheckCreateRequest {
   checked_date: string;
@@ -14,6 +15,13 @@ export interface HealthCheckCreateRequest {
   weight: number;
   height: number;
   waist_circumference?: number | null;
+  // 신규 검진 항목 (기록·표시용, ML 모델 동결)
+  ldl_cholesterol?: number | null;
+  hemoglobin?: number | null;
+  ast?: number | null;
+  alt?: number | null;
+  urine_protein?: UrineResult | null;
+  urine_glucose?: UrineResult | null;
   // dialysis_type 제거 — CKD 진단·투석 종류는 문진(LifestyleSurvey)이 단일 진실
 }
 
@@ -32,6 +40,12 @@ export interface HealthCheckResponse {
   height: number;
   bmi: number;
   waist_circumference: number | null;
+  ldl_cholesterol: number | null;
+  hemoglobin: number | null;
+  ast: number | null;
+  alt: number | null;
+  urine_protein: UrineResult | null;
+  urine_glucose: UrineResult | null;
   egfr_estimated: number | null;
   ckd_risk_score: number | null;
   ckd_stage: string | null;

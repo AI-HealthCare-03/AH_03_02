@@ -44,6 +44,33 @@ function SelectGroup<T extends string>({
   );
 }
 
+// 운동 분처럼 범위가 넓은 값은 숫자 직접 입력
+function NumberInput({ label, value, onChange, min = 0, max = 1440 }: {
+  label: string; value: number; onChange: (v: number) => void; min?: number; max?: number;
+}) {
+  return (
+    <div className="flex flex-col gap-[4px]">
+      <label className="text-sm font-normal text-text-secondary">{label}</label>
+      <input
+        type="number"
+        min={min}
+        max={max}
+        value={value}
+        onChange={(e) => {
+          const raw = e.target.value;
+          if (raw === "") {
+            onChange(min);
+            return;
+          }
+          const n = Math.min(max, Math.max(min, Math.floor(parseFloat(raw))));
+          onChange(isNaN(n) ? min : n);
+        }}
+        className="h-[40px] rounded-sm border border-border-strong bg-bg px-[12px] text-sm text-text-primary outline-none"
+      />
+    </div>
+  );
+}
+
 function StepperInput({ label, value, onChange, min = 0, max = 7 }: {
   label: string; value: number; onChange: (v: number) => void; min?: number; max?: number;
 }) {
@@ -92,6 +119,8 @@ export function LifestyleSurveyPage() {
   const [famDiabetes, setFamDiabetes] = useState(prefill?.family_history_diabetes ?? false);
   const [famHypertension, setFamHypertension] = useState(prefill?.family_history_hypertension ?? false);
   const [famHeart, setFamHeart] = useState(prefill?.family_history_heart_disease ?? false);
+  const [famDyslipidemia, setFamDyslipidemia] = useState(prefill?.family_history_dyslipidemia ?? false);
+  const [famStroke, setFamStroke] = useState(prefill?.family_history_stroke ?? false);
   // 본인 진단력 (작업3)
   const [htnDiagnosed, setHtnDiagnosed] = useState(prefill?.htn_diagnosed ?? false);
   const [dmDiagnosed, setDmDiagnosed] = useState(prefill?.dm_diagnosed ?? false);
@@ -125,6 +154,8 @@ export function LifestyleSurveyPage() {
         family_history_diabetes: famDiabetes,
         family_history_hypertension: famHypertension,
         family_history_heart_disease: famHeart,
+        family_history_dyslipidemia: famDyslipidemia,
+        family_history_stroke: famStroke,
         htn_diagnosed: htnDiagnosed,
         dm_diagnosed: dmDiagnosed,
         dyslipidemia_diagnosed: dyslipidemiadiagnosed,
@@ -221,12 +252,12 @@ export function LifestyleSurveyPage() {
                     min={0}
                     max={7}
                   />
-                  <StepperInput
+                  <NumberInput
                     label="하루 평균 분"
                     value={vigorousMinutes}
                     onChange={setVigorousMinutes}
                     min={0}
-                    max={300}
+                    max={1440}
                   />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-[12px]">
@@ -237,12 +268,12 @@ export function LifestyleSurveyPage() {
                     min={0}
                     max={7}
                   />
-                  <StepperInput
+                  <NumberInput
                     label="하루 평균 분"
                     value={moderateMinutes}
                     onChange={setModerateMinutes}
                     min={0}
-                    max={300}
+                    max={1440}
                   />
                 </div>
                 <StepperInput
@@ -301,6 +332,24 @@ export function LifestyleSurveyPage() {
                     className="h-4 w-4 accent-accent"
                   />
                   <span className="text-sm text-text-primary">심장질환</span>
+                </label>
+                <label className="flex items-center gap-[8px] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={famDyslipidemia}
+                    onChange={(e) => setFamDyslipidemia(e.target.checked)}
+                    className="h-4 w-4 accent-accent"
+                  />
+                  <span className="text-sm text-text-primary">이상지질혈증</span>
+                </label>
+                <label className="flex items-center gap-[8px] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={famStroke}
+                    onChange={(e) => setFamStroke(e.target.checked)}
+                    className="h-4 w-4 accent-accent"
+                  />
+                  <span className="text-sm text-text-primary">뇌졸중</span>
                 </label>
               </div>
             </div>

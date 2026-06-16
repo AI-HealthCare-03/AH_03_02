@@ -63,6 +63,8 @@ class LifestyleSurvey(models.Model):
     family_history_diabetes = fields.BooleanField(default=False, description="가족력: 당뇨")
     family_history_hypertension = fields.BooleanField(default=False, description="가족력: 고혈압")
     family_history_heart_disease = fields.BooleanField(default=False, description="가족력: 심장질환")
+    family_history_dyslipidemia = fields.BooleanField(default=False, description="가족력: 이상지질혈증")
+    family_history_stroke = fields.BooleanField(default=False, description="가족력: 뇌졸중")
 
     # 본인 진단력 — htn/dm_diagnosed는 모델 입력(ckd_label 상관 높음), ckd_diagnosed는 케어 분기용(정책)
     htn_diagnosed = fields.BooleanField(default=False, description="본인 고혈압 진단")

@@ -4,7 +4,7 @@ from typing import Annotated
 from pydantic import BaseModel, Field
 
 from app.dtos.base import BaseSerializerModel
-from app.models.health_check import AppGroup, CkdStage, DialysisType
+from app.models.health_check import AppGroup, CkdStage, DialysisType, UrineResult
 
 
 class HealthCheckCreateRequest(BaseModel):
@@ -23,6 +23,15 @@ class HealthCheckCreateRequest(BaseModel):
     total_cholesterol: Annotated[float | None, Field(None, ge=50.0, le=700.0, description="총 콜레스테롤 (mg/dL)")]
     hdl_cholesterol: Annotated[float | None, Field(None, ge=10.0, le=200.0, description="HDL 콜레스테롤 (mg/dL)")]
     triglycerides: Annotated[float | None, Field(None, ge=20.0, le=2000.0, description="중성지방 (mg/dL)")]
+    ldl_cholesterol: Annotated[
+        float | None,
+        Field(None, ge=10.0, le=500.0, description="LDL 콜레스테롤 (mg/dL) — 입력값 우선, 미입력 시 Friedewald 계산"),
+    ]
+    hemoglobin: Annotated[float | None, Field(None, ge=3.0, le=25.0, description="헤모글로빈 (g/dL)")]
+    ast: Annotated[float | None, Field(None, ge=0.0, le=2000.0, description="AST (U/L)")]
+    alt: Annotated[float | None, Field(None, ge=0.0, le=2000.0, description="ALT (U/L)")]
+    urine_protein: Annotated[UrineResult | None, Field(None, description="요단백 (양성/음성)")]
+    urine_glucose: Annotated[UrineResult | None, Field(None, description="요당 (양성/음성)")]
 
     # 신체 측정
     weight: Annotated[float, Field(ge=20.0, le=300.0, description="체중 (kg)")]
@@ -46,6 +55,12 @@ class HealthCheckResponse(BaseSerializerModel):
     total_cholesterol: float | None
     hdl_cholesterol: float | None
     triglycerides: float | None
+    ldl_cholesterol: float | None = None
+    hemoglobin: float | None = None
+    ast: float | None = None
+    alt: float | None = None
+    urine_protein: UrineResult | None = None
+    urine_glucose: UrineResult | None = None
 
     # 신체 측정
     weight: float

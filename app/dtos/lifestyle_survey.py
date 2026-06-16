@@ -32,6 +32,8 @@ class LifestyleSurveyCreateRequest(BaseModel):
     family_history_diabetes: Annotated[bool, Field(False, description="가족력: 당뇨")] = False
     family_history_hypertension: Annotated[bool, Field(False, description="가족력: 고혈압")] = False
     family_history_heart_disease: Annotated[bool, Field(False, description="가족력: 심장질환")] = False
+    family_history_dyslipidemia: Annotated[bool, Field(False, description="가족력: 이상지질혈증")] = False
+    family_history_stroke: Annotated[bool, Field(False, description="가족력: 뇌졸중")] = False
     htn_diagnosed: Annotated[bool, Field(False, description="본인 고혈압 진단")] = False
     dm_diagnosed: Annotated[bool, Field(False, description="본인 당뇨 진단")] = False
     dyslipidemia_diagnosed: Annotated[bool, Field(False, description="본인 이상지질혈증 진단")] = False
@@ -60,6 +62,8 @@ class LifestyleSurveyResponse(BaseSerializerModel):
     family_history_diabetes: bool
     family_history_hypertension: bool
     family_history_heart_disease: bool
+    family_history_dyslipidemia: bool = False
+    family_history_stroke: bool = False
     htn_diagnosed: bool
     dm_diagnosed: bool
     dyslipidemia_diagnosed: bool
