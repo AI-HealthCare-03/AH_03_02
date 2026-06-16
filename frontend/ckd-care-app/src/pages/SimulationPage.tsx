@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { ArrowRight, AlertCircle, RotateCcw, Sparkles, Info } from "lucide-react";
 import { TopNav } from "../components/TopNav";
 import { ScreenLabel } from "../components/ScreenLabel";
@@ -42,6 +43,14 @@ export function SimulationPage() {
     queryFn: () => dashboardApi.getEgfrSimulation().catch(() => null),
     staleTime: 5 * 60 * 1000,
   });
+
+  // CKD 진단자에겐 위험 예측 모델이 적용 안 됨(모듈①) → 시뮬레이션도 의미 없음.
+  const { data: summary } = useQuery({
+    queryKey: ["dashboard", "summary"],
+    queryFn: () => dashboardApi.getSummary().catch(() => null),
+    staleTime: 5 * 60 * 1000,
+  });
+  const isDiagnosed = !!summary?.latest_lifestyle?.ckd_diagnosed;
 
   // What-if 상태 — 카테고리별 "이번 주 실천 일수" (0~7).
   const [whatIfDays, setWhatIfDays] = useState<Record<ChallengeCategory, number>>({
@@ -101,19 +110,54 @@ export function SimulationPage() {
           </p>
         </header>
 
-        {isLoading && (
+        {/* 진단자 가드 — 위험 예측 모델 미적용 → 시뮬레이션도 의미 없음 (모듈①) */}
+        {isDiagnosed && (
+          <div className="rounded-md border border-amber-300 bg-amber-50 p-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle size={20} className="mt-0.5 shrink-0 text-amber-700" />
+              <div className="flex-1">
+                <p className="text-base font-bold text-amber-900">시뮬레이션이 진단자에겐 적용되지 않습니다</p>
+                <p className="mt-2 text-sm leading-[1.6] text-amber-800">
+                  CKD 진단을 받으신 분에게는 위험도 예측 모델이 적용되지 않아 What-if 시뮬레이션도 제공되지 않습니다.
+                  현재 상태 모니터링과 트랙별 관리 챌린지(교육·기록·검사·정서)에 집중하시는 것을 권장합니다.
+                </p>
+                <Link
+                  to="/dashboard"
+                  className="mt-4 inline-flex items-center gap-1 rounded-md bg-amber-700 px-4 py-2 text-sm font-bold text-white hover:bg-amber-800"
+                >
+                  대시보드로 돌아가기 <ArrowRight size={14} />
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 비진단자: 시뮬레이션 5종 한정 안내 (신규 4종 카테고리 미반영) */}
+        {!isDiagnosed && (
+          <div className="rounded-md border border-info bg-info/5 p-4">
+            <div className="flex items-start gap-2">
+              <Info size={18} className="mt-0.5 shrink-0 text-info" />
+              <p className="text-sm leading-[1.6] text-text-secondary">
+                이 시뮬레이션은 <strong>수분·운동·식단·수면·스트레스</strong> 5종 카테고리 기준 추정값입니다.
+                <strong>교육·기록·검사·정서</strong> 카테고리 챌린지는 별도 자기관리 효과로, 본 시뮬레이션 수치에는 반영되지 않습니다.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {!isDiagnosed && isLoading && (
           <div className="rounded-md border border-border bg-bg p-6 text-center text-sm text-text-secondary">
             데이터를 불러오는 중...
           </div>
         )}
 
-        {error && (
+        {!isDiagnosed && error && (
           <div className="rounded-md border border-danger bg-danger/5 p-4 text-sm text-danger">
             데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
           </div>
         )}
 
-        {data && !data.applicable && (
+        {!isDiagnosed && data && !data.applicable && (
           <div className="rounded-md border border-amber-300 bg-amber-50 p-4">
             <div className="flex items-center gap-2">
               <AlertCircle size={18} className="text-amber-700" />
@@ -128,7 +172,7 @@ export function SimulationPage() {
           </div>
         )}
 
-        {data?.applicable && computed && data.actual_egfr !== null && (
+        {!isDiagnosed && data?.applicable && computed && data.actual_egfr !== null && (
           <>
             {/* 비교 카드 */}
             <section className="flex items-center justify-center gap-[16px]">
