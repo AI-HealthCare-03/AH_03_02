@@ -13,14 +13,15 @@ import os
 # Qdrant — 로컬 스크립트 기본 localhost. docker 내부 실행 시 env QDRANT_URL=http://qdrant:6333
 # ─────────────────────────────────────────────
 QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
-COLLECTION_CHILD = "medical_kb_dev"  # = src/rag_indexing/config.COLLECTION_CHILD_DEV
+# 환경변수 우선 — 운영(prod)에선 .env의 medical_kb_prod / 로컬 dev에선 default medical_kb_dev 가능
+COLLECTION_CHILD = os.getenv("QDRANT_COLLECTION_NAME", "medical_kb_dev")
 COLLECTION_PARENT = "medical_kb_parents"  # = src/rag_indexing/config.COLLECTION_PARENT
 
 # ─────────────────────────────────────────────
-# OpenAI 모델 (dev) — = src/rag_indexing/config.EMBEDDING_MODEL_DEV / project_api_model_policy
+# OpenAI 모델 — collection 차원과 반드시 일치 (small=1536d, large=3072d)
 # ─────────────────────────────────────────────
-EMBEDDING_MODEL = "text-embedding-3-small"  # 1536d — 인덱싱과 동일해야 검색 가능
-LLM_MODEL = "gpt-4o-mini"
+EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
+LLM_MODEL = os.getenv("OPENAI_LLM_MODEL", "gpt-4o-mini")
 GEN_TEMPERATURE = 0.0  # 생성: 결정적 — 같은 질문에 일관된 답변(의료 정보는 변동성 최소화)
 GRADE_TEMPERATURE = 0.0  # 채점·재작성: 결정적
 
