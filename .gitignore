@@ -52,7 +52,11 @@ data/ckd/
 /qdrant_snapshot.tar.gz
 qdrant_backup_*/
 qdrant_backup_*.tar.gz
+*.snapshot
 probe_headers.py
 
 # RAG 테스트 결과물 (재생성 가능 — git 제외)
 results/
+
+# 임시 회귀 스크립트 (로컬 실행 전용 — git 제외)
+run_review.py
