@@ -911,13 +911,18 @@ function ReportMetaCard({ meta }: { meta: ReportMeta | null | undefined }) {
         </span>
       </div>
 
-      {/* CKD 위험도 점수 — 별도 행으로 명확히 분리 */}
+      {/* CKD 위험 확률 — 별도 행으로 명확히 분리 */}
       {meta.score !== null && (
-        <p className="text-sm font-medium text-text-secondary">
-          CKD 위험도 선별 점수{" "}
-          <span className="text-lg font-bold text-text-primary">{meta.score}</span>
-          <span className="text-sm text-text-muted"> / 100</span>
-        </p>
+        <div className="flex flex-col gap-[2px]">
+          <p className="text-sm font-medium text-text-secondary">
+            CKD 위험 확률{" "}
+            <span className="text-lg font-bold text-text-primary">{meta.score}</span>
+            <span className="text-sm text-text-muted">%</span>
+          </p>
+          <p className="text-xs text-text-muted">
+            신장 기능 검사 수치를 제외한 다른 건강 지표로 본 만성콩팥병 가능성 수치입니다
+          </p>
+        </div>
       )}
 
       {/* 배경 요인 */}
