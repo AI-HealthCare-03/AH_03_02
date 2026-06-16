@@ -23,7 +23,7 @@ export interface AdminUserDetail {
   name_masked: string;
   phone_masked: string;
   gender: string;
-  birthday: string;
+  age: number;
   is_active: boolean;
   is_admin: boolean;
   email_verified: boolean;

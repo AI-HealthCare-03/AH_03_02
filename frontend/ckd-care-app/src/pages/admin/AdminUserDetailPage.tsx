@@ -78,7 +78,7 @@ export function AdminUserDetailPage() {
               <Field label="이름" value={data.name_masked} />
               <Field label="전화" value={data.phone_masked} mono />
               <Field label="성별" value={data.gender === "MALE" ? "남" : "여"} />
-              <Field label="생년월일" value={data.birthday} />
+              <Field label="나이" value={`만 ${data.age}세`} />
               <Field label="활성 상태" value={data.is_active ? "활성" : "정지"} />
               <Field label="관리자" value={data.is_admin ? "Y" : "N"} />
               <Field label="이메일 인증" value={data.email_verified ? "완료" : "미인증"} />
