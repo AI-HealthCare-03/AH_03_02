@@ -15,7 +15,7 @@ export interface HealthCheckCreateRequest {
   weight: number;
   height: number;
   waist_circumference?: number | null;
-  // 신규 검진 항목 (기록·표시용, ML 모델 동결)
+  // 신규 검진 항목 (ML 모델 입력에 포함)
   ldl_cholesterol?: number | null;
   hemoglobin?: number | null;
   ast?: number | null;
