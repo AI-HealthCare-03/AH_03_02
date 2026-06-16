@@ -885,16 +885,25 @@ function LifestyleDetailTable({ items }: { items: LifestyleItem[] }) {
 }
 
 // ===== 리포트 메타 카드 =====
-function gradeStyle(grade: string): { bg: string; text: string } {
-  if (grade === "높음") return { bg: "#fee2e2", text: "#DC2626" };
-  if (grade === "주의") return { bg: "#fef9c3", text: "#CA8A04" };
+const APP_GROUP_BADGE: Record<string, string> = {
+  G1: "위험",
+  G2: "원인주의",
+  G3: "사전주의",
+  G4: "양호",
+};
+
+function gradeStyle(label: string): { bg: string; text: string } {
+  if (label === "위험") return { bg: "#fee2e2", text: "#DC2626" };
+  if (label === "원인주의") return { bg: "#fef3c7", text: "#D97706" };
+  if (label === "사전주의") return { bg: "#fef9c3", text: "#CA8A04" };
   return { bg: "#dcfce7", text: "#16A34A" };
 }
 
 function ReportMetaCard({ meta }: { meta: ReportMeta | null | undefined }) {
   if (!meta) return null;
 
-  const grade = gradeStyle(meta.grade);
+  const badgeLabel = (meta.group ? APP_GROUP_BADGE[meta.group] : null) ?? meta.grade;
+  const grade = gradeStyle(badgeLabel);
   const conditionsText = meta.conditions.length > 0 ? meta.conditions.join(" · ") : "없음";
   const familyText = meta.family_history.length > 0 ? meta.family_history.join(" · ") : "없음";
 
@@ -907,7 +916,7 @@ function ReportMetaCard({ meta }: { meta: ReportMeta | null | undefined }) {
           className="rounded-full px-[10px] py-[3px] text-xs font-bold"
           style={{ backgroundColor: grade.bg, color: grade.text }}
         >
-          등급: {meta.grade}
+          등급: {badgeLabel}
         </span>
       </div>
 
