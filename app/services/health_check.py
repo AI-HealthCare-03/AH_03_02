@@ -136,6 +136,37 @@ class HealthCheckService:
         return AppGroup.G4  # G3: Model 1 연동 전 G4로 fallback
 
     @staticmethod
+    async def recompute_app_group(user_id: int) -> AppGroup | None:
+        """문진(LifestyleSurvey) 변경 시 최신 검진의 app_group을 동기 재계산한다.
+
+        app_group은 검진(create_health_check) 시점에만 굳는다. 그러나 CKD 진단 여부·
+        투석 종류는 문진에서 오므로, 검진 후 문진을 바꾸면 app_group이 옛 값으로 어긋난다
+        (예: 진단 입력 후에도 대시보드가 일반 G그룹으로 표시). 여기서 최신 검진+최신 문진으로
+        _assign_app_group을 재호출해 정합을 맞춘다. AI 워커 재예측은 app_group이
+        CKD/DIALYSIS면 보호하므로(db.update_prediction CASE 가드) 이 동기 갱신을 덮어쓰지 않는다.
+
+        반환: 갱신 후 app_group (검진 없으면 None).
+        """
+        hc = await HealthCheck.filter(user_id=user_id).order_by("-checked_date", "-id").first()
+        if hc is None:
+            return None
+        lifestyle = await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date", "-id").first()
+        ckd_diagnosed = bool(lifestyle.ckd_diagnosed) if lifestyle else False
+        dialysis_type = lifestyle.dialysis_type if (lifestyle and ckd_diagnosed) else None
+        new_group = HealthCheckService._assign_app_group(
+            hc.egfr_estimated,
+            hc.systolic_bp,
+            hc.diastolic_bp,
+            hc.fasting_glucose,
+            ckd_diagnosed=ckd_diagnosed,
+            dialysis_type=dialysis_type,
+        )
+        if hc.app_group != new_group:
+            hc.app_group = new_group
+            await hc.save(update_fields=["app_group"])
+        return new_group
+
+    @staticmethod
     def _check_safety_warning(
         systolic_bp: int,
         diastolic_bp: int,

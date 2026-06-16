@@ -49,6 +49,18 @@ class LifestyleSurveyService:
             is_pregnant=dto.is_pregnant,
         )
 
+        # 문진의 CKD 진단 여부·투석 종류는 app_group 배정 기준이기도 하다. 검진 시점에
+        # 굳은 app_group을 최신 문진 기준으로 동기 재계산해 대시보드 그룹 정합을 맞춘다.
+        # (검진 후 문진을 바꾸면 진단자인데 일반 G그룹으로 표시되던 문제 해소.) 실패는 graceful.
+        try:
+            from app.services.health_check import HealthCheckService
+
+            new_group = await HealthCheckService.recompute_app_group(user_id)
+            if new_group is not None:
+                logger.info("설문 갱신 → app_group 재계산 user=%s group=%s", user_id, new_group)
+        except Exception:  # noqa: BLE001 — 재계산 실패가 설문 저장 API를 깨지 않게
+            logger.exception("설문 갱신 후 app_group 재계산 실패 user=%s", user_id)
+
         # 설문은 모델 입력의 약 절반(생활습관·진단력·가족력)을 차지하므로 갱신 시
         # 사용자의 최근 검진 기준으로 SHAP·AI 가이드를 재계산. 실패는 graceful.
         try:
