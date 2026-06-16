@@ -46,6 +46,20 @@ class AdminUserDetailResponse(BaseModel):
     latest_health_summary: dict | None = None
 
 
+class AdminImpersonateTarget(BaseModel):
+    id: int
+    name_masked: str
+
+
+class AdminImpersonateResponse(BaseModel):
+    """읽기전용 임퍼소네이션 view 토큰 발급 응답."""
+
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int  # 초 단위
+    target: AdminImpersonateTarget
+
+
 # ── 챌린지 카탈로그 관리 ─────────────────────────────
 class AdminChallengeCreateRequest(BaseModel):
     name: Annotated[str, Field(min_length=1, max_length=100)]
