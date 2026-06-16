@@ -88,6 +88,20 @@ class HealthCheckService:
         return round(egfr, 1)
 
     @staticmethod
+    def _effective_ldl(hc: HealthCheck) -> float | None:
+        """LDL: 입력값 우선, 없으면 Friedewald(total - hdl - trig/5, trig<400)."""
+        if hc.ldl_cholesterol is not None:
+            return hc.ldl_cholesterol
+        if (
+            hc.total_cholesterol is not None
+            and hc.hdl_cholesterol is not None
+            and hc.triglycerides is not None
+            and hc.triglycerides < 400
+        ):
+            return round(hc.total_cholesterol - hc.hdl_cholesterol - hc.triglycerides / 5.0, 1)
+        return None
+
+    @staticmethod
     def _get_ckd_stage(egfr: float) -> CkdStage:
         """KDIGO 2022 기준 eGFR → G 단계 매핑."""
         if egfr >= 90:
@@ -239,6 +253,12 @@ class HealthCheckService:
             total_cholesterol=dto.total_cholesterol,
             hdl_cholesterol=dto.hdl_cholesterol,
             triglycerides=dto.triglycerides,
+            ldl_cholesterol=dto.ldl_cholesterol,
+            hemoglobin=dto.hemoglobin,
+            ast=dto.ast,
+            alt=dto.alt,
+            urine_protein=dto.urine_protein,
+            urine_glucose=dto.urine_glucose,
             weight=dto.weight,
             height=dto.height,
             bmi=bmi,
@@ -512,14 +532,8 @@ class HealthCheckService:
         else:
             raw["waist_height_ratio"] = None
 
-        # Friedewald LDL: total / hdl / trig 세 값 존재 + trig < 400 조건
-        tc = hc.total_cholesterol
-        hdl = hc.hdl_cholesterol
-        trig = hc.triglycerides
-        if tc is not None and hdl is not None and trig is not None and trig < 400:
-            raw["ldl_cholesterol"] = round(tc - hdl - trig / 5.0, 1)
-        else:
-            raw["ldl_cholesterol"] = None
+        # LDL: 입력값 우선, 없으면 Friedewald(total - hdl - trig/5, trig<400)
+        raw["ldl_cholesterol"] = HealthCheckService._effective_ldl(hc)
 
         # 흡연: SmokingStatus enum → 0/1/2 (NEVER=0, PAST=1, CURRENT=2)
         if ls is not None:
@@ -576,14 +590,8 @@ class HealthCheckService:
             "triglycerides": hc.triglycerides,
         }
 
-        # LDL Friedewald (모델2에서도 동일 조건)
-        tc = hc.total_cholesterol
-        hdl = hc.hdl_cholesterol
-        trig = hc.triglycerides
-        if tc is not None and hdl is not None and trig is not None and trig < 400:
-            raw["ldl_cholesterol"] = round(tc - hdl - trig / 5.0, 1)
-        else:
-            raw["ldl_cholesterol"] = None
+        # LDL: 입력값 우선, 없으면 Friedewald (모델2에서도 동일 조건)
+        raw["ldl_cholesterol"] = HealthCheckService._effective_ldl(hc)
 
         # 생활습관 설문 의존 항목
         if ls is not None:

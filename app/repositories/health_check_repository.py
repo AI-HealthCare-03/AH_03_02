@@ -1,6 +1,6 @@
 from datetime import date
 
-from app.models.health_check import AppGroup, CkdStage, DialysisType, HealthCheck
+from app.models.health_check import AppGroup, CkdStage, DialysisType, HealthCheck, UrineResult
 
 
 class HealthCheckRepository:
@@ -18,6 +18,12 @@ class HealthCheckRepository:
         total_cholesterol: float | None = None,
         hdl_cholesterol: float | None = None,
         triglycerides: float | None = None,
+        ldl_cholesterol: float | None = None,
+        hemoglobin: float | None = None,
+        ast: float | None = None,
+        alt: float | None = None,
+        urine_protein: UrineResult | None = None,
+        urine_glucose: UrineResult | None = None,
         waist_circumference: float | None = None,
         egfr_estimated: float | None = None,
         ckd_stage: CkdStage | None = None,
@@ -34,6 +40,12 @@ class HealthCheckRepository:
             total_cholesterol=total_cholesterol,
             hdl_cholesterol=hdl_cholesterol,
             triglycerides=triglycerides,
+            ldl_cholesterol=ldl_cholesterol,
+            hemoglobin=hemoglobin,
+            ast=ast,
+            alt=alt,
+            urine_protein=urine_protein,
+            urine_glucose=urine_glucose,
             weight=weight,
             height=height,
             bmi=bmi,
