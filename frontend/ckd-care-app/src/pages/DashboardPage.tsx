@@ -237,10 +237,26 @@ const APP_GROUP_LABEL: Record<string, string> = {
   CKD: "CKD · 신장 관리군", DIALYSIS: "투석 · 신장 관리군",
 };
 
-const LIFESTYLE_LABEL: Record<string, string> = {
-  NEVER: "비흡연", PAST: "과거 흡연", CURRENT: "현재 흡연",
-  NONE: "안 마심", MONTHLY: "월 1~4회", WEEKLY: "주 2회+",
-  LOW: "낮음", MODERATE: "보통", HIGH: "높음",
+// 생활습관 요약 라벨 — 흡연/음주가 enum 값 "NEVER"를 공유하므로 필드별로 맵을 분리한다.
+// (기존 단일 평면 맵은 음주 DAILY/OCCASIONALLY·스트레스 VERY_HIGH/VERY_LOW가 누락돼 원본 enum이
+//  그대로 노출되고, NEVER가 흡연 라벨로 충돌하던 버그가 있었음.)
+const SMOKING_LABEL: Record<string, string> = {
+  NEVER: "비흡연",
+  PAST: "과거 흡연",
+  CURRENT: "현재 흡연",
+};
+const DRINKING_LABEL: Record<string, string> = {
+  NEVER: "안 마심",
+  OCCASIONALLY: "가끔",
+  WEEKLY: "주 1~2회",
+  DAILY: "매일",
+};
+const STRESS_LABEL: Record<string, string> = {
+  VERY_LOW: "매우 낮음",
+  LOW: "낮음",
+  MODERATE: "보통",
+  HIGH: "높음",
+  VERY_HIGH: "매우 높음",
 };
 
 // 사용자별 환영 모달 노출 — sessionStorage라 같은 탭 새로고침엔 유지, 로그아웃 시 AuthContext가 비움
@@ -545,10 +561,10 @@ export function DashboardPage() {
           <div className="mt-[24px]">
             <Card title={`생활습관 요약 (${ls.surveyed_date})`}>
               <div className="flex gap-[24px] text-sm text-text-primary">
-                <span>흡연: {LIFESTYLE_LABEL[ls.smoking_status] ?? ls.smoking_status}</span>
-                <span>음주: {LIFESTYLE_LABEL[ls.drinking_frequency] ?? ls.drinking_frequency}</span>
+                <span>흡연: {SMOKING_LABEL[ls.smoking_status] ?? ls.smoking_status}</span>
+                <span>음주: {DRINKING_LABEL[ls.drinking_frequency] ?? ls.drinking_frequency}</span>
                 <span>운동: 주 {ls.exercise_days_per_week}회</span>
-                {ls.stress_level && <span>스트레스: {LIFESTYLE_LABEL[ls.stress_level] ?? ls.stress_level}</span>}
+                {ls.stress_level && <span>스트레스: {STRESS_LABEL[ls.stress_level] ?? ls.stress_level}</span>}
               </div>
             </Card>
           </div>
