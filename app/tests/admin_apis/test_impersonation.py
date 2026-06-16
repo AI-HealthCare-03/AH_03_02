@@ -78,7 +78,7 @@ class TestImpersonateEndpoint(TestCase):
             # 관리자 생성 + 토큰 직접 발급 (로그인 우회 — 비번 해시 불필요)
             admin = await User.create(
                 email="imp_admin@example.com",
-                password="x",
+                hashed_password="$2b$12$dummy",
                 name="관리자",
                 gender="FEMALE",
                 birthday="1980-01-01",
