@@ -14,6 +14,7 @@ from starlette import status
 from tortoise.expressions import Q
 from tortoise.transactions import in_transaction
 
+from app.core.jwt.tokens import AccessToken
 from app.core.utils.masking import (
     categorize_egfr,
     categorize_fasting_glucose,
@@ -134,6 +135,37 @@ class AdminService:
                 target_id=user_id,
                 detail={"reason": (reason or "").strip() or None},
             )
+
+    async def impersonate(self, *, admin_user_id: int, user_id: int) -> dict:
+        """대상 사용자에 대한 읽기전용 view 토큰 발급 + 감사 로그.
+
+        view 토큰: access 토큰에 readonly=True, impersonator=admin_id, 30분 만료.
+        일반 API는 토큰 user_id로 조회하므로 그 사용자 화면을 그대로 보게 된다.
+        쓰기는 get_request_user의 readonly 가드가 403으로 막는다.
+        """
+        user = await User.get_or_none(id=user_id)
+        if user is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="사용자를 찾을 수 없습니다.")
+        ttl = timedelta(minutes=30)
+        token = AccessToken()
+        token["user_id"] = user.id
+        token["readonly"] = True
+        token["impersonator"] = admin_user_id
+        token.set_exp(lifetime=ttl)
+        async with in_transaction():
+            await self._log(
+                admin_user_id=admin_user_id,
+                action=AdminAction.IMPERSONATE,
+                target_type=TargetType.USER,
+                target_id=user_id,
+                detail={"impersonator": admin_user_id},
+            )
+        return {
+            "access_token": str(token),
+            "token_type": "bearer",
+            "expires_in": int(ttl.total_seconds()),
+            "target": {"id": user.id, "name_masked": mask_name(user.name)},
+        }
 
     # ── 챌린지 카탈로그 ─────────────────────────────
     async def list_challenges(self, *, limit: int, offset: int) -> tuple[int, list[Challenge]]:

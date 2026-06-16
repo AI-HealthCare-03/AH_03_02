@@ -14,6 +14,7 @@ from app.dtos.admin import (
     AdminChallengeListResponse,
     AdminChallengeResponse,
     AdminChallengeUpdateRequest,
+    AdminImpersonateResponse,
     AdminSafetyAcknowledgeRequest,
     AdminSafetyEventListResponse,
     AdminStatsSummary,
@@ -107,6 +108,21 @@ async def force_verify_email(
     reason = body.reason if body else None
     await service.force_verify_email(admin_user_id=admin.id, user_id=user_id, reason=reason)
     return Response(content=None, status_code=status.HTTP_204_NO_CONTENT)
+
+
+@admin_router.post(
+    "/users/{user_id}/impersonate",
+    response_model=AdminImpersonateResponse,
+    status_code=status.HTTP_200_OK,
+    summary="사용자 임퍼소네이션 (읽기전용 view 토큰 발급, 감사 로그)",
+)
+async def impersonate_user(
+    user_id: int,
+    admin: Annotated[User, Depends(get_admin_user)],
+    service: Annotated[AdminService, Depends(AdminService)],
+) -> Response:
+    result = await service.impersonate(admin_user_id=admin.id, user_id=user_id)
+    return Response(content=result, status_code=status.HTTP_200_OK)
 
 
 # ── 챌린지 카탈로그 ─────────────────────────────────

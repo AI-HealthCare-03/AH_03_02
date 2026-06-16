@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Shield, AlertCircle, CheckCircle2 } from "lucide-react";
 import { adminApi, type AdminUserDetail } from "../../api/admin";
+import { useAuth } from "../../contexts/AuthContext";
 
 export function AdminUserDetailPage() {
   const { id } = useParams<{ id: string }>();
   const userId = Number(id);
+  const { startImpersonation } = useAuth();
+  const navigate = useNavigate();
   const [data, setData] = useState<AdminUserDetail | null>(null);
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
@@ -121,6 +124,22 @@ export function AdminUserDetailPage() {
               {!data.email_verified && (
                 <ActionBtn label="이메일 인증 강제" onClick={() => setConfirming("verify")} />
               )}
+              <button
+                type="button"
+                onClick={async () => {
+                  setError(""); setInfo("");
+                  try {
+                    const res = await adminApi.impersonate(userId);
+                    await startImpersonation(res.access_token, res.target);
+                    navigate("/dashboard");
+                  } catch (e) {
+                    setError(e instanceof Error ? e.message : "임퍼소네이션 실패");
+                  }
+                }}
+                className="rounded-md bg-indigo-500 px-[12px] py-[6px] text-xs font-bold text-white hover:bg-indigo-400"
+              >
+                이 사용자로 보기 (읽기전용)
+              </button>
             </div>
 
             {confirming && (

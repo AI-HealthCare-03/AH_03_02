@@ -112,6 +112,13 @@ export interface AdminSafetyEventListResponse {
   items: AdminSafetyEventRow[];
 }
 
+export interface ImpersonateResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  target: { id: number; name_masked: string };
+}
+
 export const adminApi = {
   listUsers: (q?: string, limit = 50, offset = 0) => {
     const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
@@ -170,4 +177,7 @@ export const adminApi = {
   },
   acknowledgeSafety: (id: number, note?: string) =>
     api.patch<void>(`/admin/safety-events/${id}/acknowledge`, { note: note ?? null }),
+
+  impersonate: (id: number) =>
+    api.post<ImpersonateResponse>(`/admin/users/${id}/impersonate`, {}),
 };

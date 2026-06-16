@@ -104,6 +104,17 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
 
   if (res.status === 401) {
+    // 임퍼소네이션(view 토큰) 만료: refresh 쿠키는 관리자 것이므로 refresh하지 않고
+    // 백업한 관리자 토큰으로 복원한 뒤 관리자 화면으로 보낸다.
+    const adminBackup = sessionStorage.getItem("admin_token_backup");
+    if (adminBackup) {
+      sessionStorage.removeItem("admin_token_backup");
+      sessionStorage.removeItem("impersonation_target");
+      localStorage.setItem("access_token", adminBackup);
+      sessionStorage.removeItem("access_token");
+      window.location.href = "/admin/users";
+      throw new Error("임퍼소네이션 세션이 만료돼 관리자로 돌아갑니다.");
+    }
     const newToken = await tryRefresh();
     if (!newToken) {
       clearToken();
