@@ -202,6 +202,8 @@ function EgfrTrendChart({ trend }: { trend: EgfrTrend | null }) {
 const APP_GROUP_LABEL: Record<string, string> = {
   G1: "A · 신장 집중 관리군", G2: "B · 신장 위험 관리군",
   G3: "C · 신장 사전 관리군", G4: "D · 건강 습관 형성군",
+  // CKD 진단자 — 문진 변경 시 백엔드가 app_group을 CKD/DIALYSIS로 동기 재계산
+  CKD: "CKD · 신장 관리군", DIALYSIS: "투석 · 신장 관리군",
 };
 
 const LIFESTYLE_LABEL: Record<string, string> = {
