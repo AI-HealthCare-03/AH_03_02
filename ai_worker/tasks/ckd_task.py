@@ -68,6 +68,9 @@ def _spawn_guide_task(job: CkdJob, out: dict) -> None:
     track = (job.payload or {}).get("track")
     if track:
         user_ctx["track"] = track
+    smoking = (job.payload or {}).get("smoking_status")
+    if smoking:
+        user_ctx["smoking_status"] = smoking
 
     task = asyncio.create_task(
         _gen_and_store_guide(

@@ -88,6 +88,12 @@ _CAUSE_LABEL: dict[str, str] = {
     "dyslipidemia": "이상지질혈증(고지혈증)",
 }
 
+_SMOKING_LABEL: dict[str, str] = {
+    "CURRENT": "현재 흡연",
+    "PAST": "과거 흡연",
+    # NEVER → 미표기 (비흡연자에게 금연 언급 방지)
+}
+
 
 def _user_context_line(user_context: dict | None) -> str:
     # user_context 미제공(None) = 테스트·무맥락 → 표기 없음
@@ -98,6 +104,7 @@ def _user_context_line(user_context: dict | None) -> str:
     weight = user_context.get("weight")
     track = user_context.get("track")
     causes = user_context.get("ckd_cause") or []
+    smoking_label = _SMOKING_LABEL.get(user_context.get("smoking_status", ""), "")
     track_label = _TRACK_LABEL.get(track, "미진단/확인 안 됨")
     cause_str = ", ".join(_CAUSE_LABEL.get(c, c) for c in causes)
     # 단계·eGFR 둘 다 없음 = 단계 미상 → 검진 권유 유도 (05 명세 §6: NULL 안전 처리)
@@ -106,6 +113,8 @@ def _user_context_line(user_context: dict | None) -> str:
         base += f" / 투석상태={track_label}"
         if cause_str:
             base += f" / 원인질환(자가신고)={cause_str}"
+        if smoking_label:
+            base += f" / 흡연={smoking_label}"
         return base + (f" / 체중={weight}kg" if weight is not None else "")
     parts = []
     if rg is not None:
@@ -117,6 +126,8 @@ def _user_context_line(user_context: dict | None) -> str:
         parts.append(f"체중={weight}kg")
     if cause_str:
         parts.append(f"원인질환(자가신고)={cause_str}")
+    if smoking_label:
+        parts.append(f"흡연={smoking_label}")
     return "\n[사용자 정보] " + ", ".join(parts)
 
 
