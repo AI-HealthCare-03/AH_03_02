@@ -920,11 +920,11 @@ function ReportMetaCard({ meta }: { meta: ReportMeta | null | undefined }) {
         </span>
       </div>
 
-      {/* CKD 위험 확률 — 별도 행으로 명확히 분리 */}
+      {/* 만성콩팥병 위험률 — 별도 행으로 명확히 분리 */}
       {meta.score !== null && (
         <div className="flex flex-col gap-[2px]">
           <p className="text-sm font-medium text-text-secondary">
-            CKD 위험 확률{" "}
+            만성콩팥병 위험률{" "}
             <span className="text-lg font-bold text-text-primary">{meta.score}</span>
             <span className="text-sm text-text-muted">%</span>
           </p>
