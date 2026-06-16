@@ -41,6 +41,8 @@ class LifestyleSurveyService:
             family_history_diabetes=dto.family_history_diabetes,
             family_history_hypertension=dto.family_history_hypertension,
             family_history_heart_disease=dto.family_history_heart_disease,
+            family_history_dyslipidemia=dto.family_history_dyslipidemia,
+            family_history_stroke=dto.family_history_stroke,
             htn_diagnosed=dto.htn_diagnosed,
             dm_diagnosed=dto.dm_diagnosed,
             dyslipidemia_diagnosed=dto.dyslipidemia_diagnosed,
