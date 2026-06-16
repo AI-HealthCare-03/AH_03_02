@@ -14,6 +14,8 @@
   docker compose exec -T fastapi uv run python /tmp/seed_personas.py validate
   # 3) 실제 생성 (기존 16개 이메일만 삭제 후 재생성 — 멱등, demo@·실제유저 무관)
   docker compose exec -T fastapi uv run python /tmp/seed_personas.py apply
+  # 4) 일부 계정만 재시드 (추가 인자로 이메일 지정 — 나머지 페르소나 무영향)
+  docker compose exec -T fastapi uv run python /tmp/seed_personas.py apply c-male@healthypeople.kr c-female@healthypeople.kr
 
 비밀번호는 16계정 공용 `Demo1234!`. 이메일은 분류군 기반(`{a~d,ckd,hd,pd,tx}-{male,female}@healthypeople.kr`).
 """
@@ -23,8 +25,11 @@ import sys
 from datetime import date
 from pathlib import Path
 
-# 프로젝트 루트를 import path에 추가 (seed_demo_user.py와 동일 컨벤션)
+# 프로젝트 루트를 import path에 추가 (seed_demo_user.py와 동일 컨벤션).
+# 컨테이너에서 /tmp로 복사해 실행하면 parent.parent가 "/"라 app을 못 찾으므로 /app도 명시 추가.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+if "/app" not in sys.path:
+    sys.path.insert(0, "/app")
 
 from tortoise import Tortoise
 
@@ -251,45 +256,45 @@ PERSONAS = [
     {
         "email": "c-male@healthypeople.kr",
         "phone": "010-0000-0005",
-        "name": "정우성",
+        "name": "김철수",
         "gender": "MALE",
-        "age": 48,
+        "age": 68,
         "group": "C 신장사전관리",
         "hc": {
-            "systolic_bp": 122,
+            "systolic_bp": 124,
             "diastolic_bp": 76,
-            "fasting_glucose": 96,
-            "creatinine": 0.95,
-            "total_cholesterol": 232,
+            "fasting_glucose": 98,
+            "creatinine": 1.1,
+            "total_cholesterol": 215,
             "hdl_cholesterol": 38,
-            "triglycerides": 198,
-            "ldl_cholesterol": 152,
-            "hemoglobin": 14.8,
-            "ast": 35,
-            "alt": 48,
-            "urine_protein": "NEGATIVE",
+            "triglycerides": 220,
+            "ldl_cholesterol": 133,
+            "hemoglobin": 11.8,
+            "ast": 28,
+            "alt": 32,
+            "urine_protein": "POSITIVE",
             "urine_glucose": "NEGATIVE",
-            "weight": 88,
-            "height": 172,
+            "weight": 80,
+            "height": 170,
             "waist_circumference": 96,
         },
         "survey": {
-            "smoking_status": "CURRENT",
-            "drinking_frequency": "DAILY",
+            "smoking_status": "NEVER",
+            "drinking_frequency": "OCCASIONALLY",
             "exercise_days_per_week": 1,
             "vigorous_exercise_days": 0,
             "vigorous_exercise_minutes": 0,
             "moderate_exercise_days": 1,
-            "moderate_exercise_minutes": 20,
-            "sitting_hours_per_day": 10,
-            "sleep_hours_per_day": 5,
-            "daily_water_intake": 1.0,
-            "stress_level": "HIGH",
+            "moderate_exercise_minutes": 30,
+            "sitting_hours_per_day": 9,
+            "sleep_hours_per_day": 6,
+            "daily_water_intake": 1.5,
+            "stress_level": "MODERATE",
             "marital_status": "MARRIED",
             "is_pregnant": False,
-            "family_history_hypertension": True,
+            "family_history_hypertension": False,
             "family_history_diabetes": False,
-            "family_history_heart_disease": True,
+            "family_history_heart_disease": False,
             "family_history_dyslipidemia": False,
             "family_history_stroke": False,
             "htn_diagnosed": False,
@@ -302,26 +307,26 @@ PERSONAS = [
     {
         "email": "c-female@healthypeople.kr",
         "phone": "010-0000-0006",
-        "name": "강지현",
+        "name": "김순희",
         "gender": "FEMALE",
-        "age": 53,
+        "age": 76,
         "group": "C 신장사전관리",
         "hc": {
             "systolic_bp": 118,
             "diastolic_bp": 74,
-            "fasting_glucose": 94,
-            "creatinine": 0.75,
-            "total_cholesterol": 228,
-            "hdl_cholesterol": 55,
-            "triglycerides": 144,
-            "ldl_cholesterol": 148,
-            "hemoglobin": 13.1,
+            "fasting_glucose": 95,
+            "creatinine": 0.68,
+            "total_cholesterol": 202,
+            "hdl_cholesterol": 38,
+            "triglycerides": 153,
+            "ldl_cholesterol": 129,
+            "hemoglobin": 11.8,
             "ast": 22,
-            "alt": 18,
+            "alt": 25,
             "urine_protein": "NEGATIVE",
             "urine_glucose": "NEGATIVE",
-            "weight": 58,
-            "height": 162,
+            "weight": 55,
+            "height": 160,
             "waist_circumference": 78,
         },
         "survey": {
@@ -339,7 +344,7 @@ PERSONAS = [
             "marital_status": "MARRIED",
             "is_pregnant": False,
             "family_history_hypertension": False,
-            "family_history_diabetes": True,
+            "family_history_diabetes": False,
             "family_history_heart_disease": False,
             "family_history_dyslipidemia": False,
             "family_history_stroke": False,
@@ -867,12 +872,16 @@ def _birthday(age: int) -> date:
     return date(THIS_YEAR - age, 5, 15)  # 5/15 < 오늘(6/16) → 만나이 = age
 
 
-def validate() -> None:
-    """DB 미접근. DTO 구성 + 순수 계산으로 eGFR·예상 app_group 미리보기."""
+def validate(only_emails: list[str] | None = None) -> None:
+    """DB 미접근. DTO 구성 + 순수 계산으로 eGFR·예상 app_group 미리보기.
+
+    only_emails 지정 시 해당 이메일만 미리보기 (전체 16개 중 일부만 검증).
+    """
+    targets = [p for p in PERSONAS if only_emails is None or p["email"] in only_emails]
     print(f"{'EMAIL':30s} {'GROUP':16s} {'GENDER':7s} AGE  eGFR   예상_app_group")
     print("-" * 78)
     ok = 0
-    for p in PERSONAS:
+    for p in targets:
         # DTO 검증(타입·범위·enum·phone·birthday)
         SignUpRequest(
             email=p["email"],
@@ -899,15 +908,17 @@ def validate() -> None:
         print(f"{p['email']:30s} {p['group']:16s} {p['gender']:7s} {p['age']:3d}  {egfr:6.1f}  {grp.value}")
         ok += 1
     print("-" * 78)
-    print(f"검증 통과: {ok}/{len(PERSONAS)} (DTO·enum·범위·phone·birthday 전부 유효)")
+    print(f"검증 통과: {ok}/{len(targets)} (DTO·enum·범위·phone·birthday 전부 유효)")
 
 
-async def apply() -> None:
+async def apply(only_emails: list[str] | None = None) -> None:
     await Tortoise.init(config=TORTOISE_ORM)
     auth, hcs, lss = AuthService(), HealthCheckService(), LifestyleSurveyService()
-    emails = [p["email"] for p in PERSONAS]
+    # only_emails 지정 시 해당 계정만 재시드(나머지 페르소나·demo@·실제 유저 무영향).
+    targets = [p for p in PERSONAS if only_emails is None or p["email"] in only_emails]
+    emails = [p["email"] for p in targets]
 
-    # 멱등: 우리 16개 이메일만 삭제(cascade). demo@·실제 유저는 건드리지 않음.
+    # 멱등: 대상 이메일만 삭제(cascade). demo@·실제 유저는 건드리지 않음.
     existing = await User.filter(email__in=emails)
     for u in existing:
         print(f"  기존 계정 삭제: id={u.id} {u.email}")
@@ -916,7 +927,7 @@ async def apply() -> None:
     print(f"\n{'EMAIL':30s} {'GROUP':16s} eGFR   app_group")
     print("-" * 70)
     created = 0
-    for p in PERSONAS:
+    for p in targets:
         try:
             gender = Gender(p["gender"])
             user = await auth.signup(
@@ -947,13 +958,14 @@ async def apply() -> None:
         except Exception as e:  # noqa: BLE001
             print(f"{p['email']:30s} 실패: {type(e).__name__}: {e}")
     print("-" * 70)
-    print(f"생성 완료: {created}/{len(PERSONAS)}  (비밀번호 공용 = {PASSWORD})")
+    print(f"생성 완료: {created}/{len(targets)}  (비밀번호 공용 = {PASSWORD})")
     await Tortoise.close_connections()
 
 
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "validate"
+    only = sys.argv[2:] or None  # 추가 인자로 특정 이메일만 대상 (없으면 전체 16개)
     if mode == "apply":
-        asyncio.run(apply())
+        asyncio.run(apply(only))
     else:
-        validate()
+        validate(only)
