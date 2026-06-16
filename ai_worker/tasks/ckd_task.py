@@ -51,7 +51,7 @@ async def _gen_and_store_guide(
         logger.exception("가이드 선생성 실패 hc=%s", health_check_id)
 
 
-def _spawn_guide_task(job: CkdJob, out: dict) -> None:
+def _spawn_guide_task(job: CkdJob, out: dict) -> None:  # noqa: C901
     """SHAP 저장 직후 가이드 생성을 비차단 detached 태스크로 띄운다."""
     user_ctx: dict = {}
     egfr = out.get("egfr_estimated")
@@ -71,6 +71,18 @@ def _spawn_guide_task(job: CkdJob, out: dict) -> None:
     smoking = (job.payload or {}).get("smoking_status")
     if smoking:
         user_ctx["smoking_status"] = smoking
+    height = (job.payload or {}).get("height")
+    if height is not None:
+        user_ctx["height"] = height
+    gender = (job.payload or {}).get("gender")
+    if gender is not None:
+        user_ctx["gender"] = gender
+    age = (job.payload or {}).get("age")
+    if age is not None:
+        user_ctx["age"] = age
+    app_group = out.get("app_group")
+    if app_group is not None:
+        user_ctx["app_group"] = app_group
 
     task = asyncio.create_task(
         _gen_and_store_guide(

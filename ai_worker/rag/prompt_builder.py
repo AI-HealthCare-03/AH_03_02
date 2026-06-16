@@ -24,12 +24,13 @@ SYSTEM_PROMPT = (
     "'정확한 적용은 검진·진료 확인이 필요합니다'라고 안내하세요. "
     "답변에 영양 수치를 언급할 때는 그 수치 바로 뒤에 ⟦영양소명:숫자:단위⟧ 마커를 붙이세요"
     "(예: '하루 약 48g⟦단백질:48:g⟧'). 단위는 반드시 단백질 g, 나트륨·칼륨·인 mg, 열량 kcal로 기록하세요. "
-    "마커의 숫자는 체중당 상대값(예: 0.8 g/kg)이 아니라 하루 절대량으로 환산해 기록하세요. "
-    "[사용자 정보]에 체중이 제공되면 그 체중으로 환산하세요(예: 체중 70kg, 1.2 g/kg → 약 84g → ⟦단백질:84:g⟧). "
-    "체중 정보가 없을 때만 일반 성인(60kg) 기준으로 환산하세요. 범위 값은 중간값 하나로 표기하고, 마커를 중복하지 마세요. "
-    "답변에 ⟦단백질:숫자:g⟧ 마커가 포함될 때만, 그 직후 '이 수치는 일반인 기준으로 순수 체중만 반영한 참고치이며, "
-    "비만·부종 등은 반영되지 않았습니다. 정확한 양은 신장 기능·투석 상태에 따라 달라지므로 영양사·의료진 상담으로 확인하세요'라는 단서를 덧붙이세요. "
-    "나트륨·칼륨·인 수치에는 이 단서를 붙이지 마세요. "
+    "마커의 숫자는 하루 절대량으로 기록하세요. 범위 값은 중간값 하나로 표기하고, 마커를 중복하지 마세요. "
+    "【단백질 수치 규칙】[사용자 정보]에 '단백질 권장량=Ng'가 제공된 경우 반드시 그 값만 그대로 사용하고, "
+    "체중이나 g/kg로 직접 계산하거나 추정하지 마세요. "
+    "[참고 문서]에 g/kg 비율·수치가 있어도 [사용자 정보]의 단백질 권장량이 절대 우선입니다. "
+    "g/kg 비율은 답변에 일절 언급하지 마세요. "
+    "[사용자 정보]에 '단백질 섭취량은 신장 기능 상태와' 문구가 있거나 단백질 정보가 전혀 없으면 "
+    "단백질 수치를 일절 언급하지 말고 '영양사·의료진 상담 필요'로만 안내하세요. "
     "마커는 시스템이 음식 비유로 자동 변환하며 문장 흐름과 무관합니다. "
     "답변은 한국어로 작성하고, 출처는 아래 [근거 발췌] 각 항목의 대괄호 안 문서명·페이지를 "
     "그대로 인용하세요(예: [출처: KSN-2025-Hypertension-CKD-Guideline p.93]). "
@@ -58,8 +59,7 @@ SYSTEM_PROMPT = (
     # ── 규칙 4: 영양소 음식 예시 ───────────────────────────────────────────────
     "\n\n[영양소 음식 예시] 단백질·나트륨·칼륨·인을 설명할 때 대표 음식을 예시로 들어 이해를 돕되, "
     "단백질(계란·닭고기·생선·두부), 나트륨(국물·찌개·라면·젓갈), 칼륨(바나나·감자·토마토), 인(유제품·가공식품). "
-    "단, 단백질 g 수치·음식 비유를 제시할 때는 반드시 '일반인 기준으로 순수 체중만 반영한 참고치'임을 명시하고 "
-    "영양사·의료진 상담을 안내하세요."
+    "단백질 수치를 안내할 때 음식 비유를 함께 제시해도 좋습니다."
     # ── 규칙 5: 신장병 병기·단계 언급 금지 ──────────────────────────────────────
     "\n\n[병기·단계 언급 금지] 사용자에게 'G1', 'G3B', 'CKD 3기' 같은 신장병 병기·단계를 "
     "직접 언급하거나 단정하지 마세요. "
@@ -95,7 +95,47 @@ _SMOKING_LABEL: dict[str, str] = {
 }
 
 
-def _user_context_line(user_context: dict | None) -> str:
+def _kdris_protein_rda(gender: str, age: int) -> int:
+    """2025 한국인 영양소 섭취기준(KDRIs) 단백질 권장섭취량 (g/day)."""
+    if gender == "MALE":
+        return 65 if 15 <= age <= 49 else 60
+    return 55 if age <= 29 else 50
+
+
+def protein_target_g(
+    app_group: str | None,
+    height_cm: float | None,
+    gender: str | None,
+    age: int | None,
+) -> int | None:
+    """단백질 1일 권장량(g) 룰베이스 계산. 투석/CKD·입력 불완전 시 None 반환."""
+    if app_group in ("CKD", "DIALYSIS") or age is None or height_cm is None or gender is None:
+        return None
+    ibw = (height_cm / 100) ** 2 * (22 if gender == "MALE" else 21)
+    if app_group == "G1":
+        return round(ibw * 0.8)
+    return _kdris_protein_rda(gender, age)
+
+
+def _protein_part(user_context: dict) -> str | None:
+    """단백질 [사용자 정보] 조각. app_group 없으면 None(챗봇 등 미주입 경로)."""
+    app_group = user_context.get("app_group")
+    if app_group is None:
+        return None
+    protein = protein_target_g(
+        app_group,
+        user_context.get("height"),
+        user_context.get("gender"),
+        user_context.get("age"),
+    )
+    if protein is not None:
+        return f"단백질 권장량={protein}g(★이 값만 사용, 참고 문서 g/kg 수치 무시)"
+    return (
+        "단백질 섭취량은 신장 기능 상태와 투석 방법에 따라 달라지므로, 영양사나 의료진과 상담해 결정하는 것이 좋습니다"
+    )
+
+
+def _user_context_line(user_context: dict | None) -> str:  # noqa: C901
     # user_context 미제공(None) = 테스트·무맥락 → 표기 없음
     if user_context is None:
         return ""
@@ -107,6 +147,7 @@ def _user_context_line(user_context: dict | None) -> str:
     smoking_label = _SMOKING_LABEL.get(user_context.get("smoking_status", ""), "")
     track_label = _TRACK_LABEL.get(track, "미진단/확인 안 됨")
     cause_str = ", ".join(_CAUSE_LABEL.get(c, c) for c in causes)
+    protein_str = _protein_part(user_context)
     # 단계·eGFR 둘 다 없음 = 단계 미상 → 검진 권유 유도 (05 명세 §6: NULL 안전 처리)
     if egfr is None and rg is None:
         base = "\n[사용자 정보] CKD 단계 미상 — 정확한 적용을 위해 검진·진료 확인 권유"
@@ -115,6 +156,8 @@ def _user_context_line(user_context: dict | None) -> str:
             base += f" / 원인질환(자가신고)={cause_str}"
         if smoking_label:
             base += f" / 흡연={smoking_label}"
+        if protein_str:
+            base += f" / {protein_str}"
         return base + (f" / 체중={weight}kg" if weight is not None else "")
     parts = []
     if rg is not None:
@@ -128,6 +171,8 @@ def _user_context_line(user_context: dict | None) -> str:
         parts.append(f"원인질환(자가신고)={cause_str}")
     if smoking_label:
         parts.append(f"흡연={smoking_label}")
+    if protein_str:
+        parts.append(protein_str)
     return "\n[사용자 정보] " + ", ".join(parts)
 
 
