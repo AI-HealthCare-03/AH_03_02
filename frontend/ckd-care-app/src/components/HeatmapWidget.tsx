@@ -55,38 +55,44 @@ export function HeatmapWidget() {
         </p>
       </div>
 
-      <div className="flex gap-[6px]">
-        {/* 요일 라벨 (왼쪽) */}
-        <div className="flex flex-col justify-between py-[2px]">
-          {DAY_LABELS.map((d, i) => (
-            <span
-              key={d}
-              className="h-[12px] text-[9px] text-text-muted"
-              style={{ visibility: i % 2 === 0 ? "visible" : "hidden" }}
-            >
-              {d}
-            </span>
-          ))}
-        </div>
+      {/* 잔디: 반응형 정사각 셀 — 카드 폭을 채우되 셀이 너무 커지지 않게 상한(≈30px) + 가운데 정렬 */}
+      <div className="flex justify-center">
+        <div className="flex w-full gap-[6px]" style={{ maxWidth: weeks.length * 30 + 20 }}>
+          {/* 요일 라벨 (행 높이에 맞춰 grid로 정렬) */}
+          <div className="grid w-[12px] shrink-0 gap-[4px]" style={{ gridTemplateRows: "repeat(7, 1fr)" }}>
+            {DAY_LABELS.map((d, i) => (
+              <span
+                key={d}
+                className="flex items-center text-[9px] leading-none text-text-muted"
+                style={{ visibility: i % 2 === 0 ? "visible" : "hidden" }}
+              >
+                {d}
+              </span>
+            ))}
+          </div>
 
-        {/* 잔디 그리드 (가로 = 주, 세로 = 요일) */}
-        <div className="flex flex-1 gap-[3px] overflow-x-auto">
-          {weeks.map((week, wi) => (
-            <div key={wi} className="flex flex-col gap-[3px]">
-              {week.map((day) => (
-                <div
-                  key={day.date}
-                  className="h-[12px] w-[12px] rounded-[2px]"
-                  style={{ backgroundColor: colorForCount(day.count, data.max_count) }}
-                  title={`${day.date}: ${day.count}회`}
-                />
-              ))}
-              {/* 빈 칸 채우기 (마지막 주가 7일 안 될 때) */}
-              {Array.from({ length: 7 - week.length }).map((_, i) => (
-                <div key={`empty-${i}`} className="h-[12px] w-[12px]" />
-              ))}
-            </div>
-          ))}
+          {/* 잔디 그리드 (가로 = 주, 세로 = 요일) — 1fr 정사각으로 폭 채움 */}
+          <div
+            className="grid flex-1 gap-[4px]"
+            style={{ gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))` }}
+          >
+            {weeks.map((week, wi) => (
+              <div key={wi} className="grid gap-[4px]" style={{ gridTemplateRows: "repeat(7, 1fr)" }}>
+                {week.map((day) => (
+                  <div
+                    key={day.date}
+                    className="aspect-square w-full rounded-[2px]"
+                    style={{ backgroundColor: colorForCount(day.count, data.max_count) }}
+                    title={`${day.date}: ${day.count}회`}
+                  />
+                ))}
+                {/* 빈 칸 채우기 (마지막 주가 7일 안 될 때) */}
+                {Array.from({ length: 7 - week.length }).map((_, i) => (
+                  <div key={`empty-${i}`} className="aspect-square w-full" />
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 

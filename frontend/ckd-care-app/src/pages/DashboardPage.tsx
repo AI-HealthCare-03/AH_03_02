@@ -1,6 +1,16 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  ReferenceArea,
+  ReferenceLine,
+  Tooltip,
+} from "recharts";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 import { Tag } from "../components/Tag";
@@ -129,6 +139,16 @@ function RiskGauge({ score, calculating }: { score: number | null; calculating?:
   );
 }
 
+// KDIGO G1~G5 색상 배경 띠 (y축 eGFR 구간) — 차트 밖에서도 재사용 가능하게 모듈 상수
+const EGFR_STAGES = [
+  { label: "G1", from: 90, to: 120, color: "#D1FAE5" }, // 초록 (정상)
+  { label: "G2", from: 60, to: 90, color: "#ECFCCB" }, // 연두 (경계)
+  { label: "G3a", from: 45, to: 60, color: "#FEF3C7" }, // 노랑 (경증)
+  { label: "G3b", from: 30, to: 45, color: "#FED7AA" }, // 주황 (중등)
+  { label: "G4", from: 15, to: 30, color: "#FECACA" }, // 빨강 (중증)
+  { label: "G5", from: 0, to: 15, color: "#FCA5A5" }, // 진빨강 (신부전)
+];
+
 function EgfrTrendChart({ trend }: { trend: EgfrTrend | null }) {
   if (!trend || trend.data_points.length === 0) {
     return (
@@ -137,24 +157,11 @@ function EgfrTrendChart({ trend }: { trend: EgfrTrend | null }) {
       </div>
     );
   }
-  const pts = trend.data_points;
-  const W = 600, H = 180, PAD = 40;
-  // y축 범위를 KDIGO G1~G5(0~120)로 고정해서 색상 배경 의미 있게 표현
-  const minV = 0;
-  const maxV = 120;
-  const toX = (i: number) => PAD + (i / (pts.length - 1 || 1)) * (W - PAD * 2);
-  const toY = (v: number) => H - PAD - ((v - minV) / (maxV - minV || 1)) * (H - PAD * 2);
-  const polyline = pts.map((p, i) => `${toX(i)},${toY(p.egfr_estimated)}`).join(" ");
-
-  // KDIGO G1~G5 색상 배경 (가로 띠)
-  const stages = [
-    { label: "G1", from: 90, to: 120, color: "#D1FAE5" },   // 초록 (정상)
-    { label: "G2", from: 60, to: 90, color: "#ECFCCB" },    // 연두 (경계)
-    { label: "G3a", from: 45, to: 60, color: "#FEF3C7" },   // 노랑 (경증)
-    { label: "G3b", from: 30, to: 45, color: "#FED7AA" },   // 주황 (중등)
-    { label: "G4", from: 15, to: 30, color: "#FECACA" },    // 빨강 (중증)
-    { label: "G5", from: 0, to: 15, color: "#FCA5A5" },     // 진빨강 (신부전)
-  ];
+  // Recharts용 데이터 — 날짜는 MM-DD로 단축
+  const chartData = trend.data_points.map((p) => ({
+    date: p.checked_date.slice(5),
+    egfr: p.egfr_estimated,
+  }));
 
   return (
     <div className="h-full rounded-md border border-border bg-bg p-4">
@@ -162,38 +169,59 @@ function EgfrTrendChart({ trend }: { trend: EgfrTrend | null }) {
         <p className="text-sm font-bold text-text-primary">eGFR 추세 차트 (KDIGO 단계)</p>
         <p className="text-[10px] text-text-muted">※ 검진 기반 (의료 진단 아님)</p>
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 220 }}>
-        {/* G1~G5 색상 배경 띠 */}
-        {stages.map((s) => {
-          const y1 = toY(s.to);
-          const y2 = toY(s.from);
-          return (
-            <g key={s.label}>
-              <rect x={PAD} y={y1} width={W - PAD * 2} height={y2 - y1} fill={s.color} opacity={0.55} />
-              <text x={W - PAD + 4} y={(y1 + y2) / 2 + 3} fontSize="9" fill="#6B7280" fontWeight="bold">
-                {s.label}
-              </text>
-            </g>
-          );
-        })}
-        {/* 주요 임계선 */}
-        {[15, 30, 45, 60, 90].map((line) => (
-          <g key={line}>
-            <line x1={PAD} y1={toY(line)} x2={W - PAD} y2={toY(line)} stroke="#9CA3AF" strokeDasharray="3 3" strokeWidth="0.5" />
-            <text x={PAD - 4} y={toY(line) + 3} textAnchor="end" fontSize="9" fill="#6B7280">{line}</text>
-          </g>
-        ))}
-        {/* 데이터 라인 */}
-        <polyline points={polyline} fill="none" stroke="#1F2937" strokeWidth="2.5" strokeLinejoin="round" />
-        {pts.map((p, i) => (
-          <g key={i}>
-            <circle cx={toX(i)} cy={toY(p.egfr_estimated)} r="4" fill="#1F2937" />
-            <text x={toX(i)} y={H - 8} textAnchor="middle" fontSize="9" fill="#6B7280">
-              {p.checked_date.slice(5)}
-            </text>
-          </g>
-        ))}
-      </svg>
+      {/* ResponsiveContainer가 부모 폭을 100% 채우므로 여백 없이 자동 크기 조절 */}
+      <ResponsiveContainer width="100%" height={220}>
+        <LineChart data={chartData} margin={{ top: 8, right: 36, bottom: 4, left: -8 }}>
+          {/* G1~G5 색상 배경 띠 + 오른쪽 단계 라벨 */}
+          {EGFR_STAGES.map((s) => (
+            <ReferenceArea
+              key={s.label}
+              y1={s.from}
+              y2={s.to}
+              fill={s.color}
+              fillOpacity={0.55}
+              ifOverflow="extendDomain"
+              label={{ value: s.label, position: "right", fontSize: 9, fill: "#6B7280", fontWeight: "bold" }}
+            />
+          ))}
+          {/* 주요 KDIGO 임계선 */}
+          {[15, 30, 45, 60, 90].map((y) => (
+            <ReferenceLine key={y} y={y} stroke="#9CA3AF" strokeDasharray="3 3" strokeWidth={0.5} />
+          ))}
+          <XAxis
+            dataKey="date"
+            tick={{ fontSize: 9, fill: "#6B7280" }}
+            tickLine={false}
+            axisLine={{ stroke: "#d0d7de" }}
+          />
+          <YAxis
+            domain={[0, 120]}
+            ticks={[15, 30, 45, 60, 90]}
+            tick={{ fontSize: 9, fill: "#6B7280" }}
+            tickLine={false}
+            axisLine={false}
+            width={32}
+          />
+          <Tooltip
+            content={({ active, payload, label }) =>
+              active && payload && payload.length ? (
+                <div className="rounded-md border border-border bg-bg px-2 py-1 text-xs text-text-primary shadow">
+                  <p className="font-semibold">{label}</p>
+                  <p>eGFR {payload[0].value}</p>
+                </div>
+              ) : null
+            }
+          />
+          <Line
+            type="monotone"
+            dataKey="egfr"
+            stroke="#1F2937"
+            strokeWidth={2.5}
+            dot={{ r: 4, fill: "#1F2937" }}
+            isAnimationActive={false}
+          />
+        </LineChart>
+      </ResponsiveContainer>
     </div>
   );
 }
