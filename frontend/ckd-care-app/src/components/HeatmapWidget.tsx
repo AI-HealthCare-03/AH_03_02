@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { challengeApi, type HeatmapResponse } from "../api/challenge";
 
 const DAY_LABELS = ["월", "화", "수", "목", "금", "토", "일"];
+// 가로축 일수 — 1년(52주)로 넓혀 카드 폭을 채우고 GitHub 잔디처럼 장기 추세를 보여준다.
+const WEEKS = 52;
 
 function colorForCount(count: number, max: number): string {
   if (count === 0) return "#E5E7EB"; // 회색 (체크인 없음)
@@ -16,8 +18,8 @@ function colorForCount(count: number, max: number): string {
 export function HeatmapWidget() {
   // 챌린지 히트맵 — 챌린지 5분 TTL
   const { data, isLoading: loading } = useQuery<HeatmapResponse | null>({
-    queryKey: ["challenges", "heatmap", 26],
-    queryFn: () => challengeApi.heatmap(26).catch(() => null),
+    queryKey: ["challenges", "heatmap", WEEKS],
+    queryFn: () => challengeApi.heatmap(WEEKS).catch(() => null),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -31,7 +33,7 @@ export function HeatmapWidget() {
   if (!data || data.days.length === 0) {
     return (
       <div className="rounded-md border border-border bg-bg p-4">
-        <p className="text-sm font-bold text-text-primary">챌린지 잔디 (26주)</p>
+        <p className="text-sm font-bold text-text-primary">챌린지 잔디 ({WEEKS}주)</p>
         <p className="mt-2 text-xs text-text-muted">아직 체크인 기록이 없어요.</p>
       </div>
     );
@@ -46,6 +48,21 @@ export function HeatmapWidget() {
 
   const totalCheckins = data.days.reduce((sum, d) => sum + d.count, 0);
 
+  // 가로축 월 라벨: 각 주(열)의 월요일 날짜에서 월을 뽑아, 월이 바뀌는 첫 주에만 "N월" 표시.
+  // 타임존 영향 없게 문자열("YYYY-MM-DD")에서 직접 파싱.
+  const monthOfWeek = (wi: number): number => {
+    const first = weeks[wi]?.[0]?.date ?? "";
+    return first ? parseInt(first.slice(5, 7), 10) : 0;
+  };
+  const monthLabel = (wi: number): string => {
+    const m = monthOfWeek(wi);
+    if (!m) return "";
+    return wi === 0 || m !== monthOfWeek(wi - 1) ? `${m}월` : "";
+  };
+
+  // 열 템플릿: 넓은 화면은 1fr로 폭을 꽉 채우고, 좁은 화면은 최소 8px로 두고 가로 스크롤.
+  const colsStyle = { gridTemplateColumns: `repeat(${weeks.length}, minmax(8px, 1fr))` };
+
   return (
     <div className="rounded-md border border-border bg-bg p-4">
       <div className="mb-3 flex items-center justify-between">
@@ -55,43 +72,58 @@ export function HeatmapWidget() {
         </p>
       </div>
 
-      {/* 잔디: 반응형 정사각 셀 — 카드 폭을 채우되 셀이 너무 커지지 않게 상한(≈30px) + 가운데 정렬 */}
+      {/* 잔디: 52주 반응형 — 넓은 화면은 폭을 꽉 채우고(셀 상한으로 초광폭만 가운데 정렬), 좁은 화면은 가로 스크롤 */}
       <div className="flex justify-center">
-        <div className="flex w-full gap-[6px]" style={{ maxWidth: weeks.length * 30 + 20 }}>
-          {/* 요일 라벨 (행 높이에 맞춰 grid로 정렬) */}
-          <div className="grid w-[12px] shrink-0 gap-[4px]" style={{ gridTemplateRows: "repeat(7, 1fr)" }}>
-            {DAY_LABELS.map((d, i) => (
-              <span
-                key={d}
-                className="flex items-center text-[9px] leading-none text-text-muted"
-                style={{ visibility: i % 2 === 0 ? "visible" : "hidden" }}
-              >
-                {d}
-              </span>
-            ))}
+        <div className="flex w-full gap-[6px]" style={{ maxWidth: weeks.length * 42 + 20 }}>
+          {/* 왼쪽 고정: 요일 라벨 (위쪽 월 라벨 행 높이만큼 spacer 두고 행 정렬) */}
+          <div className="flex shrink-0 flex-col">
+            <div className="mb-1 h-[11px]" />
+            <div className="grid w-[12px] flex-1 gap-[3px]" style={{ gridTemplateRows: "repeat(7, 1fr)" }}>
+              {DAY_LABELS.map((d, i) => (
+                <span
+                  key={d}
+                  className="flex items-center text-[9px] leading-none text-text-muted"
+                  style={{ visibility: i % 2 === 0 ? "visible" : "hidden" }}
+                >
+                  {d}
+                </span>
+              ))}
+            </div>
           </div>
 
-          {/* 잔디 그리드 (가로 = 주, 세로 = 요일) — 1fr 정사각으로 폭 채움 */}
-          <div
-            className="grid flex-1 gap-[4px]"
-            style={{ gridTemplateColumns: `repeat(${weeks.length}, minmax(0, 1fr))` }}
-          >
-            {weeks.map((week, wi) => (
-              <div key={wi} className="grid gap-[4px]" style={{ gridTemplateRows: "repeat(7, 1fr)" }}>
-                {week.map((day) => (
-                  <div
-                    key={day.date}
-                    className="aspect-square w-full rounded-[2px]"
-                    style={{ backgroundColor: colorForCount(day.count, data.max_count) }}
-                    title={`${day.date}: ${day.count}회`}
-                  />
-                ))}
-                {/* 빈 칸 채우기 (마지막 주가 7일 안 될 때) */}
-                {Array.from({ length: 7 - week.length }).map((_, i) => (
-                  <div key={`empty-${i}`} className="aspect-square w-full" />
-                ))}
-              </div>
-            ))}
+          {/* 오른쪽: 월 라벨 + 잔디 그리드 (한 스크롤 컨테이너로 함께 정렬·스크롤) */}
+          <div className="min-w-0 flex-1 overflow-x-auto">
+            {/* 가로축 월 라벨 */}
+            <div className="mb-1 grid gap-[3px]" style={colsStyle}>
+              {weeks.map((_, wi) => (
+                <div
+                  key={wi}
+                  className="h-[11px] overflow-visible whitespace-nowrap text-[9px] leading-none text-text-muted"
+                >
+                  {monthLabel(wi)}
+                </div>
+              ))}
+            </div>
+
+            {/* 잔디 그리드 (가로 = 주, 세로 = 요일) — 1fr 정사각으로 폭 채움 */}
+            <div className="grid gap-[3px]" style={colsStyle}>
+              {weeks.map((week, wi) => (
+                <div key={wi} className="grid gap-[3px]" style={{ gridTemplateRows: "repeat(7, 1fr)" }}>
+                  {week.map((day) => (
+                    <div
+                      key={day.date}
+                      className="aspect-square w-full rounded-[2px]"
+                      style={{ backgroundColor: colorForCount(day.count, data.max_count) }}
+                      title={`${day.date}: ${day.count}회`}
+                    />
+                  ))}
+                  {/* 빈 칸 채우기 (마지막 주가 7일 안 될 때) */}
+                  {Array.from({ length: 7 - week.length }).map((_, i) => (
+                    <div key={`empty-${i}`} className="aspect-square w-full" />
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
