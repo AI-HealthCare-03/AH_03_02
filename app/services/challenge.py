@@ -437,24 +437,26 @@ class ChallengeService:
         from datetime import datetime, time
 
         start_dt = datetime.combine(weeks_ago_monday, time.min)
+        # 취소(CHECKIN_CANCEL)도 함께 조회해 일별로 차감 → 대시보드 '총 체크인'(UserChallenge 롤백)과 정합.
         rows = await PointTransaction.filter(
             user_id=user_id,
-            reason__in=[PointReason.CHECKIN, PointReason.LUCKY],
+            reason__in=[PointReason.CHECKIN, PointReason.LUCKY, PointReason.CHECKIN_CANCEL],
             created_at__gte=start_dt,
-        ).values("created_at")
+        ).values("created_at", "reason")
 
-        # 일별 카운트
+        # 일별 카운트 (취소는 -1)
         counts: dict[date, int] = {}
         for row in rows:
             d = row["created_at"].date()
-            counts[d] = counts.get(d, 0) + 1
+            delta = -1 if row["reason"] == PointReason.CHECKIN_CANCEL else 1
+            counts[d] = counts.get(d, 0) + delta
 
         # 시작일부터 오늘까지 모든 날짜 채우기
         days = []
         max_count = 0
         cur = weeks_ago_monday
         while cur <= end_date:
-            c = counts.get(cur, 0)
+            c = max(counts.get(cur, 0), 0)  # 취소가 교차일로 넘어가도 음수 방지
             days.append(HeatmapDay(date=cur, count=c))
             if c > max_count:
                 max_count = c

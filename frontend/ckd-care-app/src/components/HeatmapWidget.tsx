@@ -54,11 +54,15 @@ export function HeatmapWidget() {
     const first = weeks[wi]?.[0]?.date ?? "";
     return first ? parseInt(first.slice(5, 7), 10) : 0;
   };
-  const monthLabel = (wi: number): string => {
-    const m = monthOfWeek(wi);
-    if (!m) return "";
-    return wi === 0 || m !== monthOfWeek(wi - 1) ? `${m}월` : "";
-  };
+  // 연속된 같은 월의 주(열)를 한 세그먼트로 묶는다. 라벨을 grid-column span으로 그 달의 열 묶음
+  // 위에 얹어(아래 그리드와 동일 템플릿·gap) 칸과 1:1 정렬. 텍스트 흘러넘침으로 어긋나던 문제 해소.
+  const monthSegments: { month: number; start: number; span: number }[] = [];
+  weeks.forEach((_, i) => {
+    const m = monthOfWeek(i);
+    const last = monthSegments[monthSegments.length - 1];
+    if (last && last.month === m) last.span += 1;
+    else monthSegments.push({ month: m, start: i, span: 1 });
+  });
 
   // 열 템플릿: 넓은 화면은 1fr로 폭을 꽉 채우고, 좁은 화면은 최소 8px로 두고 가로 스크롤.
   const colsStyle = { gridTemplateColumns: `repeat(${weeks.length}, minmax(8px, 1fr))` };
@@ -93,14 +97,15 @@ export function HeatmapWidget() {
 
           {/* 오른쪽: 월 라벨 + 잔디 그리드 (한 스크롤 컨테이너로 함께 정렬·스크롤) */}
           <div className="min-w-0 flex-1 overflow-x-auto">
-            {/* 가로축 월 라벨 */}
+            {/* 가로축 월 라벨 — 각 달의 열 묶음 위에 grid-column span으로 정확히 정렬 (세그먼트 폭으로 clip) */}
             <div className="mb-1 grid gap-[3px]" style={colsStyle}>
-              {weeks.map((_, wi) => (
+              {monthSegments.map((seg, si) => (
                 <div
-                  key={wi}
-                  className="h-[11px] overflow-visible whitespace-nowrap text-[9px] leading-none text-text-muted"
+                  key={si}
+                  className="h-[11px] overflow-hidden whitespace-nowrap text-[9px] leading-none text-text-muted"
+                  style={{ gridColumn: `${seg.start + 1} / span ${seg.span}` }}
                 >
-                  {monthLabel(wi)}
+                  {seg.span >= 2 ? `${seg.month}월` : ""}
                 </div>
               ))}
             </div>
