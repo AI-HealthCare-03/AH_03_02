@@ -34,6 +34,10 @@ export function WeeklyProgressWidget() {
   const maxCount = Math.max(...days.map((d) => d.count), 3);
   const totalCheckins = days.reduce((s, d) => s + d.count, 0);
   const activeDays = days.filter((d) => d.count > 0).length;
+  // 백엔드는 이번 주 월~오늘만 반환(월=index0) → 마지막이 오늘
+  const todayIdx = days.length - 1;
+  // 가로축에 한 주 7일(월~일)을 항상 배치. 데이터 없는(미래) 요일은 0회 placeholder로 자리만 채움.
+  const slots: HeatmapDay[] = Array.from({ length: 7 }, (_, i) => days[i] ?? { date: `empty-${i}`, count: 0 });
 
   return (
     <div className="rounded-md border border-border bg-bg p-4">
@@ -44,9 +48,9 @@ export function WeeklyProgressWidget() {
         </p>
       </div>
       <div className="flex h-[120px] items-end gap-2">
-        {days.map((d, i) => {
+        {slots.map((d, i) => {
           const height = d.count > 0 ? Math.max((d.count / maxCount) * 80, 8) : 4;
-          const isToday = i === days.length - 1;
+          const isToday = i === todayIdx;
           // 감정 데이터 매칭 (날짜 기준)
           const emo = emotionData?.days.find((e) => e.date === d.date)?.emotion;
           return (
