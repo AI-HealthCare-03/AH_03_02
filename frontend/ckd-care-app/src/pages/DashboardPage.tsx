@@ -21,6 +21,7 @@ import { HeatmapWidget } from "../components/HeatmapWidget";
 import { RadialMiniWidget } from "../components/RadialMiniWidget";
 import { WeeklyProgressWidget } from "../components/WeeklyProgressWidget";
 import { EgfrSimulationWidget } from "../components/EgfrSimulationWidget";
+import { DiagnosedDashboard } from "../components/DiagnosedDashboard";
 import { dashboardApi, type EgfrTrend } from "../api/dashboard";
 import { pointsApi } from "../api/gamification";
 import { slumpApi, type SlumpStatusResponse } from "../api/slump";
@@ -462,24 +463,24 @@ export function DashboardPage() {
           </Link>
         </div>
 
-        {/* Row1: 계기판 + 헬스 알 (진단자는 위험도 게이지 제외 — risk 예측 없음) */}
-        {isDiagnosed ? (
-          <div className="mt-[24px] grid grid-cols-1 items-stretch gap-[16px] md:grid-cols-2">
-            <EgfrGauge value={h?.egfr_estimated ?? null} calculating={!!h && h.egfr_estimated == null} />
-            <EggWidget />
-          </div>
-        ) : (
-          <div className="mt-[24px] grid grid-cols-1 items-stretch gap-[16px] md:grid-cols-3">
-            <div className="grid grid-cols-2 gap-[16px] md:col-span-2">
-              <EgfrGauge value={h?.egfr_estimated ?? null} calculating={!!h && h.egfr_estimated == null} />
-              <RiskGauge
-                score={h?.ckd_risk_score != null ? h.ckd_risk_score * 100 : null}
-                calculating={!!h && h.ckd_risk_score == null}
-              />
+        {/* 진단자: 와이어프레임 기반 전용 대시보드(학회 배너·챌린지 현황/관리·수분/체중 추이·병원 예약).
+            위험도·eGFR 추세·시뮬레이션은 노출하지 않음. */}
+        {isDiagnosed && <DiagnosedDashboard challengeStats={cs} />}
+
+        {/* 미진단자: 기존 위험도·추세·시뮬레이션·통계 레이아웃 */}
+        {!isDiagnosed && (
+          <>
+            {/* Row1: 계기판 + 위험도 + 헬스 알 */}
+            <div className="mt-[24px] grid grid-cols-1 items-stretch gap-[16px] md:grid-cols-3">
+              <div className="grid grid-cols-2 gap-[16px] md:col-span-2">
+                <EgfrGauge value={h?.egfr_estimated ?? null} calculating={!!h && h.egfr_estimated == null} />
+                <RiskGauge
+                  score={h?.ckd_risk_score != null ? h.ckd_risk_score * 100 : null}
+                  calculating={!!h && h.ckd_risk_score == null}
+                />
+              </div>
+              <EggWidget />
             </div>
-            <EggWidget />
-          </div>
-        )}
 
         {/* eGFR 경고 — 선별군 전용 (진단자 제외) */}
         {(() => {
@@ -568,6 +569,8 @@ export function DashboardPage() {
               </div>
             </Card>
           </div>
+        )}
+          </>
         )}
 
         {!h && !loading && (
