@@ -48,7 +48,9 @@ def _build_payload(
         "hemoglobin": dto.hemoglobin,
         "ast": dto.ast,
         "alt": dto.alt,
-        "urine_protein_qual": 1 if dto.urine_protein == "POSITIVE" else (0 if dto.urine_protein == "NEGATIVE" else None),
+        "urine_protein_qual": 1
+        if dto.urine_protein == "POSITIVE"
+        else (0 if dto.urine_protein == "NEGATIVE" else None),
         # LifestyleSurvey (없으면 안전 기본값)
         "smoking_status": ls.smoking_status.value if ls else "NEVER",
         "drinking_frequency": _DRINKING_TO_INT.get(ls.drinking_frequency.value, 0) if ls else 0,
