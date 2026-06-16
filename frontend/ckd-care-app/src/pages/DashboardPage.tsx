@@ -164,14 +164,16 @@ function EgfrTrendChart({ trend }: { trend: EgfrTrend | null }) {
   }));
 
   return (
-    <div className="h-full rounded-md border border-border bg-bg p-4">
+    <div className="flex h-full flex-col rounded-md border border-border bg-bg p-4">
       <div className="mb-2 flex items-center justify-between">
         <p className="text-sm font-bold text-text-primary">eGFR 추세 차트 (KDIGO 단계)</p>
         <p className="text-[10px] text-text-muted">※ 검진 기반 (의료 진단 아님)</p>
       </div>
-      {/* ResponsiveContainer가 부모 폭을 100% 채우므로 여백 없이 자동 크기 조절 */}
-      <ResponsiveContainer width="100%" height={220}>
-        <LineChart data={chartData} margin={{ top: 8, right: 36, bottom: 4, left: -8 }}>
+      {/* ResponsiveContainer가 부모 폭·높이를 100% 채움 → 카드(시뮬 위젯과 동일 stretch) 높이를
+          꽉 채워 가로 여백뿐 아니라 아래 세로 빈 공간도 제거. min-h로 최소 높이 보장. */}
+      <div className="min-h-[220px] flex-1">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={chartData} margin={{ top: 8, right: 36, bottom: 4, left: -8 }}>
           {/* G1~G5 색상 배경 띠 + 오른쪽 단계 라벨 */}
           {EGFR_STAGES.map((s) => (
             <ReferenceArea
@@ -220,8 +222,9 @@ function EgfrTrendChart({ trend }: { trend: EgfrTrend | null }) {
             dot={{ r: 4, fill: "#1F2937" }}
             isAnimationActive={false}
           />
-        </LineChart>
-      </ResponsiveContainer>
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
