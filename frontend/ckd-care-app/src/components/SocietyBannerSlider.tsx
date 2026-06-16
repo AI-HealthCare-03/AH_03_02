@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 
-// 학회 유튜브 배너 — 5~6초 자동 전환·순환(loop). 공식 채널 URL.
+// 학회 유튜브 배너 — 4초 자동 전환·순환(loop). 공식 채널 URL.
 const SOCIETY_BANNERS: { title: string; url: string }[] = [
   { title: "대한신장학회 유튜브 채널", url: "https://www.youtube.com/@kidney_KSN" },
   { title: "대한고혈압학회 유튜브 채널", url: "https://www.youtube.com/@ksh1609" },
   { title: "대한당뇨학회 유튜브 채널", url: "https://www.youtube.com/@korean_diabetes_association" },
 ];
-const INTERVAL_MS = 5500;
+const INTERVAL_MS = 4000;
 
 export function SocietyBannerSlider() {
   const [idx, setIdx] = useState(0);
