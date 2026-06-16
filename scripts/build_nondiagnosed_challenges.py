@@ -70,6 +70,18 @@ def build_records(rows: list[tuple[str, int, str]]) -> list[dict]:
                 "duration_days": 1,
             }
         )
+    # stage 간 (track, category, name) 중복 방지 가드.
+    # PDF의 특정 stage 칸에 이전 stage 문구가 복붙되면 화면에 같은 챌린지가
+    # 중복 노출된다(2026-06-16 발견·수정: HYDRATION 알코올·카페인, SLEEP 취침 4건).
+    # PDF를 재추출할 때 중복이 재유입되지 않도록 여기서 강하게 검증한다.
+    from collections import Counter
+
+    dup = {k: v for k, v in Counter((r["track"], r["category"], r["name"]) for r in recs).items() if v > 1}
+    assert not dup, (
+        f"stage 간 챌린지 중복 {len(dup)}건 — PDF의 해당 (track,category) 칸에 "
+        "이전 stage와 동일한 문구가 들어 있습니다. 각 stage가 고유 챌린지가 되도록 "
+        "PDF를 수정한 뒤 재실행하세요: " + "; ".join(f"{t}/{c}/{n[:18]}…(×{v})" for (t, c, n), v in dup.items())
+    )
     return recs
 
 
