@@ -1,6 +1,6 @@
 """관리자 읽기전용 임퍼소네이션 통합 테스트. CI 격리 DB — 로컬 pytest app 금지."""
 
-from datetime import timedelta
+from datetime import date, timedelta
 
 from httpx import ASGITransport, AsyncClient
 from tortoise.contrib.test import TestCase
@@ -81,8 +81,8 @@ class TestImpersonateEndpoint(TestCase):
                 hashed_password="$2b$12$dummy",
                 name="관리자",
                 gender="FEMALE",
-                birthday="1980-01-01",
                 phone_number="01000000000",
+                birthday=date(1980, 1, 1),
                 is_admin=True,
                 is_active=True,
                 email_verified=True,
