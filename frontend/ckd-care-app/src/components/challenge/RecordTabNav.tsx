@@ -18,7 +18,7 @@ export function RecordTabNav({ active, onSelect }: Props) {
         <button
           key={t.key}
           onClick={() => onSelect(t.key)}
-          className={`flex-1 whitespace-nowrap rounded-full px-4 py-3 text-center text-[15px] font-semibold transition-colors ${
+          className={`flex-1 whitespace-nowrap rounded-lg px-4 py-3 text-center text-[15px] font-semibold transition-colors ${
             t.key === active
               ? "bg-accent text-bg"
               : "border border-border bg-bg text-text-secondary hover:border-border-strong"

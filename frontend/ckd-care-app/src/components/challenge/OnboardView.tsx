@@ -15,7 +15,7 @@ export function OnboardView({ onStart }: Props) {
       </p>
       <button
         onClick={onStart}
-        className="w-full max-w-[320px] rounded-lg bg-accent px-8 py-3.5 text-base font-medium text-bg hover:bg-accent/90"
+        className="w-full max-w-[320px] rounded-lg bg-accent px-8 py-3.5 text-base font-medium text-bg shadow-sm transition-colors hover:bg-accent-hover"
       >
         시작하기
       </button>

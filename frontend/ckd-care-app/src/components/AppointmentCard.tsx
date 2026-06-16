@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
+import { Hospital } from "lucide-react";
 import { appointmentApi, type OverviewResponse, type AppointmentType } from "../api/appointment";
 import { Card } from "./Card";
 
@@ -30,8 +31,8 @@ export function AppointmentCard() {
       {next ? (
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-bg-alt text-xl">
-              🏥
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+              <Hospital size={22} />
             </span>
             <div>
               <p className="text-sm font-bold text-text-primary">
@@ -44,7 +45,7 @@ export function AppointmentCard() {
               </p>
             </div>
           </div>
-          <span className="shrink-0 rounded-full bg-accent px-3 py-1 text-xs font-bold text-bg">
+          <span className="shrink-0 rounded-md bg-accent px-3 py-1 text-xs font-bold text-bg">
             {ddayText(next.d_day)}
           </span>
         </div>

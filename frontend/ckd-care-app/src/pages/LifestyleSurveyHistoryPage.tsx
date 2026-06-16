@@ -69,14 +69,14 @@ export function LifestyleSurveyHistoryPage() {
         )}
 
         {!isLoading && items.length === 0 && !error && (
-          <div className="flex h-[200px] flex-col items-center justify-center gap-[12px] rounded-md border border-dashed border-border bg-bg text-sm text-text-muted">
+          <div className="flex h-[200px] flex-col items-center justify-center gap-[12px] rounded-lg border border-dashed border-border bg-bg text-sm text-text-muted">
             <p>아직 문진 데이터가 없습니다.</p>
             <BtnPrimary label="첫 문진 작성하기" onClick={() => navigate("/lifestyle-survey")} />
           </div>
         )}
 
         {!isLoading && items.length > 0 && (
-          <div className="overflow-hidden rounded-md border border-border bg-bg">
+          <div className="overflow-hidden rounded-lg border border-border bg-bg shadow-card">
             {/* 헤더 */}
             <div className="grid grid-cols-[120px_90px_100px_100px_1fr_60px_60px] gap-[12px] bg-bg-alt px-[16px] py-[8px]">
               {["응답일", "흡연", "음주", "운동(일/주)", "가족력·기타", "수정", "삭제"].map((h) => (
@@ -162,7 +162,7 @@ export function LifestyleSurveyHistoryPage() {
           onClick={() => setConfirmingId(null)}
         >
           <div
-            className="w-full max-w-[420px] rounded-md border border-border bg-bg p-[24px] shadow-lg"
+            className="w-full max-w-[420px] rounded-lg border border-border bg-bg p-[24px] shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-bold text-text-primary">설문 삭제</h3>

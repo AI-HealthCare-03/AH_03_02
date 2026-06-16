@@ -126,7 +126,7 @@ export function ShopPage() {
             </div>
             <Link
               to="/points/transactions"
-              className="flex items-center gap-[4px] rounded-md border border-border px-[10px] py-[6px] text-sm text-text-secondary hover:bg-bg"
+              className="flex items-center gap-[4px] rounded-md border border-border px-[10px] py-[6px] text-sm text-text-secondary transition-colors hover:border-accent hover:text-accent"
             >
               <History size={14} />
               거래 이력
@@ -169,8 +169,8 @@ export function ShopPage() {
                 return (
                   <div
                     key={item.code}
-                    className={`flex items-start gap-[12px] rounded-md border p-[16px] ${
-                      isLocked ? "border-border bg-bg-alt opacity-70" : "border-border bg-bg"
+                    className={`flex items-start gap-[12px] rounded-lg border p-[16px] ${
+                      isLocked ? "border-border bg-bg-alt opacity-70" : "border-border bg-bg shadow-card"
                     }`}
                   >
                     <Icon size={28} className="shrink-0 text-text-secondary" />
@@ -178,7 +178,7 @@ export function ShopPage() {
                       <div className="flex items-start justify-between">
                         <p className="text-sm font-bold text-text-primary">{item.name}</p>
                         {owned > 0 && (
-                          <span className="rounded-full bg-success/20 px-2 py-0.5 text-xs font-bold text-success">
+                          <span className="rounded-md bg-success/20 px-2 py-0.5 text-xs font-bold text-success">
                             보유 {owned}{item.maxQty ? `/${item.maxQty}` : ""}
                           </span>
                         )}
@@ -194,7 +194,7 @@ export function ShopPage() {
                         onClick={() => handlePurchase(item.code)}
                         disabled={disabled}
                         title={isLocked ? `${item.requiredStage}단계 진화 후 구매 가능` : undefined}
-                        className="mt-2 flex items-center gap-1 rounded-md border border-accent px-3 py-1.5 text-sm text-accent hover:bg-accent hover:text-bg disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-accent"
+                        className="mt-2 flex items-center gap-1 rounded-lg bg-accent px-3 py-1.5 text-sm font-bold text-bg shadow-sm transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-accent"
                       >
                         {isLocked ? <Lock size={14} /> : <Coins size={14} />}
                         {isLocked

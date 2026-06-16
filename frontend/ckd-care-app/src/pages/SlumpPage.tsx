@@ -43,7 +43,7 @@ export function SlumpPage() {
       <TopNav />
 
       <main className="flex flex-1 flex-col items-center justify-center p-[32px]">
-        <div className="flex w-[560px] flex-col gap-[16px] rounded-lg border border-border bg-bg p-[40px]">
+        <div className="flex w-[560px] flex-col gap-[16px] rounded-lg border border-border bg-bg p-[40px] shadow-card">
           {loading && (
             <div className="text-center text-sm text-text-secondary">상태 확인 중...</div>
           )}
@@ -62,7 +62,7 @@ export function SlumpPage() {
                   : `최근 체크인까지 ${data.days_since_last_checkin}일 경과 — ${data.threshold_days - data.days_since_last_checkin}일 후 슬럼프 알림이 켜져요.`}
               </p>
 
-              <div className="flex w-full flex-col items-center gap-[10px] rounded-md bg-bg-alt p-[20px]">
+              <div className="flex w-full flex-col items-center gap-[10px] rounded-lg bg-bg-alt p-[20px]">
                 <p className="w-full text-center text-xs text-text-muted">오늘의 마이크로 챌린지</p>
                 <p className="w-full text-center text-3xl">{data.micro.icon}</p>
                 <p className="w-full text-center text-lg font-bold text-text-primary">{data.micro.title}</p>
@@ -84,7 +84,7 @@ export function SlumpPage() {
               )}
 
               {data.already_checked_in_today ? (
-                <div className="flex w-full flex-col items-center gap-[8px] rounded-md bg-success/10 p-[12px]">
+                <div className="flex w-full flex-col items-center gap-[8px] rounded-lg bg-success/10 p-[12px]">
                   <p className="text-sm font-bold text-success">오늘 이미 완료하셨어요</p>
                   <p className="text-[10px] text-text-muted">내일 새로운 마이크로 챌린지가 기다리고 있어요.</p>
                 </div>
@@ -94,7 +94,7 @@ export function SlumpPage() {
                     type="button"
                     onClick={() => navigate(-1)}
                     disabled={submitting}
-                    className="flex h-[48px] flex-1 items-center justify-center rounded-md border border-border-strong bg-bg text-sm font-normal text-text-primary disabled:opacity-50"
+                    className="flex h-[48px] flex-1 items-center justify-center rounded-lg border border-border-strong bg-bg text-sm font-normal text-text-primary disabled:opacity-50"
                   >
                     오늘 못해요
                   </button>
@@ -102,7 +102,7 @@ export function SlumpPage() {
                     type="button"
                     onClick={handleAccept}
                     disabled={submitting}
-                    className="flex h-[48px] flex-1 items-center justify-center rounded-md bg-accent text-sm font-bold text-bg disabled:opacity-50"
+                    className="flex h-[48px] flex-1 items-center justify-center rounded-lg bg-accent text-sm font-bold text-bg shadow-sm transition-colors hover:bg-accent-hover disabled:opacity-50"
                   >
                     {submitting ? "기록 중..." : "오늘은 해볼게요!"}
                   </button>

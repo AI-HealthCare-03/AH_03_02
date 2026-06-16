@@ -186,7 +186,7 @@ export function LifestyleSurveyPage() {
         <div className="mt-[24px] grid grid-cols-1 md:grid-cols-2 gap-[32px]">
           {/* 좌측 */}
           <div className="flex flex-col gap-[24px]">
-            <div className="rounded-md border border-border bg-bg p-[16px]">
+            <div className="rounded-lg border border-border bg-bg p-[16px] shadow-card">
               <p className="mb-[12px] text-md font-bold text-text-primary">
                 흡연·음주 <span className="text-danger text-xs">* 필수</span>
               </p>
@@ -215,7 +215,7 @@ export function LifestyleSurveyPage() {
               </div>
             </div>
 
-            <div className="rounded-md border border-border bg-bg p-[16px]">
+            <div className="rounded-lg border border-border bg-bg p-[16px] shadow-card">
               <p className="mb-[12px] text-md font-bold text-text-primary">스트레스</p>
               <SelectGroup<StressLevel>
                 label="스트레스 수준"
@@ -234,7 +234,7 @@ export function LifestyleSurveyPage() {
 
           {/* 우측 */}
           <div className="flex flex-col gap-[24px]">
-            <div className="rounded-md border border-border bg-bg p-[16px]">
+            <div className="rounded-lg border border-border bg-bg p-[16px] shadow-card">
               <p className="mb-[12px] text-md font-bold text-text-primary">신체활동</p>
               <div className="flex flex-col gap-[16px]">
                 <StepperInput
@@ -286,7 +286,7 @@ export function LifestyleSurveyPage() {
               </div>
             </div>
 
-            <div className="rounded-md border border-border bg-bg p-[16px]">
+            <div className="rounded-lg border border-border bg-bg p-[16px] shadow-card">
               <p className="mb-[12px] text-md font-bold text-text-primary">결혼 여부</p>
               <SelectGroup<MaritalStatus>
                 label="결혼 상태"
@@ -302,7 +302,7 @@ export function LifestyleSurveyPage() {
               />
             </div>
 
-            <div className="rounded-md border border-border bg-bg p-[16px]">
+            <div className="rounded-lg border border-border bg-bg p-[16px] shadow-card">
               <p className="mb-[12px] text-md font-bold text-text-primary">가족력</p>
               <p className="mb-[8px] text-xs text-text-muted">직계가족 중 진단받은 적 있는 질환을 선택하세요.</p>
               <div className="flex flex-col gap-[8px]">
@@ -354,7 +354,7 @@ export function LifestyleSurveyPage() {
               </div>
             </div>
 
-            <div className="rounded-md border border-border bg-bg p-[16px]">
+            <div className="rounded-lg border border-border bg-bg p-[16px] shadow-card">
               <p className="mb-[12px] text-md font-bold text-text-primary">본인 진단력</p>
               <p className="mb-[8px] text-xs text-text-muted">본인이 직접 진단받은 적 있는 질환을 선택하세요.</p>
               <div className="flex flex-col gap-[8px]">
@@ -413,7 +413,7 @@ export function LifestyleSurveyPage() {
               </div>
             </div>
 
-            <div className="rounded-md border border-border bg-bg p-[16px]">
+            <div className="rounded-lg border border-border bg-bg p-[16px] shadow-card">
               <p className="mb-[12px] text-md font-bold text-text-primary">임신 여부</p>
               <p className="mb-[8px] text-xs text-text-muted">
                 임신 중에는 신장 수치 해석이 달라 별도 안전 안내가 표시됩니다. 해당될 때만 체크하세요.
@@ -429,7 +429,7 @@ export function LifestyleSurveyPage() {
               </label>
             </div>
 
-            <div className="rounded-md border border-border bg-bg p-[16px]">
+            <div className="rounded-lg border border-border bg-bg p-[16px] shadow-card">
               <p className="mb-[12px] text-md font-bold text-text-primary">수면·수분</p>
               <div className="flex flex-col gap-[16px]">
                 <StepperInput

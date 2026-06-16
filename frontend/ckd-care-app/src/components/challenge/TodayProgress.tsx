@@ -22,7 +22,7 @@ export function TodayProgress({ rows, busyId, onComplete, onUncomplete }: Props)
         <span className="text-sm text-text-secondary">완료 {done} / 선택 {total}</span>
       </div>
       {total === 0 ? (
-        <p className="rounded-md border border-dashed border-border bg-bg p-4 text-center text-sm text-text-muted">
+        <p className="rounded-lg border border-dashed border-border bg-bg p-4 text-center text-sm text-text-muted">
           아직 선택한 챌린지가 없어요. 아래 선택 챌린지에서 골라보세요.
         </p>
       ) : (
@@ -30,7 +30,7 @@ export function TodayProgress({ rows, busyId, onComplete, onUncomplete }: Props)
           {rows.map((r) => (
             <div
               key={r.userChallengeId}
-              className={`flex items-center gap-3 rounded-md border p-3 ${
+              className={`flex items-center gap-3 rounded-lg border p-3 shadow-card ${
                 r.completed ? "border-success/40 bg-success/5" : "border-border bg-bg"
               }`}
             >
@@ -57,7 +57,7 @@ export function TodayProgress({ rows, busyId, onComplete, onUncomplete }: Props)
                 <button
                   onClick={() => onComplete(r.userChallengeId)}
                   disabled={busyId === r.userChallengeId}
-                  className="rounded-md bg-accent px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                  className="rounded-md bg-accent px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-accent-hover disabled:opacity-50"
                 >
                   완수
                 </button>

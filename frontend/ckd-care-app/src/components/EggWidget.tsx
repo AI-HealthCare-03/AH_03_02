@@ -39,7 +39,7 @@ export function EggWidget({ aspectBackground = false }: { aspectBackground?: boo
 
   if (loading) {
     return (
-      <div className="flex h-full flex-col items-center justify-center rounded-md border border-border bg-bg p-[16px]">
+      <div className="flex h-full flex-col items-center justify-center rounded-lg border border-border bg-bg p-[16px] shadow-card">
         <p className="text-xs text-text-muted">로딩 중...</p>
       </div>
     );
@@ -47,7 +47,7 @@ export function EggWidget({ aspectBackground = false }: { aspectBackground?: boo
 
   if (!data) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-[8px] rounded-md border border-border bg-bg p-[16px]">
+      <div className="flex h-full flex-col items-center justify-center gap-[8px] rounded-lg border border-border bg-bg p-[16px] shadow-card">
         <div className="flex h-[80px] w-[80px] items-center justify-center rounded-full bg-success/20">
           <CharacterImage species={null} stage={0} size={56} emojiClass="text-3xl" />
         </div>
@@ -79,7 +79,7 @@ export function EggWidget({ aspectBackground = false }: { aspectBackground?: boo
   const proficiencyLabel = PROFICIENCY_LABEL[proficiency] ?? "입문";
 
   return (
-    <div className="flex h-full flex-col items-center gap-[10px] rounded-md border border-border bg-bg p-[16px]">
+    <div className="flex h-full flex-col items-center gap-[10px] rounded-lg border border-border bg-bg p-[16px] shadow-card">
       {/* 캐릭터 아이콘 + 숙련도 배경 (와이드 사각형, 시연 임팩트 강화) */}
       <div
         className={`relative flex w-full items-center justify-center overflow-hidden rounded-xl ring-2 ring-border shadow-sm ${
@@ -94,7 +94,7 @@ export function EggWidget({ aspectBackground = false }: { aspectBackground?: boo
           <CharacterImage species={displaySpecies} stage={displayStage} size={140} emojiClass="text-6xl" />
         </div>
         {isComplete && (
-          <span className="absolute top-2 right-2 z-20 rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700 shadow">
+          <span className="absolute top-2 right-2 z-20 rounded-md bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700 shadow">
             ✨ 완전체
           </span>
         )}

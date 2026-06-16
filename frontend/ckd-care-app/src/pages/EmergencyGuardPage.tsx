@@ -53,7 +53,7 @@ export function EmergencyGuardPage() {
           {guards.map((g) => (
             <div
               key={g.tagLabel}
-              className={`flex flex-1 flex-col items-center gap-[12px] rounded-md border-2 ${g.borderColor} bg-bg p-[24px]`}
+              className={`flex flex-1 flex-col items-center gap-[12px] rounded-lg border-2 ${g.borderColor} bg-bg p-[24px] shadow-card`}
             >
               <g.icon size={48} className={g.iconColor} />
               <Tag label={g.tagLabel} />
@@ -64,7 +64,7 @@ export function EmergencyGuardPage() {
                 {g.desc}
               </p>
               <button
-                className={`flex h-[48px] w-full items-center justify-center rounded-md ${g.btnColor} text-md font-bold text-bg`}
+                className={`flex h-[48px] w-full items-center justify-center rounded-lg ${g.btnColor} text-md font-bold text-bg shadow-sm transition-colors`}
               >
                 {g.btnLabel}
               </button>
@@ -72,7 +72,7 @@ export function EmergencyGuardPage() {
           ))}
         </div>
 
-        <div className="flex w-full max-w-[1080px] flex-col gap-[12px] rounded-md border-2 border-danger bg-bg p-[16px]">
+        <div className="flex w-full max-w-[1080px] flex-col gap-[12px] rounded-lg border-2 border-danger bg-bg p-[16px] shadow-card">
           <h3 className="text-md font-bold text-danger">
             G4·G5 사용자 별도 가드 (eGFR &lt; 30)
           </h3>

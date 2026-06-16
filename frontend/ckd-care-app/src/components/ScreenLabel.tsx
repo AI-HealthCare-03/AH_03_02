@@ -3,14 +3,8 @@ interface ScreenLabelProps {
   variant?: "default" | "danger";
 }
 
-export function ScreenLabel({ label, variant = "default" }: ScreenLabelProps) {
-  return (
-    <div
-      className={`flex h-[32px] w-full items-center px-[16px] py-[8px] ${
-        variant === "danger" ? "bg-danger" : "bg-accent"
-      }`}
-    >
-      <span className="text-sm font-bold text-bg">{label}</span>
-    </div>
-  );
+// 개발용 화면 라벨(요구사항 ID 표시) — 프로덕션 노출 제거.
+// 사용처(<ScreenLabel label=... />) 호출은 그대로 두되 아무것도 렌더하지 않는다.
+export function ScreenLabel(_props: ScreenLabelProps) {
+  return null;
 }

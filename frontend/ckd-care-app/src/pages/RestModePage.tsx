@@ -58,7 +58,7 @@ export function RestModePage() {
       <TopNav />
       <main className="flex flex-1 flex-col items-center p-[32px]">
         <div className="w-full max-w-[640px]">
-          <div className="flex flex-col items-center rounded-lg bg-bg p-[32px] text-center">
+          <div className="flex flex-col items-center rounded-lg border border-border bg-bg p-[32px] text-center shadow-card">
             <div className="flex h-[96px] w-[96px] items-center justify-center rounded-full bg-slate-100">
               <Moon size={48} className="text-slate-600" />
             </div>
@@ -86,7 +86,7 @@ export function RestModePage() {
               <div className="mt-[24px] flex w-full flex-col gap-[12px]">
                 <Link
                   to="/daily-checkin"
-                  className="rounded-md bg-accent py-2.5 text-center text-sm font-bold text-bg hover:bg-accent/90"
+                  className="rounded-lg bg-accent py-2.5 text-center text-sm font-bold text-bg shadow-sm transition-colors hover:bg-accent-hover"
                 >
                   체크인 1번으로 돌아가기 (추천)
                 </Link>
@@ -109,7 +109,7 @@ export function RestModePage() {
           </div>
 
           {/* 안내 */}
-          <div className="mt-[24px] rounded-md border border-border bg-bg p-[16px]">
+          <div className="mt-[24px] rounded-lg border border-border bg-bg p-[16px] shadow-card">
             <p className="text-sm font-bold text-text-primary">쉬어가기 모드란?</p>
             <ul className="mt-[8px] flex flex-col gap-[6px] text-sm text-text-secondary">
               <li>• 7일 동안 체크인이 없으면 자동으로 진입돼요 (회복 미니알 부스터 보유 시 9일).</li>

@@ -72,14 +72,14 @@ export function CheckupHistoryPage() {
         )}
 
         {!isLoading && items.length === 0 && !error && (
-          <div className="flex h-[200px] flex-col items-center justify-center gap-[12px] rounded-md border border-dashed border-border bg-bg text-sm text-text-muted">
+          <div className="flex h-[200px] flex-col items-center justify-center gap-[12px] rounded-lg border border-dashed border-border bg-bg text-sm text-text-muted shadow-card">
             <p>아직 검진 데이터가 없습니다.</p>
             <BtnPrimary label="첫 검진 입력하기" onClick={() => navigate("/manual-input")} />
           </div>
         )}
 
         {!isLoading && items.length > 0 && (
-          <div className="overflow-hidden rounded-md border border-border bg-bg">
+          <div className="overflow-hidden rounded-lg border border-border bg-bg shadow-card">
             {/* 헤더 */}
             <div className="grid grid-cols-[140px_80px_80px_100px_120px_100px_80px_60px] gap-[12px] bg-bg-alt px-[16px] py-[8px]">
               {["검진일", "eGFR", "단계", "공복혈당", "혈압(SBP/DBP)", "BMI", "재입력", "삭제"].map((h) => (
@@ -125,7 +125,7 @@ export function CheckupHistoryPage() {
         )}
 
         {!isLoading && items.length > 1 && (
-          <div className="flex flex-col gap-[12px] rounded-md border border-border bg-bg p-[16px]">
+          <div className="flex flex-col gap-[12px] rounded-lg border border-border bg-bg p-[16px] shadow-card">
             <h3 className="text-sm font-bold text-text-primary">eGFR 추이</h3>
             <div className="flex items-end gap-[8px] overflow-x-auto pb-[4px]">
               {[...items].reverse().slice(-6).map((r) => {
@@ -154,7 +154,7 @@ export function CheckupHistoryPage() {
           onClick={() => setConfirmingId(null)}
         >
           <div
-            className="w-full max-w-[420px] rounded-md border border-border bg-bg p-[24px] shadow-lg"
+            className="w-full max-w-[420px] rounded-lg border border-border bg-bg p-[24px] shadow-elevated"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-lg font-bold text-text-primary">검진 기록 삭제</h3>

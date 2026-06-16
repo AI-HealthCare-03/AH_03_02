@@ -145,7 +145,7 @@ export function OCRUploadPage() {
 
         {/* 에러 메시지 */}
         {error && (
-          <div className="mt-[16px] w-[720px] rounded-sm border border-danger bg-danger/5 px-[16px] py-[12px] text-sm text-danger">
+          <div className="mt-[16px] w-[720px] rounded-lg border border-danger bg-danger/5 px-[16px] py-[12px] text-sm text-danger shadow-card">
             {error}
           </div>
         )}

@@ -25,14 +25,14 @@ export function HeatmapWidget() {
 
   if (loading) {
     return (
-      <div className="rounded-md border border-border bg-bg p-4">
+      <div className="rounded-lg border border-border bg-bg p-4 shadow-card">
         <p className="text-sm text-text-muted">로딩 중...</p>
       </div>
     );
   }
   if (!data || data.days.length === 0) {
     return (
-      <div className="rounded-md border border-border bg-bg p-4">
+      <div className="rounded-lg border border-border bg-bg p-4 shadow-card">
         <p className="text-sm font-bold text-text-primary">챌린지 잔디 ({WEEKS}주)</p>
         <p className="mt-2 text-xs text-text-muted">아직 체크인 기록이 없어요.</p>
       </div>
@@ -68,7 +68,7 @@ export function HeatmapWidget() {
   const colsStyle = { gridTemplateColumns: `repeat(${weeks.length}, minmax(8px, 1fr))` };
 
   return (
-    <div className="rounded-md border border-border bg-bg p-4">
+    <div className="rounded-lg border border-border bg-bg p-4 shadow-card">
       <div className="mb-3 flex items-center justify-between">
         <p className="text-sm font-bold text-text-primary">챌린지 잔디 ({data.weeks}주)</p>
         <p className="text-xs text-text-muted">

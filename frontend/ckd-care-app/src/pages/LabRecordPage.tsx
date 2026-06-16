@@ -12,6 +12,7 @@ import {
   ReferenceArea,
   ReferenceLine,
 } from "recharts";
+import { FlaskConical } from "lucide-react";
 import { labApi, type MetricOverview } from "../api/lab";
 
 // 오늘 날짜를 YYYY-MM-DD 형식으로 반환 (로컬 시간 기준)
@@ -35,7 +36,7 @@ function MetricCard({ m }: { m: MetricOverview }) {
       (hasHigh && m.latest > (m.range_high as number)));
 
   return (
-    <section className="rounded-xl border border-border bg-bg p-3">
+    <section className="rounded-lg border border-border bg-bg p-3 shadow-card">
       {/* 지표명 + 단위 */}
       <div className="mb-1 flex items-baseline justify-between">
         <h3 className="text-sm font-bold text-text-primary">{m.label}</h3>
@@ -193,7 +194,10 @@ export function LabRecordPage() {
         >
           ←
         </button>
-        <h1 className="font-bold text-text-primary">🧪 검사 수치 기록장</h1>
+        <h1 className="flex items-center gap-1.5 font-bold text-text-primary">
+          <FlaskConical size={18} className="text-accent" />
+          검사 수치 기록장
+        </h1>
       </header>
 
       {/* 면책 고지 */}
@@ -202,7 +206,7 @@ export function LabRecordPage() {
       </p>
 
       {/* 검사 결과 입력 폼 */}
-      <section className="mx-4 mt-3 rounded-xl border border-border bg-bg p-4">
+      <section className="mx-4 mt-3 rounded-lg border border-border bg-bg p-4 shadow-card">
         <div className="mb-2 flex items-center justify-between">
           <h2 className="text-sm font-bold text-text-primary">검사 결과 입력</h2>
           <input
@@ -233,7 +237,7 @@ export function LabRecordPage() {
         <button
           onClick={() => saveMut.mutate()}
           disabled={saveMut.isPending || Object.values(draft).every((v) => v === "")}
-          className="mt-3 w-full rounded-lg border border-border bg-accent px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
+          className="mt-3 w-full rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-hover disabled:opacity-50"
         >
           저장
         </button>
@@ -248,7 +252,7 @@ export function LabRecordPage() {
           {managing ? "지표 관리 닫기" : "＋ 추적 지표 관리"}
         </button>
         {managing && metrics && (
-          <div className="mt-2 flex flex-wrap gap-1.5 rounded-xl border border-border bg-bg p-3">
+          <div className="mt-2 flex flex-wrap gap-1.5 rounded-lg border border-border bg-bg p-3 shadow-card">
             {metrics.catalog.map((d) => {
               const on = metrics.active_keys.includes(d.key);
               return (
@@ -258,7 +262,7 @@ export function LabRecordPage() {
                   onClick={() => toggleMetric(d.key)}
                   disabled={metricsMut.isPending}
                   className={
-                    "rounded-full border px-2.5 py-1 text-xs font-medium transition disabled:opacity-50 " +
+                    "rounded-md border px-2.5 py-1 text-xs font-medium transition disabled:opacity-50 " +
                     (on
                       ? "border-accent bg-accent text-white"
                       : "border-border bg-bg text-text-muted hover:bg-bg-alt")

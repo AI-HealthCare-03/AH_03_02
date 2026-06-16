@@ -13,7 +13,7 @@ export function CategoryTabs({ categories, active, onSelect }: Props) {
         <button
           key={c.category}
           onClick={() => onSelect(c.category)}
-          className={`shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] transition-colors ${
+          className={`shrink-0 whitespace-nowrap rounded-md px-3.5 py-1.5 text-[13px] transition-colors ${
             c.category === active
               ? "bg-accent text-bg"
               : "border border-border bg-bg text-text-secondary hover:border-border-strong"

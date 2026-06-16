@@ -17,7 +17,7 @@ export function DiningModePage() {
       <TopNav />
 
       <main className="flex flex-1 flex-col items-center gap-[16px] p-[32px]">
-        <div className="flex w-[680px] flex-col gap-[16px] rounded-lg border border-border bg-bg p-[32px]">
+        <div className="flex w-[680px] flex-col gap-[16px] rounded-lg border border-border bg-bg p-[32px] shadow-card">
           <div className="flex items-center gap-[12px]">
             <Wine size={36} className="shrink-0 text-warning" />
             <div className="flex flex-col gap-[2px]">

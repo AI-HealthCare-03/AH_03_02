@@ -118,7 +118,7 @@ export function StressTrackingCard({
               type="button"
               onClick={() => toggle(e.key)}
               className={
-                "rounded-full border px-2.5 py-1 text-xs font-medium transition " +
+                "rounded-md border px-2.5 py-1 text-xs font-medium transition " +
                 (on
                   ? "border-accent bg-accent text-white"
                   : "border-border bg-bg text-text-muted hover:bg-bg-alt")
@@ -164,7 +164,7 @@ export function StressTrackingCard({
           {today.today_emotions.map((k) => (
             <span
               key={k}
-              className="rounded-full bg-bg-alt px-2 py-0.5 text-text-secondary"
+              className="rounded-md bg-bg-alt px-2 py-0.5 text-text-secondary"
             >
               {LABEL[k] ?? k}
             </span>

@@ -119,7 +119,7 @@ export function RAGChatbotPage() {
       <TopNav />
 
       <main className="flex flex-1 flex-col items-center overflow-hidden p-[16px]">
-        <div className="flex h-full w-full max-w-[760px] flex-col rounded-md border border-border bg-bg">
+        <div className="flex h-full w-full max-w-[760px] flex-col rounded-lg border border-border bg-bg shadow-card">
           {/* 헤더 */}
           <div className="flex items-center gap-[12px] border-b border-border bg-bg-alt p-[12px]">
             <Bot size={24} className="text-accent" />
@@ -151,7 +151,7 @@ export function RAGChatbotPage() {
                       type="button"
                       onClick={() => send(q)}
                       disabled={loading}
-                      className="rounded-md border border-border bg-bg px-[12px] py-[8px] text-left text-xs text-text-secondary transition-colors hover:border-accent hover:text-text-primary disabled:opacity-50"
+                      className="rounded-lg border border-border bg-bg px-[12px] py-[8px] text-left text-xs text-text-secondary shadow-card transition-all hover:border-accent hover:text-text-primary hover:shadow-card-hover disabled:opacity-50"
                     >
                       {q}
                     </button>
@@ -170,7 +170,7 @@ export function RAGChatbotPage() {
                 <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-accent">
                   <Bot size={18} className="text-bg" />
                 </div>
-                <div className="flex items-center gap-[6px] rounded-md bg-bg-alt p-[12px]">
+                <div className="flex items-center gap-[6px] rounded-lg border border-border bg-bg p-[12px] shadow-card">
                   <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-text-muted" />
                   <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-text-muted [animation-delay:150ms]" />
                   <span className="h-[6px] w-[6px] animate-pulse rounded-full bg-text-muted [animation-delay:300ms]" />
@@ -180,7 +180,7 @@ export function RAGChatbotPage() {
             )}
 
             {error && (
-              <div className="rounded-md border border-danger bg-danger/5 p-[12px] text-xs text-danger">
+              <div className="rounded-lg border border-danger bg-danger/5 p-[12px] text-xs text-danger">
                 {error}
               </div>
             )}
@@ -203,7 +203,7 @@ export function RAGChatbotPage() {
               type="button"
               onClick={() => send(input)}
               disabled={loading || !input.trim()}
-              className="flex h-[40px] items-center gap-[6px] rounded-md bg-accent px-[16px] text-sm font-bold text-bg transition-opacity hover:opacity-90 disabled:opacity-40"
+              className="flex h-[40px] items-center gap-[6px] rounded-lg bg-accent px-[16px] text-sm font-bold text-bg shadow-sm transition-colors hover:bg-accent-hover disabled:opacity-40"
             >
               <Send size={16} />
               전송
@@ -222,7 +222,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
   if (message.role === "user") {
     return (
       <div className="flex items-start justify-end gap-[8px]">
-        <div className="max-w-[80%] whitespace-pre-wrap rounded-md bg-accent px-[12px] py-[10px] text-sm text-bg">
+        <div className="max-w-[80%] whitespace-pre-wrap rounded-lg bg-accent px-[12px] py-[10px] text-sm text-bg shadow-card">
           {message.content}
         </div>
         <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-bg-alt text-text-secondary">
@@ -236,7 +236,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
       <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-accent">
         <Bot size={18} className="text-bg" />
       </div>
-      <div className="max-w-[80%] rounded-md bg-bg-alt px-[12px] py-[10px]">
+      <div className="max-w-[80%] rounded-lg border border-border bg-bg px-[12px] py-[10px] shadow-card">
         <Markdown>{message.content}</Markdown>
       </div>
     </div>

@@ -103,7 +103,7 @@ export function OCRResultPage() {
 
         {/* 자동 매핑 카드 — 시연 핵심 */}
         {mappedKeys.length > 0 && (
-          <div className="mt-[16px] w-full max-w-[800px] rounded-md border border-accent bg-accent/5 p-[16px]">
+          <div className="mt-[16px] w-full max-w-[800px] rounded-lg border border-accent bg-accent/5 p-[16px] shadow-card">
             <div className="mb-[10px] flex items-center gap-[6px]">
               <Sparkles size={16} className="text-accent" />
               <p className="text-sm font-bold text-text-primary">자동 매핑된 검진 수치</p>
@@ -139,7 +139,7 @@ export function OCRResultPage() {
         </div>
 
         {ocr.fields.length === 0 ? (
-          <div className="mt-[24px] flex w-full max-w-[800px] flex-col items-center gap-[8px] rounded-md border border-dashed border-border bg-bg p-[40px] text-center">
+          <div className="mt-[24px] flex w-full max-w-[800px] flex-col items-center gap-[8px] rounded-lg border border-dashed border-border bg-bg p-[40px] text-center shadow-card">
             <FileX size={32} className="text-text-muted" />
             <p className="text-sm text-text-secondary">
               이미지에서 텍스트를 추출하지 못했습니다. 더 선명한 이미지로 다시 시도해주세요.
@@ -148,7 +148,7 @@ export function OCRResultPage() {
         ) : (
           <>
             {/* 텍스트 표 */}
-            <div className="mt-[16px] w-full max-w-[800px] overflow-hidden rounded-md border border-border bg-bg">
+            <div className="mt-[16px] w-full max-w-[800px] overflow-hidden rounded-lg border border-border bg-bg shadow-card">
               <div className="grid grid-cols-[1fr_100px] gap-[12px] border-b border-border bg-bg-alt px-[16px] py-[10px]">
                 <span className="text-xs font-bold text-text-secondary">추출된 텍스트</span>
                 <span className="text-right text-xs font-bold text-text-secondary">신뢰도</span>

@@ -49,7 +49,7 @@ function RadialMini({ data }: { data: CategoryProgress }) {
   const isInactive = data.active_count === 0;
 
   return (
-    <div className="flex flex-col items-center gap-1 rounded-md border border-border bg-bg p-3">
+    <div className="flex flex-col items-center gap-1 rounded-lg border border-border bg-bg p-3 shadow-card">
       <div className="relative">
         <svg width="68" height="68" viewBox="0 0 68 68">
           {/* 배경 원 */}
@@ -101,7 +101,7 @@ export function RadialMiniWidget() {
 
   if (loading) {
     return (
-      <div className="rounded-md border border-border bg-bg p-4">
+      <div className="rounded-lg border border-border bg-bg p-4 shadow-card">
         <p className="text-sm text-text-muted">로딩 중...</p>
       </div>
     );
@@ -112,7 +112,7 @@ export function RadialMiniWidget() {
   }
 
   return (
-    <div className="rounded-md border border-border bg-bg p-4">
+    <div className="rounded-lg border border-border bg-bg p-4 shadow-card">
       <p className="mb-3 text-sm font-bold text-text-primary">카테고리별 진행률</p>
       <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
         {items.map((it) => (

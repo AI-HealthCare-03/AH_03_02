@@ -72,9 +72,11 @@ export function EmailVerifyPage() {
     <div className="flex min-h-screen flex-col bg-bg-alt">
       <ScreenLabel label="03 · 이메일 인증 (REQ-AUTH-003)" />
       <main className="flex flex-1 items-center justify-center p-[32px]">
-        <div className="flex w-[480px] flex-col gap-[20px] rounded-lg border border-border bg-bg p-[32px]">
+        <div className="flex w-[480px] flex-col gap-[20px] rounded-lg border border-border bg-bg shadow-card p-[32px]">
           <div className="flex flex-col items-center gap-[10px]">
-            <MailCheck size={56} className="text-success" />
+            <span className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+              <MailCheck size={22} />
+            </span>
             <h1 className="text-xl font-bold text-text-primary">이메일을 인증해주세요</h1>
             <p className="text-center text-sm text-text-secondary">
               {email ? <span className="font-bold">{email}</span> : "가입한 이메일"} 로 6자리 인증 코드를 보냈습니다.
@@ -109,7 +111,7 @@ export function EmailVerifyPage() {
 
           {/* 시연 모드 — 코드 인라인 노출 */}
           {mode === "demo" && demoCode && (
-            <div className="rounded-md border border-amber-300 bg-amber-50 p-[12px]">
+            <div className="rounded-lg border border-amber-300 bg-amber-50 p-[12px]">
               <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700">시연 모드 (EMAIL_MODE=demo)</p>
               <div className="mt-[6px] flex items-center justify-between gap-[8px]">
                 <p className="font-mono text-xl font-bold tracking-[8px] text-amber-900">{demoCode}</p>
@@ -138,7 +140,7 @@ export function EmailVerifyPage() {
             type="button"
             onClick={handleVerify}
             disabled={loading}
-            className="flex h-[44px] items-center justify-center rounded-md bg-accent text-sm font-bold text-bg disabled:opacity-50"
+            className="flex h-[44px] items-center justify-center rounded-lg bg-accent text-sm font-bold text-bg shadow-sm transition-colors hover:bg-accent-hover disabled:opacity-50"
           >
             {loading ? "인증 중..." : "인증 완료"}
           </button>
