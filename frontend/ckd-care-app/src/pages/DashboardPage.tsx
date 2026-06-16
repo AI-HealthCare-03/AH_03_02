@@ -202,6 +202,8 @@ function EgfrTrendChart({ trend }: { trend: EgfrTrend | null }) {
 const APP_GROUP_LABEL: Record<string, string> = {
   G1: "A · 신장 집중 관리군", G2: "B · 신장 위험 관리군",
   G3: "C · 신장 사전 관리군", G4: "D · 건강 습관 형성군",
+  // CKD 진단자(문진=예) — app_group이 CKD/DIALYSIS일 때의 배지 라벨
+  CKD: "CKD · 신장 관리군", DIALYSIS: "투석 · 신장 관리군",
 };
 
 const LIFESTYLE_LABEL: Record<string, string> = {
@@ -369,7 +371,17 @@ export function DashboardPage() {
             <h1 className="text-xl font-bold text-text-primary sm:text-2xl">
               안녕하세요, {user?.name ?? "—"} 님
             </h1>
-            {h?.app_group && <Tag label={APP_GROUP_LABEL[h.app_group] ?? h.app_group} />}
+            {(() => {
+              // 문진(ckd_diagnosed)이 단일 진실 — 진단자는 app_group이 검진 시점의 옛 G값이어도
+              // CKD/투석 진단 배지를 우선 표시한다(대시보드 진단군 미반영 버그 수정).
+              let groupLabel: string | null = null;
+              if (isDiagnosed) {
+                groupLabel = h?.app_group === "DIALYSIS" ? APP_GROUP_LABEL.DIALYSIS : APP_GROUP_LABEL.CKD;
+              } else if (h?.app_group) {
+                groupLabel = APP_GROUP_LABEL[h.app_group] ?? h.app_group;
+              }
+              return groupLabel ? <Tag label={groupLabel} /> : null;
+            })()}
           </div>
           <button
             onClick={handleAttendance}
