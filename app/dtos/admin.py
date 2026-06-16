@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime
 from typing import Annotated, Any
 
 from pydantic import BaseModel, Field
@@ -34,7 +34,7 @@ class AdminUserDetailResponse(BaseModel):
     name_masked: str
     phone_masked: str
     gender: str
-    birthday: date
+    age: int  # 생년월일 원본 대신 만 나이 (PII 보호 — 검진 수치 범주화와 일관)
     is_active: bool
     is_admin: bool
     email_verified: bool

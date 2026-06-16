@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
 from fastapi import HTTPException
@@ -70,13 +70,15 @@ class AdminService:
                 "egfr_category": categorize_egfr(latest_hc.egfr_estimated),
                 "ckd_stage": latest_hc.ckd_stage,
             }
+        today = date.today()
+        age = today.year - user.birthday.year - ((today.month, today.day) < (user.birthday.month, user.birthday.day))
         return {
             "id": user.id,
             "email_masked": mask_email(user.email),
             "name_masked": mask_name(user.name),
             "phone_masked": mask_phone(user.phone_number),
             "gender": user.gender,
-            "birthday": user.birthday,
+            "age": age,
             "is_active": user.is_active,
             "is_admin": user.is_admin,
             "email_verified": user.email_verified,
