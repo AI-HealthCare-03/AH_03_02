@@ -683,6 +683,7 @@ class ChallengeService:
         uc.total_checkins = max(0, uc.total_checkins - 1)
         uc.streak_count = max(0, uc.streak_count - 1)
         uc.last_checkin_date = today - timedelta(days=1) if uc.streak_count > 0 else None
+        await self._eggs.rollback_checkin(uc.user_id)
         return points_revoked
 
     async def cancel_checkin(self, user_id: int, user_challenge_id: int, today: date) -> CancelCheckinResponse:

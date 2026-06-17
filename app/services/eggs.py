@@ -171,6 +171,29 @@ class EggService:
         # 3단계 도달 = 완료. 새 알 자동 시작 X. (update.new_egg_no는 None 유지)
         return update
 
+    async def rollback_checkin(self, user_id: int) -> None:
+        """체크인 1회 롤백: progress_checkins -= 1, 단계 역전 시 stage·보너스 플래그 함께 되돌림.
+
+        _rollback_today_checkin()에서 호출된다.
+        보너스 플래그를 함께 되돌리지 않으면 다음 재체크인 시 보너스가 재지급되지 않는 2차 버그 발생.
+        """
+        egg = await self._eggs.get_or_create_current(user_id)
+
+        if egg.progress_checkins <= 0:
+            return
+
+        egg.progress_checkins -= 1
+        new_stage = self._calc_stage(egg.progress_checkins)
+
+        if new_stage < egg.current_stage:
+            egg.current_stage = new_stage
+            # 더 이상 임계값 미달인 구간의 보너스 플래그 해제
+            for threshold, _stage_no, _bonus, flag in EVOLUTION_TABLE:
+                if egg.progress_checkins < threshold:
+                    setattr(egg, flag, False)
+
+        await egg.save()
+
     @staticmethod
     def _calc_stage(progress: int) -> int:
         """0=알, 1=부화, 2=2단계, 3=3단계 최종."""
