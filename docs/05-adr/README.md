@@ -11,6 +11,10 @@
 | [ADR-0002](./ADR-0002-frontend-framework.md) | 프론트 프레임워크 — Vite + React 19 + TypeScript | ✅ Accepted | 프론트 전체 |
 | [ADR-0003](./ADR-0003-authentication.md) | 인증 방식 — JWT (Access 15분 / Refresh 7일) | ✅ Accepted | 모든 인증 흐름 |
 | [ADR-0004](./ADR-0004-branching-strategy.md) | 브랜치 전략 — Git Flow (main / develop / feature) | ✅ Accepted | 협업 전체 |
+| [ADR-0005](./ADR-0005-rag-orchestration.md) | RAG 오케스트레이션 — LangGraph (Self-RAG) | ✅ Accepted | 챗봇·리포트 가이드 |
+| [ADR-0006](./ADR-0006-vector-db.md) | 벡터 DB — Qdrant | ✅ Accepted | RAG 의미 검색 |
+| [ADR-0007](./ADR-0007-async-task-queue.md) | 비동기 작업 큐 — Redis Streams (vs Celery) | ✅ Accepted | AI 워커 디커플 |
+| [ADR-0008](./ADR-0008-ml-framework.md) | CKD 모델 학습 — AutoGluon | ✅ Accepted | 예측 모델 |
 
 ## ADR 형식
 
