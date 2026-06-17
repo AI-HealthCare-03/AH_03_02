@@ -18,13 +18,14 @@ export function DiagnosedDashboard({ challengeStats }: { challengeStats?: Challe
       </div>
 
       {/* ② 달력(좌) | 캐릭터 + 챌린지 현황 & 관리(우) — 1:1 */}
-      <div className="grid grid-cols-1 items-start gap-[16px] md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-[16px] md:grid-cols-2">
         {/* 좌: 월별 달성 달력 */}
         <MonthCalendarWidget />
-        {/* 우: 알 부화 현황(캐릭터) + 챌린지 현황 & 관리 */}
-        <div className="flex flex-col gap-[16px]">
+        {/* 우: 알 부화 현황(캐릭터) + 챌린지 현황 & 관리 + 최근 병원 예약 (좌 달력 높이에 맞춰 분산) */}
+        <div className="flex flex-col gap-[16px] md:justify-between">
           <EggWidget />
           {challengeStats && <ChallengeStatsCard stats={challengeStats} title="챌린지 현황 & 관리" />}
+          <AppointmentCard />
         </div>
       </div>
 
@@ -33,9 +34,6 @@ export function DiagnosedDashboard({ challengeStats }: { challengeStats?: Challe
         <WaterTrendCard />
         <WeightTrendCard />
       </div>
-
-      {/* ⑥ 최근 병원 예약 */}
-      <AppointmentCard />
     </div>
   );
 }
