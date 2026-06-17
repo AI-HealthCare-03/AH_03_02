@@ -53,9 +53,35 @@ export function SignupPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // 이메일 중복 확인 상태 (팀원 피드백 #5)
+  type EmailCheckState = "idle" | "checking" | "available" | "taken" | "invalid";
+  const [emailCheckState, setEmailCheckState] = useState<EmailCheckState>("idle");
+
   function setText(field: keyof typeof form) {
     return (e: React.ChangeEvent<HTMLInputElement>) =>
       setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  }
+
+  function onEmailChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setForm((prev) => ({ ...prev, email: e.target.value }));
+    // 입력 변경 시 이전 확인 결과 무효화 — 사용자가 다시 확인하도록 유도
+    if (emailCheckState !== "idle") setEmailCheckState("idle");
+  }
+
+  async function handleCheckEmail() {
+    if (!form.email) {
+      setEmailCheckState("invalid");
+      return;
+    }
+    setEmailCheckState("checking");
+    try {
+      const res = await authApi.checkEmail(form.email);
+      setEmailCheckState(res.available ? "available" : "taken");
+    } catch (e) {
+      const raw = e instanceof Error ? e.message : "";
+      // 백엔드가 400 + "올바르지 않습니다" 반환 시 형식 오류로 분류
+      setEmailCheckState(raw.includes("올바르지") || raw.includes("형식") ? "invalid" : "taken");
+    }
   }
 
   function onBirthDateChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -69,6 +95,10 @@ export function SignupPage() {
   async function handleSignup() {
     if (!form.name || !form.email || !form.password || !form.birth_date || !form.phone_number || !form.gender) {
       setError("모든 항목을 입력해주세요."); return;
+    }
+    if (emailCheckState !== "available") {
+      setError("이메일 중복 확인을 먼저 진행해주세요.");
+      return;
     }
     if (form.password.length < 8) {
       setError("비밀번호는 8자 이상이어야 합니다."); return;
@@ -134,14 +164,35 @@ export function SignupPage() {
               onChange={setText("name")}
               autoComplete="name"
             />
-            <TextInput
-              label="이메일"
-              placeholder="email@example.com"
-              type="email"
-              value={form.email}
-              onChange={setText("email")}
-              autoComplete="email"
-            />
+            <div className="flex flex-col gap-[4px]">
+              <TextInput
+                label="이메일"
+                placeholder="email@example.com"
+                type="email"
+                value={form.email}
+                onChange={onEmailChange}
+                autoComplete="email"
+                rightSlot={
+                  <button
+                    type="button"
+                    onClick={handleCheckEmail}
+                    disabled={!form.email || emailCheckState === "checking"}
+                    className="rounded-sm bg-info px-[10px] py-[4px] text-xs font-bold text-bg disabled:opacity-50"
+                  >
+                    {emailCheckState === "checking" ? "확인중" : "중복확인"}
+                  </button>
+                }
+              />
+              {emailCheckState === "available" && (
+                <p className="text-xs text-success">사용 가능한 이메일입니다.</p>
+              )}
+              {emailCheckState === "taken" && (
+                <p className="text-xs text-danger">이미 사용 중인 이메일입니다.</p>
+              )}
+              {emailCheckState === "invalid" && (
+                <p className="text-xs text-danger">입력하신 이메일 형식이 올바르지 않습니다.</p>
+              )}
+            </div>
             <div className="flex flex-col gap-[4px]">
               <TextInput
                 label="비밀번호"

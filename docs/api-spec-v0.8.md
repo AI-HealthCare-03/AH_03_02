@@ -51,6 +51,28 @@
 
 ## 1. 인증 (`/auth`)
 
+### ✅ GET `/auth/check-email` — 이메일 중복 확인 (회원가입 사전 체크)
+> 회원가입 폼에서 이메일 입력 후 "중복 확인" 버튼 클릭 시 호출. Rate Limit 20/분.
+
+인증 불필요
+
+**쿼리 파라미터**
+
+| 파라미터 | 타입 | 필수 | 설명 |
+|----------|------|------|------|
+| email | string | ✅ | 검사할 이메일 |
+
+**응답 `200`**
+```json
+{ "available": true, "email": "user@example.com" }
+```
+`available`: `true`(가입 가능) / `false`(이미 사용 중)
+
+**에러** `400` — `"입력하신 이메일 형식이 올바르지 않습니다."`
+**에러** `429` — Rate Limit 초과
+
+---
+
 ### ✅ POST `/auth/signup` — 회원가입
 > 명세 원안: `/auth/register` → 현재 구현 경로로 확정
 
@@ -972,6 +994,7 @@
 
 | 메서드 | URL | 인증 | 우선순위 | 상태 |
 |--------|-----|------|----------|------|
+| GET | `/auth/check-email` | ❌ | P0 | ✅ |
 | POST | `/auth/signup` | ❌ | P0 | ✅ |
 | GET | `/auth/verify-email` | ❌ | P0 | 🔲 |
 | POST | `/auth/verify-email/resend` | ❌ | P0 | 🔲 |

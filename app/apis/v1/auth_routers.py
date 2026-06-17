@@ -1,3 +1,4 @@
+import re
 import urllib.parse
 from datetime import date
 from typing import Annotated
@@ -35,6 +36,38 @@ from app.services.points import PointService
 from app.services.streak_protect import StreakProtectService
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
+
+# 이메일 형식 검증용 정규식 (Pydantic EmailStr보다 가벼움 — 폼 입력 사전 체크에 충분)
+_EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+
+
+@auth_router.get(
+    "/check-email",
+    status_code=status.HTTP_200_OK,
+    summary="이메일 중복 확인 (회원가입 사전 체크)",
+    description="입력한 이메일이 가입 가능한지 확인. 형식 검증 + DB 중복 확인.",
+)
+@limiter.limit("20/minute")
+async def check_email(
+    request: Request,
+    email: str,
+    user_repo: Annotated[UserRepository, Depends(UserRepository)],
+) -> Response:
+    """이메일 형식이 잘못되면 400, 사용 중이면 available=false, 가능하면 available=true 반환.
+
+    회원가입 폼에서 이메일 입력 후 사용자가 "중복 확인" 버튼 누를 때 호출.
+    `signup` 라우트도 중복을 체크하지만, UX상 가입 시도 전 미리 알려주는 용도.
+    """
+    if not _EMAIL_PATTERN.match(email):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="입력하신 이메일 형식이 올바르지 않습니다.",
+        )
+    taken = await user_repo.exists_by_email(email)
+    return Response(
+        content={"available": not taken, "email": email},
+        status_code=status.HTTP_200_OK,
+    )
 
 
 @auth_router.post("/signup", response_model=SignUpResponse, status_code=status.HTTP_201_CREATED)

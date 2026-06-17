@@ -75,4 +75,7 @@ export const authApi = {
     api.post<EmailVerificationRequestResponse>("/auth/email-verification/request", { email }),
   verifyEmail: (email: string, code: string) =>
     api.post<{ verified: boolean }>("/auth/email-verification/verify", { email, code }),
+  // 회원가입 사전 이메일 중복 확인
+  checkEmail: (email: string) =>
+    api.get<{ available: boolean; email: string }>(`/auth/check-email?email=${encodeURIComponent(email)}`),
 };
