@@ -34,9 +34,10 @@ frontend/ckd-care-app/dist/
 # Excel/Office 임시 파일
 ~$*
 
-# 부하 테스트 산출물 (재생성 가능, README.md만 추적)
-docs/load-test/report.html
-docs/load-test/result_*.csv
+# 부하 테스트 산출물 — 평가 5-1 증빙으로 핵심 결과(report.html·stats·failures)는 추적,
+# 대용량 시계열·예외 덤프만 제외
+docs/load-test/result_stats_history.csv
+docs/load-test/result_exceptions.csv
 
 # CKD 학습 전용 venv (AutoGluon 3.11)
 .venv-train/

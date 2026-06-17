@@ -22,7 +22,7 @@ from tortoise import Tortoise
 
 from app.core.db.databases import TORTOISE_ORM
 from app.core.utils.security import hash_password
-from app.models.challenge import Challenge, ChallengeTrack, UserChallenge, UserChallengeStatus
+from app.models.challenge import Challenge, UserChallenge, UserChallengeStatus
 from app.models.gamification import PointReason, PointTransaction
 from app.models.health_check import AppGroup, CkdStage, HealthCheck
 from app.models.users import Gender, User
@@ -44,7 +44,8 @@ async def seed_one(idx: int, challenges: list[Challenge]) -> None:
         name=f"부하테스트{idx:03d}",
         gender=Gender.MALE if idx % 2 == 0 else Gender.FEMALE,
         birthday=date(1990, 1, 1),
-        phone_number=f"010{idx:08d}",
+        phone_number=f"010{99000000 + idx:08d}",  # 데모 계정(010000000XX)과 겹치지 않는 부하테스트 전용 범위
+        email_verified=True,  # 부하테스트 로그인 통과 (이메일 인증 정책 도입 후 필요)
     )
     today = date.today()
     await HealthCheck.create(
@@ -87,7 +88,8 @@ async def main() -> None:
     await Tortoise.init(config=TORTOISE_ORM)
     try:
         await wipe_existing()
-        challenges = await Challenge.filter(track=ChallengeTrack.A).limit(2)
+        # 부하 테스트는 로그인 후 대시보드·챌린지 GET 위주라 트랙 무관 — 아무 챌린지 2건이면 충분
+        challenges = await Challenge.all().limit(2)
         if len(challenges) < 2:
             print(f"챌린지 데이터 부족 ({len(challenges)}/2). 먼저 챌린지 시드 필요.")
             return
