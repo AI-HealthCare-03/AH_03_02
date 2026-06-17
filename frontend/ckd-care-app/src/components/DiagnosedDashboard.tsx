@@ -17,13 +17,16 @@ export function DiagnosedDashboard({ challengeStats }: { challengeStats?: Challe
         <SocietyBannerSlider />
       </div>
 
-      {/* ② 챌린지 현황 & 관리 (통계 + 잔디) + ③ 알 부화 현황 */}
-      <div className="grid grid-cols-1 items-start gap-[16px] md:grid-cols-3">
-        <div className="flex flex-col gap-[16px] md:col-span-2">
+      {/* ② 달력(좌) | 캐릭터 + 챌린지 현황 & 관리(우) — 1:1 */}
+      <div className="grid grid-cols-1 gap-[16px] md:grid-cols-2">
+        {/* 좌: 월별 달성 달력 */}
+        <MonthCalendarWidget />
+        {/* 우: 알 부화 현황(캐릭터) + 챌린지 현황 & 관리 + 최근 병원 예약 (좌 달력 높이에 맞춰 분산) */}
+        <div className="flex flex-col gap-[16px] md:justify-between">
+          <EggWidget />
           {challengeStats && <ChallengeStatsCard stats={challengeStats} title="챌린지 현황 & 관리" />}
-          <MonthCalendarWidget />
+          <AppointmentCard />
         </div>
-        <EggWidget />
       </div>
 
       {/* ④ 수분 섭취 추이 + ⑤ 체중 추이 */}
@@ -31,9 +34,6 @@ export function DiagnosedDashboard({ challengeStats }: { challengeStats?: Challe
         <WaterTrendCard />
         <WeightTrendCard />
       </div>
-
-      {/* ⑥ 최근 병원 예약 */}
-      <AppointmentCard />
     </div>
   );
 }
