@@ -52,6 +52,7 @@ services:
     environment:
       REDIS_HOST: redis   # docker 네트워크 내부 서비스명 (env_file의 localhost 값을 override)
       DB_HOST: postgres   # postgres 서비스명 (env_file의 localhost 값을 override)
+      RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}  # 부하테스트 시에만 false (RATE_LIMIT_ENABLED=false docker compose up -d fastapi)
     command: |
       sh -c "uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
     volumes:

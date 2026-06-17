@@ -69,6 +69,9 @@ class Config(BaseSettings):
     PASSWORD_RESET_CODE_TTL_SECONDS: int = 300  # 5분
     PASSWORD_RESET_MAX_ATTEMPTS: int = 5
 
+    # Rate limiting (REQ-NF-008). 기본 켜짐 — 단일 IP 부하테스트 등에서만 false 로 비활성화
+    RATE_LIMIT_ENABLED: bool = True
+
     @model_validator(mode="after")
     def _enforce_real_secret_key(self) -> "Config":
         # REQ-SEC: dev/prod에서 SECRET_KEY가 기본값/placeholder면 부팅 실패(fail-fast).
