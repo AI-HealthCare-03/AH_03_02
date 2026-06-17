@@ -24,13 +24,20 @@ const TYPE_LABEL: Record<ExerciseType, string> = TYPES.reduce(
   (acc, t) => ({ ...acc, [t.key]: t.label }),
   {} as Record<ExerciseType, string>,
 );
-// 피로도 1~5 이모지
+// 피로도 1~5 이모지 + 한글 라벨 (팀원 피드백 #8 — 40-70대 가독성)
 const FATIGUE_EMOJI: Record<number, string> = {
   1: "😄",
   2: "🙂",
   3: "😐",
   4: "😓",
   5: "🥵",
+};
+const FATIGUE_LABEL: Record<number, string> = {
+  1: "전혀",
+  2: "조금",
+  3: "적당",
+  4: "많이",
+  5: "극심",
 };
 
 export function ExerciseTrackingCard({
@@ -142,7 +149,7 @@ export function ExerciseTrackingCard({
         </label>
       </div>
 
-      {/* 피로도 1~5 이모지 선택 */}
+      {/* 피로도 1~5 이모지 + 한글 라벨 선택 */}
       <div className="mb-2 flex items-center gap-1.5">
         <span className="text-xs text-text-muted">피로도</span>
         {[1, 2, 3, 4, 5].map((lv) => (
@@ -151,12 +158,14 @@ export function ExerciseTrackingCard({
             type="button"
             onClick={() => setFatigue(lv)}
             className={
-              "rounded-md px-1.5 py-0.5 text-lg transition " +
-              (fatigue === lv ? "bg-accent/15 ring-1 ring-accent" : "opacity-50 hover:opacity-100")
+              "flex flex-col items-center rounded-md px-2 py-1 transition " +
+              (fatigue === lv ? "bg-accent/15 ring-1 ring-accent" : "opacity-60 hover:opacity-100")
             }
-            title={`${lv}단계`}
+            title={`${FATIGUE_LABEL[lv]} (${lv}단계)`}
+            aria-label={`피로도 ${FATIGUE_LABEL[lv]}`}
           >
-            {FATIGUE_EMOJI[lv]}
+            <span className="text-lg leading-none">{FATIGUE_EMOJI[lv]}</span>
+            <span className="mt-0.5 text-[10px] text-text-secondary">{FATIGUE_LABEL[lv]}</span>
           </button>
         ))}
       </div>
