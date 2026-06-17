@@ -617,21 +617,31 @@ class ChallengeService:
     # ── 카테고리 진행률 ───────────────────────────────────────────────────────
 
     async def get_category_progress(self, user_id: int) -> CategoryProgressResponse:
-        """카테고리 5종별 active 챌린지 평균 진행률 (REQ-DASH-001 ⑥)."""
-        active_list = await self._user_repo.list_active_by_user(user_id)
-        # 카테고리별 집계
+        """카테고리 5종별 오늘 완료율 (REQ-DASH-001 ⑥).
+
+        percent = 오늘 체크인한 챌린지 수 / 카테고리 내 활성 챌린지 수 * 100.
+        - ACTIVE: 항상 집계 대상
+        - COMPLETED + 오늘 완료: 오늘 완수한 챌린지도 집계에 포함
+        - ABANDONED / 과거 COMPLETED: 제외
+        """
+        today = date.today()
+        uc_list = await self._user_repo.list_active_and_completed_by_user(user_id)
+
         by_cat: dict[ChallengeCategory, dict] = {
-            cat: {"active_count": 0, "total_checkins": 0, "total_duration": 0} for cat in ChallengeCategory
+            cat: {"active_count": 0, "checked_today": 0} for cat in ChallengeCategory
         }
-        for uc in active_list:
+        for uc in uc_list:
             ch = await uc.challenge
             cat = ch.category
+            is_active = uc.status == UserChallengeStatus.ACTIVE
+            completed_today = uc.status == UserChallengeStatus.COMPLETED and uc.last_checkin_date == today
+            if not (is_active or completed_today):
+                continue
             by_cat[cat]["active_count"] += 1
-            by_cat[cat]["total_checkins"] += uc.total_checkins
-            by_cat[cat]["total_duration"] += ch.duration_days
+            if uc.last_checkin_date == today:
+                by_cat[cat]["checked_today"] += 1
 
         items = []
-        # 명세 순서: HYDRATION/EXERCISE/DIET/SLEEP/STRESS
         for cat in [
             ChallengeCategory.HYDRATION,
             ChallengeCategory.EXERCISE,
@@ -641,15 +651,15 @@ class ChallengeService:
         ]:
             data = by_cat[cat]
             percent = 0
-            if data["total_duration"] > 0:
-                percent = int(min(100, round(data["total_checkins"] / data["total_duration"] * 100)))
+            if data["active_count"] > 0:
+                percent = int(round(data["checked_today"] / data["active_count"] * 100))
             items.append(
                 CategoryProgress(
                     category=cat,
                     percent=percent,
                     active_count=data["active_count"],
-                    total_checkins=data["total_checkins"],
-                    total_duration=data["total_duration"],
+                    total_checkins=data["checked_today"],
+                    total_duration=data["active_count"],
                 )
             )
         return CategoryProgressResponse(items=items)

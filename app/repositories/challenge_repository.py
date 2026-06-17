@@ -58,6 +58,12 @@ class UserChallengeRepository:
     async def list_active_by_user(self, user_id: int) -> list[UserChallenge]:
         return await UserChallenge.filter(user_id=user_id, status=UserChallengeStatus.ACTIVE)
 
+    async def list_active_and_completed_by_user(self, user_id: int) -> list[UserChallenge]:
+        return await UserChallenge.filter(
+            user_id=user_id,
+            status__in=[UserChallengeStatus.ACTIVE, UserChallengeStatus.COMPLETED],
+        )
+
 
 class UserChallengeProfileRepository:
     """사용자 챌린지 프로필(트랙·스테이지) CRUD."""
