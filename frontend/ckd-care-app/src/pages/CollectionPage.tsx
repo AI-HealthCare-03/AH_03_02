@@ -210,34 +210,47 @@ export function CollectionPage() {
           {ownedSkins.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border bg-bg px-[16px] py-[24px] text-center">
               <p className="text-sm text-text-muted">
-                보유한 스킨이 없어요. <a href="/shop" className="text-accent underline">상점</a>에서 구매할 수 있어요.
+                보유한 스킨이 없어요.{" "}
+                <a href="/shop" className="text-base font-bold text-accent underline">
+                  상점🏬
+                </a>
+                에서 구매할 수 있어요.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-[12px]">
-              {/* 기본 외형 (스킨 해제) 옵션 */}
-              <SkinCard
-                code={null}
-                label="기본 외형"
-                color="bg-gray-100"
-                active={activeSkinCode === null}
-                onEquip={() => handleEquip(null)}
-              />
-              {ownedSkins.map((s) => {
-                const info = SKIN_LABEL[s.item_code as keyof typeof SKIN_LABEL];
-                if (!info) return null;
-                return (
-                  <SkinCard
-                    key={s.item_code}
-                    code={s.item_code}
-                    label={info.name}
-                    color={info.color}
-                    active={activeSkinCode === s.item_code}
-                    onEquip={() => handleEquip(s.item_code)}
-                  />
-                );
-              })}
-            </div>
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-[12px]">
+                {/* 기본 외형 (스킨 해제) 옵션 */}
+                <SkinCard
+                  code={null}
+                  label="기본 외형"
+                  color="bg-gray-100"
+                  active={activeSkinCode === null}
+                  onEquip={() => handleEquip(null)}
+                />
+                {ownedSkins.map((s) => {
+                  const info = SKIN_LABEL[s.item_code as keyof typeof SKIN_LABEL];
+                  if (!info) return null;
+                  return (
+                    <SkinCard
+                      key={s.item_code}
+                      code={s.item_code}
+                      label={info.name}
+                      color={info.color}
+                      active={activeSkinCode === s.item_code}
+                      onEquip={() => handleEquip(s.item_code)}
+                    />
+                  );
+                })}
+              </div>
+              <p className="mt-3 text-center text-sm text-text-muted">
+                다양한 스킨들은{" "}
+                <a href="/shop" className="text-base font-bold text-accent underline">
+                  상점🏬
+                </a>
+                에서 구매할 수 있어요.
+              </p>
+            </>
           )}
         </section>
       </main>
