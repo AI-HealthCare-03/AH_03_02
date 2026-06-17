@@ -52,7 +52,7 @@ export function MonthCalendarWidget() {
     setCursor((c) => new Date(c.getFullYear(), c.getMonth() + delta, 1));
 
   return (
-    <div className="rounded-lg border border-border bg-bg p-4 shadow-card">
+    <div className="mx-auto w-full max-w-[480px] rounded-lg border border-border bg-bg p-4 shadow-card">
       <div className="mb-3 flex items-center justify-between">
         <button onClick={() => move(-1)} className="rounded-md p-1 text-text-muted hover:bg-bg-alt" aria-label="이전 달">
           <ChevronLeft size={18} />
