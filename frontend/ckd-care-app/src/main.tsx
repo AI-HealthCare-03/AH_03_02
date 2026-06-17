@@ -48,7 +48,6 @@ import { CheckupInputMethodPage } from "./pages/CheckupInputMethodPage";
 import { LifestyleSurveyHistoryPage } from "./pages/LifestyleSurveyHistoryPage";
 import { LifestyleManagementPage } from "./pages/LifestyleManagementPage";
 import { EmergencyGuardPage } from "./pages/EmergencyGuardPage";
-import { OAuthCallbackPage } from "./pages/OAuthCallbackPage";
 import { ShopPage } from "./pages/ShopPage";
 import { PointHistoryPage } from "./pages/PointHistoryPage";
 import { CollectionPage } from "./pages/CollectionPage";
@@ -77,7 +76,6 @@ function AppRoutes() {
       <Route path="/" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/email-verify" element={<EmailVerifyPage />} />
-      <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
 
       {/* 인증 필요 라우트 */}
       <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />

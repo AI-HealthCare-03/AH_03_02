@@ -4,7 +4,6 @@ import { ScreenLabel } from "../components/ScreenLabel";
 import { TextInput } from "../components/TextInput";
 import { Checkbox } from "../components/Checkbox";
 import { BtnPrimary } from "../components/BtnPrimary";
-import { BtnSecondary } from "../components/BtnSecondary";
 import { authApi } from "../api/auth";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -240,27 +239,6 @@ export function LoginPage() {
               />
             </>
           )}
-
-          <div className="flex items-center gap-[12px]">
-            <div className="h-px flex-1 bg-border" />
-            <span className="text-sm text-text-muted">또는</span>
-            <div className="h-px flex-1 bg-border" />
-          </div>
-
-          <div className="flex flex-col gap-[8px]">
-            <BtnSecondary
-              label="카카오로 시작하기"
-              height={48}
-              className="w-full opacity-50"
-              onClick={() => alert("카카오 로그인은 서비스 오픈 후 이용 가능합니다.")}
-            />
-            <BtnSecondary
-              label="Google로 시작하기"
-              height={48}
-              className="w-full opacity-50"
-              onClick={() => alert("Google 로그인은 서비스 오픈 후 이용 가능합니다.")}
-            />
-          </div>
 
           <p className="text-center text-sm text-text-secondary">
             계정이 없으신가요?{" "}
