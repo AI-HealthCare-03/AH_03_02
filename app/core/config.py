@@ -48,13 +48,8 @@ class Config(BaseSettings):
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 7 * 24 * 60  # 10080분 = 7일
     JWT_LEEWAY: int = 5
 
-    # 소셜 로그인 (키 미발급 시 빈 문자열 유지 → 호출 시 HTTPException)
+    # 프론트엔드 URL (이메일 인증·비번 재설정 링크 발송에 사용)
     FRONTEND_URL: str = "http://localhost:5173"
-    KAKAO_REST_API_KEY: str = ""
-    KAKAO_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/kakao/callback"
-    GOOGLE_CLIENT_ID: str = ""
-    GOOGLE_CLIENT_SECRET: str = ""
-    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/google/callback"
 
     # 이메일 (REQ-AUTH 비밀번호 재설정 + REQ-AUTH-003 회원가입 인증)
     # EMAIL_MODE:

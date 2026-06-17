@@ -165,24 +165,10 @@
 
 ---
 
-### ✅ GET `/auth/kakao/login` — 카카오 OAuth 시작 (배포 후 활성화)
-> REQ-AUTH-008 — 키 미설정 시 501 반환
-
-인증 불필요 — 카카오 로그인 페이지로 리다이렉트
-
----
-
-### ✅ GET `/auth/kakao/callback` — 카카오 OAuth 콜백 (배포 후 활성화)
-
-인증 불필요 — 카카오 인가 코드 수신 후 JWT 발급, 프론트로 리다이렉트
-
----
-
-### 🔶 GET `/auth/google/login` — Google OAuth 시작 (P1, 배포 후 활성화)
-
----
-
-### 🔶 GET `/auth/google/callback` — Google OAuth 콜백 (P1, 배포 후 활성화)
+### 🚫 소셜 로그인 (제거됨, 2026-06-17)
+> Kakao/Google OAuth는 개인 프로젝트 권한 한계(Kakao 비즈 앱 미전환 + Google 미검수)로 시연 안전성을 위해 삭제됨.
+> `User.provider`/`User.provider_id` DB 컬럼은 회귀 위험 차단을 위해 유지.
+> 사업자 인증·검수 절차 완료 후 재구현 가능.
 
 ---
 
@@ -978,10 +964,6 @@
 | POST | `/auth/login` | ❌ | P0 | ✅ |
 | GET | `/auth/token/refresh` | ❌ | P0 | ✅ |
 | POST | `/auth/logout` | ✅ | P0 | 🔲 |
-| GET | `/auth/kakao/login` | ❌ | P1 | ✅ 배포 후 |
-| GET | `/auth/kakao/callback` | ❌ | P1 | ✅ 배포 후 |
-| GET | `/auth/google/login` | ❌ | P1 | 🔶 배포 후 |
-| GET | `/auth/google/callback` | ❌ | P1 | 🔶 배포 후 |
 | DELETE | `/auth/account` | ✅ | P0 | 🔲 |
 | GET | `/users/me` | ✅ | P0 | ✅ |
 | PATCH | `/users/me` | ✅ | P0 | ✅ |
