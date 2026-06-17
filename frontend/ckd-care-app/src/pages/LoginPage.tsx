@@ -6,6 +6,31 @@ import { Checkbox } from "../components/Checkbox";
 import { BtnPrimary } from "../components/BtnPrimary";
 import { authApi } from "../api/auth";
 import { useAuth } from "../contexts/AuthContext";
+import { Activity, ListChecks, Sparkles, MessageCircle } from "lucide-react";
+
+// 로그인 화면 좌측 서비스 소개 항목
+const LOGIN_FEATURES = [
+  {
+    icon: Activity,
+    title: "검진 기반 신장 건강 분석",
+    desc: "eGFR 추정과 위험도 등급으로 내 신장 상태를 한눈에 확인해요.",
+  },
+  {
+    icon: ListChecks,
+    title: "맞춤 데일리 챌린지",
+    desc: "트랙별 필수 체크와 생활습관 기록으로 꾸준한 관리를 돕습니다.",
+  },
+  {
+    icon: Sparkles,
+    title: "캐릭터와 함께 성장",
+    desc: "체크인할수록 알이 부화하고 포인트가 쌓이는 즐거운 동기부여.",
+  },
+  {
+    icon: MessageCircle,
+    title: "AI 신장 건강 챗봇",
+    desc: "식이·생활습관 궁금증을 신뢰할 수 있는 근거로 답해드려요.",
+  },
+];
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -109,8 +134,42 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col bg-bg-alt">
       <ScreenLabel label="01 · 로그인 (REQ-AUTH-01)" />
-      <main className="flex flex-1 items-center justify-center p-[32px]">
-        <div className="flex w-full max-w-[440px] flex-col gap-[24px] rounded-lg border border-border bg-bg shadow-card p-[24px] sm:p-[40px]">
+      <main className="flex flex-1 items-center justify-center p-[24px] sm:p-[32px]">
+        <div className="grid w-full max-w-[1080px] grid-cols-1 items-center gap-[32px] lg:grid-cols-2 lg:gap-[48px]">
+          {/* 좌: 서비스 소개 (넓은 화면 전용) */}
+          <section className="hidden flex-col gap-[28px] lg:flex">
+            <div>
+              <h2 className="text-3xl font-bold leading-snug text-text-primary">
+                콩팥 건강,
+                <br />
+                매일의 작은 습관으로
+              </h2>
+              <p className="mt-4 text-sm leading-relaxed text-text-secondary">
+                만성콩팥병(CKD)은 초기에 증상 없이 조용히 진행됩니다. CKD CARE는 검진 결과를 쉽게 이해하도록 돕고,
+                매일의 챌린지로 신장 건강을 꾸준히 관리할 수 있게 합니다.
+              </p>
+            </div>
+            <ul className="flex flex-col gap-[18px]">
+              {LOGIN_FEATURES.map((f) => (
+                <li key={f.title} className="flex items-start gap-[14px]">
+                  <span className="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                    <f.icon size={20} />
+                  </span>
+                  <div>
+                    <p className="text-sm font-bold text-text-primary">{f.title}</p>
+                    <p className="mt-0.5 text-sm leading-relaxed text-text-secondary">{f.desc}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <p className="text-xs leading-relaxed text-text-muted">
+              ※ 본 서비스는 의료 진단·처방을 대체하지 않습니다. 표시된 수치·예측은 일반 생활습관 정보이며,
+              정확한 진단·치료는 의사 상담을 받으세요.
+            </p>
+          </section>
+
+          {/* 우: 로그인 폼 */}
+          <div className="mx-auto flex w-full max-w-[440px] flex-col gap-[24px] rounded-lg border border-border bg-bg shadow-card p-[24px] sm:p-[40px]">
           <div className="flex flex-col items-center gap-[8px]">
             <h1 className="text-2xl font-bold text-text-primary">CKD CARE</h1>
             <p className="text-sm text-text-secondary text-center">
@@ -248,6 +307,7 @@ export function LoginPage() {
           <p className="text-center text-xs text-text-muted">
             본 서비스는 의료 진단·처방을 대체하지 않습니다.
           </p>
+          </div>
         </div>
       </main>
     </div>
