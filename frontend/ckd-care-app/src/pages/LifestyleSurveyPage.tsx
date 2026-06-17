@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { ChevronLeft } from "lucide-react";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 import { BtnPrimary } from "../components/BtnPrimary";
@@ -176,6 +177,14 @@ export function LifestyleSurveyPage() {
       <ScreenLabel label="08 · 생활습관 설문 (REQ-DATA-04)" />
       <TopNav />
       <main className="flex flex-1 flex-col p-[32px]">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="mb-[12px] flex w-fit items-center gap-[4px] rounded-md px-[10px] py-[6px] text-sm font-bold text-text-secondary hover:bg-bg"
+        >
+          <ChevronLeft size={18} />
+          뒤로
+        </button>
         <h1 className="text-2xl font-bold text-text-primary">생활습관 설문</h1>
         <p className="mt-[4px] text-sm text-text-secondary">오늘 기준 생활습관을 솔직하게 입력해주세요.</p>
 
@@ -304,7 +313,11 @@ export function LifestyleSurveyPage() {
 
             <div className="rounded-lg border border-border bg-bg p-[16px] shadow-card">
               <p className="mb-[12px] text-md font-bold text-text-primary">가족력</p>
-              <p className="mb-[8px] text-xs text-text-muted">직계가족 중 진단받은 적 있는 질환을 선택하세요.</p>
+              <p className="mb-[8px] text-xs text-text-muted">
+                직계가족 중 진단받은 적 있는 질환을 선택하세요.
+                <br />
+                <span className="text-info">선택하지 않을 경우 '없음'으로 자동 반영됩니다.</span>
+              </p>
               <div className="flex flex-col gap-[8px]">
                 <label className="flex items-center gap-[8px] cursor-pointer">
                   <input
@@ -356,7 +369,11 @@ export function LifestyleSurveyPage() {
 
             <div className="rounded-lg border border-border bg-bg p-[16px] shadow-card">
               <p className="mb-[12px] text-md font-bold text-text-primary">본인 진단력</p>
-              <p className="mb-[8px] text-xs text-text-muted">본인이 직접 진단받은 적 있는 질환을 선택하세요.</p>
+              <p className="mb-[8px] text-xs text-text-muted">
+                본인이 직접 진단받은 적 있는 질환을 선택하세요.
+                <br />
+                <span className="text-info">선택하지 않을 경우 '없음'으로 자동 반영됩니다.</span>
+              </p>
               <div className="flex flex-col gap-[8px]">
                 <label className="flex items-center gap-[8px] cursor-pointer">
                   <input
@@ -448,9 +465,18 @@ export function LifestyleSurveyPage() {
                     value={waterIntake}
                     onChange={(e) => setWaterIntake(parseFloat(e.target.value))}
                     className="w-full accent-accent"
+                    list="water-intake-ticks"
                   />
+                  <datalist id="water-intake-ticks">
+                    <option value="0" />
+                    <option value="1" />
+                    <option value="2" />
+                    <option value="3" />
+                    <option value="4" />
+                    <option value="5" />
+                  </datalist>
                   <div className="flex justify-between text-xs text-text-muted">
-                    <span>0L</span><span>2.5L</span><span>5L</span>
+                    <span>0L</span><span>1L</span><span>2L</span><span>3L</span><span>4L</span><span>5L</span>
                   </div>
                 </div>
               </div>

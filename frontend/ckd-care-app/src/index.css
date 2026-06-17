@@ -102,6 +102,22 @@ h1, h2, h3 {
   line-height: 1.2;
 }
 
+/* 큰글씨(돋보기) 모드 — 60-70대 타겟 가독성 (팀원 피드백 #6)
+   body class `large-font` 토글로 활성화. 본문 17→19px, 모든 tailwind 본문 클래스 비례 확대. */
+body.large-font {
+  font-size: 19px;
+  line-height: 1.55;
+}
+body.large-font .text-xs { font-size: 14px; }
+body.large-font .text-sm { font-size: 16px; }
+body.large-font .text-md { font-size: 19px; }
+body.large-font .text-base { font-size: 19px; }
+body.large-font .text-lg { font-size: 22px; }
+body.large-font .text-xl { font-size: 26px; }
+body.large-font .text-2xl { font-size: 32px; }
+body.large-font .text-3xl { font-size: 42px; }
+/* 픽셀 직접 지정한 텍스트 (text-[10px], text-[11px] 등)는 코드 그대로 — 변경 불필요. */
+
 /* 모바일: 하단 탭바(56px) + 면책 footer(~32px) 가림 방지 */
 @media (max-width: 767px) {
   body {

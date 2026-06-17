@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CloudUpload, Clock, FileImage, X } from "lucide-react";
+import { CloudUpload, Clock, FileImage, X, ChevronLeft } from "lucide-react";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 import { BtnPrimary } from "../components/BtnPrimary";
@@ -66,6 +66,16 @@ export function OCRUploadPage() {
       <ScreenLabel label="05 · OCR 업로드 (REQ-DATA-01)" />
       <TopNav />
       <main className="flex flex-1 flex-col items-center p-[32px]">
+        <div className="mb-[12px] flex w-full max-w-[640px] justify-start">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-[4px] rounded-md px-[10px] py-[6px] text-sm font-bold text-text-secondary hover:bg-bg"
+          >
+            <ChevronLeft size={18} />
+            뒤로
+          </button>
+        </div>
         <h1 className="text-2xl font-bold text-text-primary">건강검진 결과지 업로드</h1>
         <p className="mt-[8px] text-sm text-text-secondary">
           건강검진 결과지를 업로드하면 AI가 텍스트를 추출합니다. 추출된 항목은 수동 입력 화면에서 옮겨 적습니다.

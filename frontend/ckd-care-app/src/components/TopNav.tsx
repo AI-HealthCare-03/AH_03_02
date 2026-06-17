@@ -1,9 +1,10 @@
-import { User, Bell, LayoutDashboard, Trophy, Coins, Sparkles, Bot, Shield, FileBarChart } from "lucide-react";
+import { User, Bell, LayoutDashboard, Trophy, Coins, Sparkles, Bot, Shield, FileBarChart, Type } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../contexts/AuthContext";
 import { useDiagnosed } from "../hooks/useDiagnosed";
+import { useLargeFont } from "../hooks/useLargeFont";
 import { notificationApi } from "../api/notification";
 import { pointsApi } from "../api/gamification";
 
@@ -14,6 +15,7 @@ interface TopNavProps {
 export function TopNav({ brand = "CKD CARE" }: TopNavProps) {
   const { token, user } = useAuth();
   const { diagnosed } = useDiagnosed();
+  const { enabled: largeFont, toggle: toggleLargeFont } = useLargeFont();
   const location = useLocation();
   const [unread, setUnread] = useState(0);
   // 포인트 잔액은 React Query로 — 체크인/완료취소/해제 후 무효화(["points","balance"])하면 즉시 갱신.
@@ -83,6 +85,20 @@ export function TopNav({ brand = "CKD CARE" }: TopNavProps) {
             <span className="font-bold">{balance.toLocaleString()}</span>
           </Link>
         )}
+        {/* 돋보기 모드 토글 — 60-70대 가독성 (팀원 피드백 #6) */}
+        <button
+          type="button"
+          onClick={toggleLargeFont}
+          className={`flex h-[36px] items-center gap-[4px] rounded-md px-[8px] text-sm font-bold ${
+            largeFont ? "bg-accent text-bg" : "text-text-secondary hover:bg-bg-alt"
+          }`}
+          aria-label={largeFont ? "돋보기 모드 끄기" : "돋보기 모드 켜기"}
+          aria-pressed={largeFont}
+          title={largeFont ? "큰글씨 켜짐 — 끄려면 클릭" : "큰글씨 — 글씨를 크게 보고 싶을 때 클릭"}
+        >
+          <Type size={18} />
+          <span className="hidden md:inline">큰글씨</span>
+        </button>
         <Link
           to="/notifications"
           className="relative flex h-[36px] w-[36px] items-center justify-center rounded-md text-text-secondary hover:bg-bg-alt"

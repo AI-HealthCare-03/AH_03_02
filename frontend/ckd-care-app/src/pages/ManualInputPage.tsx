@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ChevronLeft } from "lucide-react";
 import type { HealthCheckResponse, UrineResult } from "../api/healthCheck";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
@@ -211,6 +211,15 @@ export function ManualInputPage() {
         {error && (
           <div className="mb-4 rounded-sm bg-danger/10 px-3 py-2 text-sm text-danger">{error}</div>
         )}
+
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="mb-[12px] flex w-fit items-center gap-[4px] rounded-md px-[10px] py-[6px] text-sm font-bold text-text-secondary hover:bg-bg"
+        >
+          <ChevronLeft size={18} />
+          뒤로
+        </button>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-bold text-text-primary">
