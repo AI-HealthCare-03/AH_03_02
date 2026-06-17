@@ -188,7 +188,7 @@ export function LabRecordPage() {
       {/* 헤더 */}
       <header className="flex items-center gap-2 border-b border-border bg-bg px-4 py-3">
         <button
-          onClick={() => navigate("/challenge")}
+          onClick={() => navigate(-1)}
           className="text-text-muted"
           aria-label="뒤로"
         >

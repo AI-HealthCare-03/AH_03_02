@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ChevronRight, FlaskConical, CalendarDays } from "lucide-react";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
@@ -30,7 +29,11 @@ interface Props {
  */
 export function ChallengeMainView({ cd, onStageEdit }: Props) {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<RecordTab>("challenge");
+  // 서브탭을 URL 쿼리파라미터로 관리 → 기록 페이지 진입 후 뒤로가기로 돌아와도 탭 유지
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab: RecordTab = searchParams.get("tab") === "record" ? "record" : "challenge";
+  const setTab = (t: RecordTab) =>
+    setSearchParams(t === "record" ? { tab: "record" } : {}, { replace: true });
   const theme = cd.theme;
 
   return (
@@ -74,21 +77,22 @@ export function ChallengeMainView({ cd, onStageEdit }: Props) {
               <EggWidget aspectBackground />
             </div>
 
+            {/* 필수 일일 체크리스트 — 캐릭터 창 다음 */}
+            <DailyChecklist items={cd.checklist} busyKey={cd.checkBusy} onToggle={cd.toggleChecklist} />
+
             {/* 오늘 진행도 */}
             <TodayProgress
               rows={cd.selectedRows}
               busyId={cd.completeBusy}
               onComplete={cd.complete}
               onUncomplete={cd.uncomplete}
+              onCancelSelect={cd.cancelSelect}
             />
 
             {/* 의료 면책 경고 배너 */}
             <div className="mx-5 mb-4 rounded-md border border-warning/30 bg-warning/10 px-3.5 py-3 text-xs leading-relaxed text-warning">
               ⚠️ 본 챌린지는 처방 이행을 돕는 보조 도구입니다. 부종·호흡곤란·소변량 급감 등 이상 시 즉시 의료진에게 연락하세요.
             </div>
-
-            {/* 필수 일일 체크리스트 */}
-            <DailyChecklist items={cd.checklist} busyKey={cd.checkBusy} onToggle={cd.toggleChecklist} />
 
             {/* 선택 챌린지 */}
             <div className="px-5 pb-10 pt-2">
