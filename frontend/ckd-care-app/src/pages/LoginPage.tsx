@@ -136,8 +136,8 @@ export function LoginPage() {
       <ScreenLabel label="01 · 로그인 (REQ-AUTH-01)" />
       <main className="flex flex-1 items-center justify-center p-[24px] sm:p-[32px]">
         <div className="grid w-full max-w-[1080px] grid-cols-1 items-center gap-[32px] lg:grid-cols-2 lg:gap-[48px]">
-          {/* 좌: 서비스 소개 (넓은 화면 전용) */}
-          <section className="hidden flex-col gap-[28px] lg:flex">
+          {/* 좌: 서비스 소개 (모바일=폼 위 1열, 넓은 화면=좌측) */}
+          <section className="flex flex-col gap-[28px]">
             <div>
               <h2 className="text-3xl font-bold leading-snug text-text-primary">
                 콩팥 건강,
