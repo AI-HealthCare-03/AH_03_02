@@ -283,6 +283,8 @@ class ChallengeService:
                 full_bonus = await self._points.award_checklist_full(user_id, today)
                 if full_bonus > 0:
                     egg_update = await self._eggs.progress_and_check(user_id=user_id)
+            # 전체완료가 깨질 때만 -30 회수. 부분 미체크(원래 미완료)에서도 이 분기에 들어오나,
+            # revoke_checklist_full 은 멱등 — 회수할 CHECKLIST_FULL 보너스가 없으면 0을 반환하므로 안전.
             elif not log.checked and not now_complete:
                 full_bonus = -(await self._points.revoke_checklist_full(user_id, today))
 
