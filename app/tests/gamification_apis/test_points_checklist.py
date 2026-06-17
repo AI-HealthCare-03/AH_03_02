@@ -26,47 +26,45 @@ async def _make_user(email: str = "checklist_pts@test.com") -> User:
 
 
 class TestChecklistItemPoints(TestCase):
-    async def asyncSetUp(self) -> None:
-        self.user = await _make_user()
-
     async def test_item_award_then_idempotent(self) -> None:
+        user = await _make_user()
         svc = PointService()
         # 첫 체크 → +5
         assert (
-            await svc.toggle_checklist_item_points(self.user.id, "medication", TODAY, checked=True)
+            await svc.toggle_checklist_item_points(user.id, "medication", TODAY, checked=True)
             == CHECKLIST_ITEM_POINT
         )
         # 같은 항목 다시 checked=True (멱등) → 0
-        assert await svc.toggle_checklist_item_points(self.user.id, "medication", TODAY, checked=True) == 0
-        assert await PointRepository().get_balance(self.user.id) == CHECKLIST_ITEM_POINT
+        assert await svc.toggle_checklist_item_points(user.id, "medication", TODAY, checked=True) == 0
+        assert await PointRepository().get_balance(user.id) == CHECKLIST_ITEM_POINT
 
     async def test_item_revoke_on_uncheck(self) -> None:
+        user = await _make_user()
         svc = PointService()
-        await svc.toggle_checklist_item_points(self.user.id, "medication", TODAY, checked=True)
+        await svc.toggle_checklist_item_points(user.id, "medication", TODAY, checked=True)
         # 해제 → -5
         assert (
-            await svc.toggle_checklist_item_points(self.user.id, "medication", TODAY, checked=False)
+            await svc.toggle_checklist_item_points(user.id, "medication", TODAY, checked=False)
             == -CHECKLIST_ITEM_POINT
         )
         # 이미 net 0 → 추가 해제는 0
-        assert await svc.toggle_checklist_item_points(self.user.id, "medication", TODAY, checked=False) == 0
-        assert await PointRepository().get_balance(self.user.id) == 0
+        assert await svc.toggle_checklist_item_points(user.id, "medication", TODAY, checked=False) == 0
+        assert await PointRepository().get_balance(user.id) == 0
 
 
 class TestChecklistFullPoints(TestCase):
-    async def asyncSetUp(self) -> None:
-        self.user = await _make_user()
-
     async def test_full_award_then_idempotent(self) -> None:
+        user = await _make_user()
         svc = PointService()
-        assert await svc.award_checklist_full(self.user.id, TODAY) == CHECKLIST_FULL_BONUS
+        assert await svc.award_checklist_full(user.id, TODAY) == CHECKLIST_FULL_BONUS
         # 같은 날 재호출 → 중복 방지 0
-        assert await svc.award_checklist_full(self.user.id, TODAY) == 0
+        assert await svc.award_checklist_full(user.id, TODAY) == 0
 
     async def test_full_revoke(self) -> None:
+        user = await _make_user()
         svc = PointService()
-        await svc.award_checklist_full(self.user.id, TODAY)
-        assert await svc.revoke_checklist_full(self.user.id, TODAY) == CHECKLIST_FULL_BONUS
+        await svc.award_checklist_full(user.id, TODAY)
+        assert await svc.revoke_checklist_full(user.id, TODAY) == CHECKLIST_FULL_BONUS
         # net 0 → 추가 회수 0
-        assert await svc.revoke_checklist_full(self.user.id, TODAY) == 0
-        assert await PointRepository().get_balance(self.user.id) == 0
+        assert await svc.revoke_checklist_full(user.id, TODAY) == 0
+        assert await PointRepository().get_balance(user.id) == 0

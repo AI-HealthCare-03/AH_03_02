@@ -36,13 +36,11 @@ def _wellness_keys() -> list[str]:
 class TestChecklistToggleItemPoint(TestCase):
     """항목 토글 시 +5 적립 검증 (단일 항목, WELLNESS 기본 트랙)."""
 
-    async def asyncSetUp(self) -> None:
-        self.user = await _make_user()
-        self.svc = ChallengeService()
-
     async def test_item_toggle_awards_5(self) -> None:
+        user = await _make_user()
+        svc = ChallengeService()
         keys = _wellness_keys()
-        res = await self.svc.toggle_daily_checklist(self.user.id, keys[0], TODAY)
+        res = await svc.toggle_daily_checklist(user.id, keys[0], TODAY)
         assert res.checked is True
         assert res.points_awarded == 5
         assert res.all_completed is False
@@ -53,55 +51,49 @@ class TestChecklistToggleItemPoint(TestCase):
 class TestChecklistToggleFullCompletion(TestCase):
     """4항목 전체완료 시 +30 보너스 + 알 진행도 +1 검증."""
 
-    async def asyncSetUp(self) -> None:
-        self.user = await _make_user(email="checklist_toggle_full@test.com")
-        self.svc = ChallengeService()
-
     async def test_full_completion_awards_30_and_egg(self) -> None:
+        user = await _make_user(email="checklist_toggle_full@test.com")
+        svc = ChallengeService()
         keys = _wellness_keys()
         # 처음 3개 체크 → 보너스 없음
         for k in keys[:-1]:
-            await self.svc.toggle_daily_checklist(self.user.id, k, TODAY)
+            await svc.toggle_daily_checklist(user.id, k, TODAY)
         # 마지막 항목 체크 → 전체완료: 항목 +5 + 보너스 +30 = 35, 알 +1
-        res = await self.svc.toggle_daily_checklist(self.user.id, keys[-1], TODAY)
+        res = await svc.toggle_daily_checklist(user.id, keys[-1], TODAY)
         assert res.all_completed is True
         assert res.full_bonus_awarded == 30
         assert res.points_awarded == 35
         assert res.egg is not None
         assert res.egg.progress_checkins == 1
         # 잔액 = 5*4 + 30
-        assert await PointRepository().get_balance(self.user.id) == 50
+        assert await PointRepository().get_balance(user.id) == 50
 
 
 class TestChecklistToggleBreakCompletion(TestCase):
     """전체완료 후 한 항목 해제 → -35 포인트, 알 유지 검증."""
 
-    async def asyncSetUp(self) -> None:
-        self.user = await _make_user(email="checklist_toggle_break@test.com")
-        self.svc = ChallengeService()
-
     async def test_break_completion_revokes_30_keeps_egg(self) -> None:
+        user = await _make_user(email="checklist_toggle_break@test.com")
+        svc = ChallengeService()
         keys = _wellness_keys()
         for k in keys:
-            await self.svc.toggle_daily_checklist(self.user.id, k, TODAY)
-        bal_full = await PointRepository().get_balance(self.user.id)  # 50
+            await svc.toggle_daily_checklist(user.id, k, TODAY)
+        bal_full = await PointRepository().get_balance(user.id)  # 50
         # 한 항목 해제 → 항목 -5 + 보너스 -30 = -35
-        res = await self.svc.toggle_daily_checklist(self.user.id, keys[-1], TODAY)
+        res = await svc.toggle_daily_checklist(user.id, keys[-1], TODAY)
         assert res.checked is False
         assert res.all_completed is False
         assert res.points_awarded == -35
-        assert await PointRepository().get_balance(self.user.id) == bal_full - 35  # 15
+        assert await PointRepository().get_balance(user.id) == bal_full - 35  # 15
         # 알 진행도는 유지(되돌리지 않음) — 새 알 progress_checkins == 1 그대로
 
 
 class TestChecklistToggleInvalidKey(TestCase):
     """잘못된 item_key → 400 예외 검증."""
 
-    async def asyncSetUp(self) -> None:
-        self.user = await _make_user(email="checklist_toggle_invalid@test.com")
-        self.svc = ChallengeService()
-
     async def test_invalid_item_key_400(self) -> None:
+        user = await _make_user(email="checklist_toggle_invalid@test.com")
+        svc = ChallengeService()
         with pytest.raises(HTTPException) as exc_info:
-            await self.svc.toggle_daily_checklist(self.user.id, "__nope__", TODAY)
+            await svc.toggle_daily_checklist(user.id, "__nope__", TODAY)
         assert exc_info.value.status_code == 400
