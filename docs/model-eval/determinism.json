@@ -1,0 +1,21 @@
+{
+  "results": [
+    {
+      "model": "model1 (임상 42피처)",
+      "n_samples": 200,
+      "n_repeats": 20,
+      "max_std": 0.0,
+      "mean_std": 0.0,
+      "deterministic": true
+    },
+    {
+      "model": "model2 (생활습관 24피처)",
+      "n_samples": 200,
+      "n_repeats": 20,
+      "max_std": 0.0,
+      "mean_std": 0.0,
+      "deterministic": true
+    }
+  ],
+  "all_deterministic": true
+}

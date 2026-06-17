@@ -70,11 +70,24 @@ test set: **8,964건 중 CKD 양성 357건 (양성률 3.98%)** — 임상적으�
 | 2개 이상 성능 지표 | ✅ ROC-AUC · PR-AUC · Brier + recall/precision/F1 |
 | 실험 비교 결과 제시 | ✅ 모델1 vs 모델2 정량 비교 + 임계값 정책 2종 비교 |
 
-## 7. 재현 방법
+## 7. 재현성 검증 — 동일 입력 결과 편차 (평가 3-3)
+
+산출물(predictor·threshold·train_stats) 동결 + 전처리 순수함수 + 학습 시드 고정(`src/ckd/train.py` `SEED=42`)으로 **동일 입력은 항상 동일 출력**을 낸다. test 샘플 200건을 각 **20회 반복 예측**해 정량 검증했다.
+
+| 모델 | 반복 | 샘플 | 최대 표준편차 | 결정론 |
+|---|---:|---:|---:|:---:|
+| 모델1 (임상 42) | 20회 | 200건 | **0.0** | ✅ |
+| 모델2 (생활습관 24) | 20회 | 200건 | **0.0** | ✅ |
+
+- 모든 샘플의 반복 예측 표준편차가 **0** → 완전 결정론(편차 없음)
+- 검증 스크립트: `scripts/check_determinism.py` (산출물 [`determinism.json`](determinism.json))
+- RAG 챗봇(LLM)은 `temperature=0`으로 편차 최소화(ADR-0005)하나 bit-identical 보장 범위는 아님
+
+## 8. 재현 방법
 
 ```bash
 # AutoGluon은 Python 3.11 필요 → 학습 전용 venv 사용
 CKD_DATA_DIR=<train/val/test_final_v2.csv 디렉토리> \
-  .venv-train/bin/python scripts/eval_ckd_models.py
-# → stdout 표 + docs/model-eval/result.json
+  .venv-train/bin/python scripts/eval_ckd_models.py        # 성능 지표 + result.json
+  .venv-train/bin/python scripts/check_determinism.py      # 재현성 + determinism.json
 ```
