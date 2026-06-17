@@ -182,3 +182,15 @@ class DailyChecklistResponse(BaseSerializerModel):
     date: date  # YYYY-MM-DD
     track: ChallengeTrack
     items: list[DailyChecklistItemResponse]
+
+
+class ChecklistToggleResponse(BaseSerializerModel):
+    """필수체크 항목 토글 응답 — 포인트·알 적립 결과 포함."""
+
+    item_key: str
+    text: str
+    checked: bool
+    points_awarded: int  # 이번 토글 순변동 (+5 / +35 / -5 / -35 / 0)
+    all_completed: bool  # 토글 후 트랙 필수항목 전체완료 여부
+    full_bonus_awarded: int  # 이번에 새로 지급된 전체완료 보너스 (0 또는 30)
+    egg: EggUpdateResponse | None = None  # 전체완료로 알이 진행됐을 때만
