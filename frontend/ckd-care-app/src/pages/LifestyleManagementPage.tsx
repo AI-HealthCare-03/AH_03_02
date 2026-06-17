@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { FileText, ListChecks, ChevronRight } from "lucide-react";
+import { FileText, ListChecks, ChevronRight, ChevronLeft } from "lucide-react";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 
@@ -12,6 +12,14 @@ export function LifestyleManagementPage() {
       <TopNav />
 
       <main className="flex flex-1 flex-col gap-[24px] p-[32px]">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="flex w-fit items-center gap-[4px] rounded-md px-[10px] py-[6px] text-sm font-bold text-text-secondary hover:bg-bg"
+        >
+          <ChevronLeft size={18} />
+          뒤로
+        </button>
         <div>
           <h1 className="text-2xl font-bold text-text-primary">생활습관 설문 관리</h1>
           <p className="mt-[4px] text-sm text-text-secondary">
