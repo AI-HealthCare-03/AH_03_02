@@ -96,9 +96,12 @@ export function TopNav({ brand = "CKD CARE" }: TopNavProps) {
         </Link>
         <Link
           to="/mypage"
-          className="flex h-[36px] w-[36px] items-center justify-center rounded-md text-text-secondary hover:bg-bg-alt"
+          className="flex h-[36px] items-center gap-[4px] rounded-md px-[8px] text-text-secondary hover:bg-bg-alt"
+          aria-label="내정보"
+          title="내정보"
         >
           <User size={20} />
+          <span className="hidden text-sm font-bold md:inline">내정보</span>
         </Link>
       </div>
     </nav>

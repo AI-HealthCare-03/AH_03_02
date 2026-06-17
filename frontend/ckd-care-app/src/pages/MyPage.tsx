@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Heart, ClipboardList, Bell, Settings, Headphones, LogOut, KeyRound, UserX } from "lucide-react";
+import { Heart, ClipboardList, Bell, Settings, Headphones, LogOut, KeyRound, UserX, UserCog } from "lucide-react";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 import { Tag } from "../components/Tag";
@@ -27,6 +27,66 @@ export function MyPage() {
   const [deletePassword, setDeletePassword] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // 회원정보 수정 상태 (팀원 피드백 #2 — 이름·생년월일·전화번호)
+  const [profileForm, setProfileForm] = useState({ name: "", birthday: "", phone_number: "" });
+  const [profileError, setProfileError] = useState("");
+  const [profileSuccess, setProfileSuccess] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  // user 정보 로드 후 폼 초기값 세팅
+  useEffect(() => {
+    if (user) {
+      setProfileForm({
+        name: user.name ?? "",
+        birthday: user.birthday ?? "",
+        phone_number: user.phone_number ?? "",
+      });
+    }
+  }, [user]);
+
+  // 숫자만 → 010-1234-5678 자동 포맷팅
+  function formatPhone(raw: string): string {
+    const d = raw.replace(/\D/g, "").slice(0, 11);
+    if (d.length < 4) return d;
+    if (d.length < 8) return `${d.slice(0, 3)}-${d.slice(3)}`;
+    return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
+  }
+
+  // 숫자만 → YYYY-MM-DD 자동 포맷팅
+  function formatBirth(raw: string): string {
+    const d = raw.replace(/\D/g, "").slice(0, 8);
+    if (d.length <= 4) return d;
+    if (d.length <= 6) return `${d.slice(0, 4)}-${d.slice(4)}`;
+    return `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6)}`;
+  }
+
+  async function handleProfileSave() {
+    if (!profileForm.name || !profileForm.birthday || !profileForm.phone_number) {
+      setProfileError("모든 항목을 입력해주세요."); return;
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(profileForm.birthday)) {
+      setProfileError("생년월일은 YYYY-MM-DD 형식이어야 합니다 (예: 19990101)."); return;
+    }
+    if (!/^\d{10,11}$/.test(profileForm.phone_number.replace(/-/g, ""))) {
+      setProfileError("전화번호는 숫자 10~11자리로 입력해주세요."); return;
+    }
+    setProfileError("");
+    setProfileLoading(true);
+    try {
+      await authApi.updateMe({
+        name: profileForm.name,
+        birthday: profileForm.birthday,
+        phone_number: profileForm.phone_number,
+      });
+      setProfileSuccess(true);
+      setTimeout(() => setProfileSuccess(false), 3000);
+    } catch (e) {
+      setProfileError(e instanceof Error ? e.message : "회원정보 수정에 실패했습니다.");
+    } finally {
+      setProfileLoading(false);
+    }
+  }
 
   async function handleLogout() {
     try { await authApi.logout(); } catch { /* 서버 오류여도 클라이언트 로그아웃 진행 */ }
@@ -148,6 +208,45 @@ export function MyPage() {
 
           {panel === "account" && (
             <div className="flex flex-col gap-[16px]">
+              {/* 회원정보 수정 (팀원 피드백 #2) */}
+              <div className="rounded-lg border border-border bg-bg shadow-card p-[24px]">
+                <h2 className="mb-[16px] flex items-center gap-[8px] text-lg font-bold text-text-primary">
+                  <UserCog size={20} />
+                  회원정보 수정
+                </h2>
+                <div className="flex flex-col gap-[12px]">
+                  <TextInput
+                    label="이름"
+                    placeholder="홍길동"
+                    value={profileForm.name}
+                    onChange={(e) => setProfileForm((p) => ({ ...p, name: e.target.value }))}
+                  />
+                  <TextInput
+                    label="생년월일"
+                    placeholder="YYYY-MM-DD"
+                    value={profileForm.birthday}
+                    onChange={(e) => setProfileForm((p) => ({ ...p, birthday: formatBirth(e.target.value) }))}
+                    inputMode="numeric"
+                    maxLength={10}
+                  />
+                  <TextInput
+                    label="전화번호"
+                    placeholder="010-1234-5678"
+                    value={profileForm.phone_number}
+                    onChange={(e) => setProfileForm((p) => ({ ...p, phone_number: formatPhone(e.target.value) }))}
+                    inputMode="tel"
+                    maxLength={13}
+                  />
+                  {profileError && (
+                    <p className="rounded-sm bg-danger/10 px-[12px] py-[8px] text-sm text-danger">{profileError}</p>
+                  )}
+                  {profileSuccess && (
+                    <p className="rounded-sm bg-success/10 px-[12px] py-[8px] text-sm text-success">회원정보가 수정되었습니다.</p>
+                  )}
+                  <BtnPrimary label="회원정보 수정" loading={profileLoading} onClick={handleProfileSave} />
+                </div>
+              </div>
+
               {/* 비밀번호 변경 */}
               <div className="rounded-lg border border-border bg-bg shadow-card p-[24px]">
                 <h2 className="mb-[16px] flex items-center gap-[8px] text-lg font-bold text-text-primary">
