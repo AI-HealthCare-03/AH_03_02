@@ -1,0 +1,82 @@
+{
+  "test_set": "test_final_v2.csv",
+  "n_test": 8964,
+  "results": [
+    {
+      "model": "model1 (임상 마커 42피처)",
+      "n_features": 42,
+      "n_test": 8964,
+      "positive": 357,
+      "positive_rate": 0.0398,
+      "roc_auc": 0.9023,
+      "pr_auc": 0.3513,
+      "brier": 0.0309,
+      "operating_points": {
+        "youden(val)": {
+          "threshold": 0.061,
+          "recall": 0.8403,
+          "precision": 0.158,
+          "f1": 0.266,
+          "accuracy": 0.8153,
+          "confusion": {
+            "tn": 7008,
+            "fp": 1599,
+            "fn": 57,
+            "tp": 300
+          }
+        },
+        "recall>=0.88(val)": {
+          "threshold": 0.055,
+          "recall": 0.8627,
+          "precision": 0.1502,
+          "f1": 0.2559,
+          "accuracy": 0.8002,
+          "confusion": {
+            "tn": 6865,
+            "fp": 1742,
+            "fn": 49,
+            "tp": 308
+          }
+        }
+      }
+    },
+    {
+      "model": "model2 (생활습관 24피처)",
+      "n_features": 24,
+      "n_test": 8964,
+      "positive": 357,
+      "positive_rate": 0.0398,
+      "roc_auc": 0.8828,
+      "pr_auc": 0.2951,
+      "brier": 0.0326,
+      "operating_points": {
+        "youden(val)": {
+          "threshold": 0.052,
+          "recall": 0.8207,
+          "precision": 0.1415,
+          "f1": 0.2415,
+          "accuracy": 0.7946,
+          "confusion": {
+            "tn": 6830,
+            "fp": 1777,
+            "fn": 64,
+            "tp": 293
+          }
+        },
+        "recall>=0.88(val)": {
+          "threshold": 0.04,
+          "recall": 0.8711,
+          "precision": 0.1246,
+          "f1": 0.218,
+          "accuracy": 0.7511,
+          "confusion": {
+            "tn": 6422,
+            "fp": 2185,
+            "fn": 46,
+            "tp": 311
+          }
+        }
+      }
+    }
+  ]
+}
