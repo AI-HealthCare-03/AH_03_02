@@ -24,6 +24,11 @@ SELFHARM_RESPONSE = (
     "혼자 견디지 마시고 전문가의 도움을 받으시길 바랍니다."
 )
 HARM_OTHERS_RESPONSE = "전문 상담을 권합니다. 자살예방상담 1393으로 연락하세요."
+EMOTIONAL_RESPONSE = (
+    "많이 힘드셨겠어요. 만성콩팥병을 관리하면서 우울하거나 지치는 감정을 느끼는 것은 드문 일이 아닙니다. "
+    "마음이 힘든 시간이 계속 이어진다면 가까운 사람이나 전문가와 이야기를 나누는 것이 도움이 될 수 있어요. "
+    "상담이 필요하시면 정신건강 상담전화(1577-0199)도 있습니다."
+)
 MEDICATION_RESPONSE = (
     "약물 변경·복용은 반드시 처방의 또는 약사와 상담하세요. 본 서비스는 약물 가이드를 제공하지 않습니다."
 )
@@ -56,6 +61,8 @@ _EMERGENCY = re.compile(
     r"응급실|119)"
 )
 _SELFHARM = re.compile(r"(자살|자해|죽고\s*싶|살기\s*싫|목\s*(을\s*)?매|손목\s*(을\s*)?긋|뛰어내리)")
+# 정서적 고통 — 위기(자해)와 분리. 단독 "힘들다"는 과탐지 우려로 제외; 한정어 필요.
+_EMOTIONAL = re.compile(r"(우울|너무\s*힘들|마음이\s*힘들|많이\s*지쳐|기운이\s*없어|살기\s*버거)")
 _HARM_OTHERS = re.compile(r"(죽이고\s*싶|해치고\s*싶|죽여\s*버리)")
 # 약물 변경·복용 의도 (약/약물 + 변경·중단·복용 동사) + 자가 용량조절(분리 표현, 2026-06-04 E2E 발견)
 _MEDICATION = re.compile(
@@ -95,6 +102,8 @@ def pre_retrieval_guard(query: str, user_context: dict | None = None) -> str | N
         return EMERGENCY_RESPONSE
     if _SELFHARM.search(query):
         return SELFHARM_RESPONSE
+    if _EMOTIONAL.search(query):
+        return EMOTIONAL_RESPONSE
     if _HARM_OTHERS.search(query):
         return HARM_OTHERS_RESPONSE
     if _MEDICATION.search(query) or _NEPHROTOXIC.search(query):
