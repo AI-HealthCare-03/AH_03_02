@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, ChevronLeft } from "lucide-react";
 import { TopNav } from "../components/TopNav";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { BtnPrimary } from "../components/BtnPrimary";
@@ -53,6 +53,14 @@ export function LifestyleSurveyHistoryPage() {
       <TopNav />
 
       <main className="flex flex-1 flex-col gap-[16px] p-[32px]">
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="flex w-fit items-center gap-[4px] rounded-md px-[10px] py-[6px] text-sm font-bold text-text-secondary hover:bg-bg"
+        >
+          <ChevronLeft size={18} />
+          뒤로
+        </button>
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-text-primary">생활습관 문진 이력</h1>
           <BtnPrimary label="+ 새 문진 작성" onClick={() => navigate("/lifestyle-survey")} />
