@@ -79,6 +79,25 @@ class HealthCheckRepository:
         deleted = await HealthCheck.filter(id=health_check_id, user_id=user_id).delete()
         return deleted > 0
 
+    async def delete_all_by_user(self, user_id: int) -> int:
+        """본인 검진 전부 삭제. 삭제된 행 수 반환."""
+        return await HealthCheck.filter(user_id=user_id).delete()
+
+    async def update_by_id(
+        self,
+        health_check_id: int,
+        user_id: int,
+        **fields,
+    ) -> HealthCheck | None:
+        """단건 부분 업데이트 — user_id 조건으로 타인 소유분 보호."""
+        hc = await HealthCheck.get_or_none(id=health_check_id, user_id=user_id)
+        if hc is None:
+            return None
+        for key, value in fields.items():
+            setattr(hc, key, value)
+        await hc.save()
+        return hc
+
     async def update_prediction(
         self,
         health_check_id: int,

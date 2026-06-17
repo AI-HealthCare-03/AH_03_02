@@ -205,6 +205,10 @@ export const healthCheckApi = {
     api.get<ReportResponse>(`/health-checks/${id}/report`),
   delete: (id: number) =>
     api.delete<void>(`/health-checks/${id}`),
+  update: (id: number, body: HealthCheckCreateRequest) =>
+    api.patch<HealthCheckResponse>(`/health-checks/${id}`, body),
+  deleteAll: () =>
+    api.delete<{ deleted_count: number }>("/health-checks"),
   ocrExtract: (file: File) => {
     const fd = new FormData();
     fd.append("file", file);

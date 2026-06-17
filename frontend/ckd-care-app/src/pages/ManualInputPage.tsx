@@ -82,7 +82,10 @@ export function ManualInputPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const prefill = (location.state as { prefill?: HealthCheckResponse } | null)?.prefill;
+  // prefill에 isEdit=true 플래그가 있으면 update 모드 (CheckupHistoryPage 수정 진입)
+  const navState = location.state as { prefill?: HealthCheckResponse; isEdit?: boolean } | null;
+  const prefill = navState?.prefill;
+  const isEditMode = Boolean(navState?.isEdit && prefill?.id);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -148,7 +151,7 @@ export function ManualInputPage() {
     setError(""); setWarning("");
     setLoading(true);
     try {
-      const res = await healthCheckApi.create({
+      const payload = {
         checked_date: form.checked_date,
         height: parseFloat(form.height),
         weight: parseFloat(form.weight),
@@ -166,7 +169,10 @@ export function ManualInputPage() {
         alt: toNum(form.alt),
         urine_protein: urineProtein || null,
         urine_glucose: urineGlucose || null,
-      });
+      };
+      const res = isEditMode && prefill?.id
+        ? await healthCheckApi.update(prefill.id, payload)
+        : await healthCheckApi.create(payload);
       if (res.safety_warning) {
         setWarning(res.safety_warning);
       } else {
@@ -208,7 +214,7 @@ export function ManualInputPage() {
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h1 className="text-2xl font-bold text-text-primary">
-            {prefill ? "건강검진 수치 재입력" : "건강검진 수치 입력"}
+            {isEditMode ? "건강검진 수치 수정" : prefill ? "건강검진 수치 재입력" : "건강검진 수치 입력"}
           </h1>
           <TextInput
             label="검진일"
