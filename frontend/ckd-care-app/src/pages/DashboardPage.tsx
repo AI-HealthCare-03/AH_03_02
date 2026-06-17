@@ -648,11 +648,13 @@ export function DashboardPage() {
           <div className="lg:col-span-2">
             <MonthCalendarWidget />
           </div>
-          {/* 우: 카테고리별 라디알 미니 + 최신 건강지표 (좌 달력 높이에 맞춰 채움) */}
+          {/* 우: 카테고리별 라디알 미니(좌 달력 높이에 맞춰 확장) + 최신 건강지표 */}
           <div className="flex flex-col gap-[16px] lg:col-span-3">
-            <RadialMiniWidget />
+            <div className="lg:flex-1">
+              <RadialMiniWidget />
+            </div>
             {h && (
-              <div className="grid grid-cols-2 gap-[16px] sm:grid-cols-4 lg:flex-1">
+              <div className="grid grid-cols-2 gap-[16px] sm:grid-cols-4">
                 {[
                   { label: "혈압", value: `${h.systolic_bp}/${h.diastolic_bp}`, unit: "mmHg" },
                   { label: "공복혈당", value: String(h.fasting_glucose), unit: "mg/dL" },
