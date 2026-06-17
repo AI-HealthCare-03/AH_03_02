@@ -12,9 +12,11 @@ import {
   ReferenceLine,
   CartesianGrid,
 } from "recharts";
+import { Navigate } from "react-router-dom";
 import { TopNav } from "../components/TopNav";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { BtnSecondary } from "../components/BtnSecondary";
+import { useDiagnosed } from "../hooks/useDiagnosed";
 import {
   healthCheckApi,
   ShapItem1,
@@ -978,6 +980,9 @@ function SectionHeading({ title, subtitle }: { title: string; subtitle?: string 
 
 // ===== 메인 페이지 =====
 export function LLMActionGuidePage() {
+  // 진단자는 예측·리포트 비대상 → 대시보드 리다이렉트 (탭 제거 + 직접 URL 접근 차단)
+  const { diagnosed, isLoading: diagnosedLoading } = useDiagnosed();
+
   // 1단계: 최신 검진 ID 조회
   const {
     data: listData,
@@ -1060,6 +1065,9 @@ export function LLMActionGuidePage() {
   const guidePending = !isComputing && !hasGuide && !guideTimedOut;
 
   // SHAP은 모델이 쓰는 전체 변수의 기여도를 보여준다(임상 상세표=앱 측정값과 별개 뷰).
+
+  // 진단자 가드: 로딩이 끝나고 진단자로 확정되면 리포트를 보여주지 않고 대시보드로 보낸다.
+  if (!diagnosedLoading && diagnosed) return <Navigate to="/dashboard" replace />;
 
   return (
     <div className="flex min-h-screen flex-col bg-bg-alt">
