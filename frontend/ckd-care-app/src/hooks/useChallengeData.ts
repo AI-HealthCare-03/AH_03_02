@@ -73,6 +73,7 @@ export function useChallengeData() {
     queryClient.invalidateQueries({ queryKey: ["challenges"], refetchType: "all" });
     queryClient.invalidateQueries({ queryKey: ["dashboard"], refetchType: "all" });
     queryClient.invalidateQueries({ queryKey: ["points", "balance"], refetchType: "all" }); // TopNav 포인트 갱신
+    queryClient.invalidateQueries({ queryKey: ["gamification", "mascot"], refetchType: "all" }); // EggWidget 갱신
   }
 
   // challenge.id → 내 user_challenge 매핑 (ACTIVE + 오늘 체크인한 COMPLETED 포함)
