@@ -17,6 +17,7 @@ from app.dtos.challenge import (
     DailyChecklistResponse,
     HeatmapResponse,
     JoinChallengeRequest,
+    MonthlyCalendarResponse,
     MyTrackResponse,
     UpdateMyTrackRequest,
     UserChallengeListResponse,
@@ -288,4 +289,20 @@ async def get_heatmap(
     weeks: Annotated[int, Query(ge=1, le=52)] = 26,
 ) -> Response:
     result = await service.get_heatmap(user_id=user.id, weeks=weeks)
+    return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
+
+
+@challenge_router.get(
+    "/calendar",
+    response_model=MonthlyCalendarResponse,
+    status_code=status.HTTP_200_OK,
+    summary="월별 달성 달력",
+    description="날짜별 달성 단계(none/basic/silver/gold)와 월 통계. year_month 미지정 시 당월.",
+)
+async def get_monthly_calendar(
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[ChallengeService, Depends(ChallengeService)],
+    year_month: Annotated[str | None, Query(description="YYYY-MM, 미지정 시 당월")] = None,
+) -> Response:
+    result = await service.get_monthly_calendar(user_id=user.id, year_month=year_month)
     return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)

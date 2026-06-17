@@ -159,6 +159,24 @@ export interface DailyChecklistToggleResult {
   egg: EggUpdate | null;
 }
 
+// ── 월별 달력 타입 ────────────────────────────────────────────────────────────
+export type CalendarLevel = "none" | "basic" | "silver" | "gold";
+
+export interface CalendarDay {
+  date: string; // YYYY-MM-DD
+  required: boolean;
+  selected_count: number;
+  level: CalendarLevel;
+}
+
+export interface MonthlyCalendarResponse {
+  year_month: string;
+  days: CalendarDay[];
+  achieved_days: number;
+  gold_days: number;
+  max_streak: number;
+}
+
 // ── challengeApi ─────────────────────────────────────────────────────────────
 export const challengeApi = {
   // ── 신버전 (트랙·스테이지·필수체크) ─────────────────────────────────────
@@ -185,6 +203,8 @@ export const challengeApi = {
   heatmap: (weeks = 26) => api.get<HeatmapResponse>(`/challenges/heatmap?weeks=${weeks}`),
   categoryProgress: () => api.get<CategoryProgressResponse>("/challenges/category-progress"),
   weeklyEmotion: () => api.get<WeeklyEmotionResponse>("/challenges/weekly-emotion"),
+  calendar: (yearMonth?: string) =>
+    api.get<MonthlyCalendarResponse>(`/challenges/calendar${yearMonth ? `?year_month=${yearMonth}` : ""}`),
 };
 
 // ── 감정 이모지 (기존 유지) ────────────────────────────────────────────────
