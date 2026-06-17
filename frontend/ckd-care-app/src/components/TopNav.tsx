@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../contexts/AuthContext";
+import { useDiagnosed } from "../hooks/useDiagnosed";
 import { notificationApi } from "../api/notification";
 import { pointsApi } from "../api/gamification";
 
@@ -12,6 +13,7 @@ interface TopNavProps {
 
 export function TopNav({ brand = "CKD CARE" }: TopNavProps) {
   const { token, user } = useAuth();
+  const { diagnosed } = useDiagnosed();
   const location = useLocation();
   const [unread, setUnread] = useState(0);
   // 포인트 잔액은 React Query로 — 체크인/완료취소/해제 후 무효화(["points","balance"])하면 즉시 갱신.
@@ -27,9 +29,10 @@ export function TopNav({ brand = "CKD CARE" }: TopNavProps) {
     notificationApi.list(true, 1).then((r) => setUnread(r.unread_count)).catch(() => {});
   }, [token, location.pathname]);
 
+  // 진단자는 예측·리포트 비대상 → 리포트 탭 제외
   const navItems = [
     { to: "/dashboard", icon: LayoutDashboard, label: "대시보드" },
-    { to: "/llm-guide", icon: FileBarChart, label: "리포트" },
+    ...(diagnosed ? [] : [{ to: "/llm-guide", icon: FileBarChart, label: "리포트" }]),
     { to: "/challenge", icon: Trophy, label: "챌린지" },
     { to: "/collection", icon: Sparkles, label: "컬렉션" },
     { to: "/rag-chatbot", icon: Bot, label: "AI 챗봇" },
