@@ -24,6 +24,8 @@ FULL_PARTICIPATION_BONUS = 40
 LOGIN_BONUS = 10
 LUCKY_PROBABILITY = 0.10
 STREAK_THRESHOLDS: dict[int, int] = {3: 30, 7: 70, 14: 150, 30: 300}
+CHECKLIST_ITEM_POINT = 5
+CHECKLIST_FULL_BONUS = 30
 
 
 @dataclass
@@ -224,3 +226,76 @@ class PointService:
                 },
             )
         return total_revoke
+
+    async def _checklist_item_net(self, user_id: int, item_key: str, today: date) -> int:
+        """당일 그 항목의 CHECKLIST_ITEM 순합(적립-회수). >0이면 적립 살아있음."""
+        day_start = datetime.combine(today, time.min)
+        day_end = day_start + timedelta(days=1)
+        rows = await PointTransaction.filter(
+            user_id=user_id,
+            reason=PointReason.CHECKLIST_ITEM,
+            created_at__gte=day_start,
+            created_at__lt=day_end,
+            extra__contains={"item_key": item_key},
+        ).values("amount")
+        return sum(r["amount"] for r in rows)
+
+    async def toggle_checklist_item_points(self, user_id: int, item_key: str, today: date, *, checked: bool) -> int:
+        """필수 체크리스트 항목 토글에 따른 +5 적립 / -5 회수. 멱등.
+
+        반환: +5(적립) / -5(회수) / 0(무변동).
+        """
+        net = await self._checklist_item_net(user_id, item_key, today)
+        if checked and net <= 0:
+            await self._points.create_transaction(
+                user_id=user_id,
+                amount=CHECKLIST_ITEM_POINT,
+                reason=PointReason.CHECKLIST_ITEM,
+                extra={"item_key": item_key, "date": today.isoformat()},
+            )
+            return CHECKLIST_ITEM_POINT
+        if not checked and net > 0:
+            await self._points.create_transaction(
+                user_id=user_id,
+                amount=-CHECKLIST_ITEM_POINT,
+                reason=PointReason.CHECKLIST_ITEM,
+                extra={"item_key": item_key, "date": today.isoformat(), "revoke": True},
+            )
+            return -CHECKLIST_ITEM_POINT
+        return 0
+
+    async def _checklist_full_net(self, user_id: int, today: date) -> int:
+        """당일 CHECKLIST_FULL 순합. >0이면 전체완료 보너스 살아있음."""
+        day_start = datetime.combine(today, time.min)
+        day_end = day_start + timedelta(days=1)
+        rows = await PointTransaction.filter(
+            user_id=user_id,
+            reason=PointReason.CHECKLIST_FULL,
+            created_at__gte=day_start,
+            created_at__lt=day_end,
+        ).values("amount")
+        return sum(r["amount"] for r in rows)
+
+    async def award_checklist_full(self, user_id: int, today: date) -> int:
+        """필수 체크리스트 전체완료 보너스 +30. 당일 1회. 반환: 30 또는 0."""
+        if await self._checklist_full_net(user_id, today) <= 0:
+            await self._points.create_transaction(
+                user_id=user_id,
+                amount=CHECKLIST_FULL_BONUS,
+                reason=PointReason.CHECKLIST_FULL,
+                extra={"date": today.isoformat()},
+            )
+            return CHECKLIST_FULL_BONUS
+        return 0
+
+    async def revoke_checklist_full(self, user_id: int, today: date) -> int:
+        """전체완료 깨짐 시 보너스 -30 회수. 반환: 30(회수액) 또는 0."""
+        if await self._checklist_full_net(user_id, today) > 0:
+            await self._points.create_transaction(
+                user_id=user_id,
+                amount=-CHECKLIST_FULL_BONUS,
+                reason=PointReason.CHECKLIST_FULL,
+                extra={"date": today.isoformat(), "revoke": True},
+            )
+            return CHECKLIST_FULL_BONUS
+        return 0
