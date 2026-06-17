@@ -6,6 +6,7 @@ from tortoise.transactions import in_transaction
 
 from app.dtos.challenge import (
     AbandonChallengeResponse,
+    CalendarDay,
     CancelCheckinResponse,
     CategoryProgress,
     CategoryProgressResponse,
@@ -21,6 +22,7 @@ from app.dtos.challenge import (
     HeatmapDay,
     HeatmapResponse,
     JoinChallengeRequest,
+    MonthlyCalendarResponse,
     MyTrackResponse,
     TrackCategoryInfo,
     UserChallengeListResponse,
@@ -500,6 +502,113 @@ class ChallengeService:
             cur += timedelta(days=1)
 
         return HeatmapResponse(weeks=weeks, today=today, days=days, max_count=max_count)
+
+    @staticmethod
+    async def _calendar_checked_by_date(user_id: int, start: date, end: date) -> dict[date, set]:
+        """월 범위 내 checked=True 필수항목을 날짜→item_key set으로 집계."""
+        from app.models.challenge import DailyChecklistLog
+
+        logs = await DailyChecklistLog.filter(
+            user_id=user_id, log_date__gte=start, log_date__lte=end, checked=True
+        ).values("log_date", "item_key")
+        result: dict[date, set] = {}
+        for lg in logs:
+            result.setdefault(lg["log_date"], set()).add(lg["item_key"])
+        return result
+
+    @staticmethod
+    async def _calendar_selected_by_date(user_id: int, start: date, end: date) -> dict[date, set]:
+        """월 범위 내 선택 체크인 net>0 카테고리를 날짜→category set으로 집계."""
+        from datetime import datetime, time
+
+        from app.models.challenge import Challenge
+        from app.models.gamification import PointReason, PointTransaction
+
+        start_dt = datetime.combine(start, time.min)
+        end_dt = datetime.combine(end, time.max)
+        rows = await PointTransaction.filter(
+            user_id=user_id,
+            reason__in=[PointReason.CHECKIN, PointReason.LUCKY, PointReason.CHECKIN_CANCEL],
+            created_at__gte=start_dt,
+            created_at__lte=end_dt,
+        ).values("created_at", "reason", "extra")
+        cids = {
+            r["extra"].get("challenge_id")
+            for r in rows
+            if isinstance(r["extra"], dict) and r["extra"].get("challenge_id")
+        }
+        cat_by_cid: dict[int, str] = {}
+        if cids:
+            chs = await Challenge.filter(id__in=list(cids)).values("id", "category")
+            cat_by_cid = {c["id"]: c["category"] for c in chs}
+        net: dict[tuple, int] = {}
+        for r in rows:
+            extra = r["extra"] if isinstance(r["extra"], dict) else {}
+            cat = cat_by_cid.get(extra.get("challenge_id"))
+            if not cat:
+                continue
+            d = r["created_at"].date()
+            delta = -1 if r["reason"] == PointReason.CHECKIN_CANCEL else 1
+            net[(d, cat)] = net.get((d, cat), 0) + delta
+        result: dict[date, set] = {}
+        for (d, cat), v in net.items():
+            if v > 0:
+                result.setdefault(d, set()).add(cat)
+        return result
+
+    async def get_monthly_calendar(self, user_id: int, year_month: str | None = None) -> MonthlyCalendarResponse:
+        """월별 달성 달력 — 날짜별 required(필수 체크 전부)·selected_count(카테고리별 체크인)·level.
+
+        기존 로그(DailyChecklistLog + PointTransaction) 월 범위 1회 조회 후 메모리 집계. 마스코트 불변.
+        """
+        today = date.today()
+        if year_month:
+            y, m = (int(p) for p in year_month.split("-"))
+        else:
+            y, m = today.year, today.month
+        start = date(y, m, 1)
+        end = (date(y + 1, 1, 1) if m == 12 else date(y, m + 1, 1)) - timedelta(days=1)
+
+        profile = await self._profile_repo.get_by_user(user_id)
+        track = profile.track if profile else ChallengeTrack.WELLNESS
+        track_key = track.value if hasattr(track, "value") else str(track)
+        required_count = len(REQUIRED_CHECKLIST.get(track_key, []))
+
+        checked_by_date = await self._calendar_checked_by_date(user_id, start, end)
+        selected_by_date = await self._calendar_selected_by_date(user_id, start, end)
+
+        days: list[CalendarDay] = []
+        achieved = gold = streak = max_streak = 0
+        cur = start
+        while cur <= end:
+            req = required_count > 0 and len(checked_by_date.get(cur, set())) >= required_count
+            sel_count = len(selected_by_date.get(cur, set()))
+            if not req:
+                level = "none"
+            elif sel_count == 0:
+                level = "basic"
+            elif sel_count <= 2:
+                level = "silver"
+            else:
+                level = "gold"
+            days.append(CalendarDay(date=cur, required=req, selected_count=sel_count, level=level))
+            if level != "none":
+                achieved += 1
+                streak += 1
+                max_streak = max(max_streak, streak)
+            else:
+                streak = 0
+            if level == "gold":
+                gold += 1
+            cur += timedelta(days=1)
+
+        return MonthlyCalendarResponse(
+            year_month=f"{y:04d}-{m:02d}",
+            days=days,
+            achieved_days=achieved,
+            gold_days=gold,
+            max_streak=max_streak,
+        )
 
     # ── 카테고리 진행률 ───────────────────────────────────────────────────────
 

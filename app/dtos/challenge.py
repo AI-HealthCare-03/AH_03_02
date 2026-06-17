@@ -194,3 +194,21 @@ class ChecklistToggleResponse(BaseSerializerModel):
     all_completed: bool  # 토글 후 트랙 필수항목 전체완료 여부
     full_bonus_awarded: int  # 이번에 새로 지급된 전체완료 보너스 (0 또는 30)
     egg: EggUpdateResponse | None = None  # 전체완료로 알이 진행됐을 때만
+
+
+# ─── 월별 달성 달력 DTO ───────────────────────────────────────────────────────
+
+
+class CalendarDay(BaseSerializerModel):
+    date: date
+    required: bool
+    selected_count: int  # 그날 체크인한 선택 챌린지 카테고리 종 수
+    level: str  # none | basic | silver | gold
+
+
+class MonthlyCalendarResponse(BaseSerializerModel):
+    year_month: str  # YYYY-MM
+    days: list[CalendarDay]  # 해당 월 1일~말일
+    achieved_days: int  # level != none 일수
+    gold_days: int  # level == gold 일수
+    max_streak: int  # level != none 연속 최장 (월 내)
