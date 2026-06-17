@@ -19,7 +19,7 @@ export function BtnPrimary({
     <button
       onClick={onClick}
       disabled={disabled || loading}
-      className={`flex items-center justify-center rounded-md bg-accent px-[16px] py-[12px] text-sm font-bold text-bg disabled:opacity-50 ${className}`}
+      className={`flex items-center justify-center rounded-pill bg-accent px-[22px] py-[11px] text-md font-normal text-bg transition disabled:opacity-50 hover:opacity-90 ${className}`}
       style={height ? { height } : undefined}
     >
       {loading ? "처리 중..." : label}

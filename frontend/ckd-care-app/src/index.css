@@ -1,21 +1,40 @@
 @import "tailwindcss";
 
 @theme {
-  --color-accent: #1F2937;
+  /* ── Apple Action Blue: 모든 인터랙티브 요소의 단일 액센트 (DESIGN-apple §Brand & Accent) */
+  --color-accent: #0066cc;
+  --color-accent-focus: #0071e3;
+  --color-accent-on-dark: #2997ff;
+
+  /* ── Surface */
   --color-bg: #FFFFFF;
-  --color-bg-alt: #F5F5F5;
-  --color-border: #D1D5DB;
-  --color-border-strong: #9CA3AF;
+  --color-bg-alt: #f5f5f7;            /* Apple parchment */
+  --color-bg-pearl: #fafafc;          /* Pearl button surface */
+  --color-bg-tile-dark: #272729;      /* Near-Black Tile 1 */
+  --color-bg-tile-dark-2: #2a2a2c;
+  --color-bg-tile-dark-3: #252527;
+  --color-bg-black: #000000;          /* global-nav 전용 */
+
+  /* ── Hairline (Apple은 카드/버튼 그림자 금지 → 1px hairline만) */
+  --color-border: #e0e0e0;
+  --color-border-strong: #cccccc;
+  --color-divider-soft: #f0f0f0;
+
+  /* ── Text */
+  --color-text-primary: #1d1d1f;       /* Apple ink (pure black 대신 near-black) */
+  --color-text-secondary: #333333;     /* ink-muted-80 */
+  --color-text-muted: #7a7a7a;         /* ink-muted-48 (disabled / legal) */
+  --color-text-on-dark: #ffffff;
+  --color-text-muted-on-dark: #cccccc;
+  --color-placeholder: #e0e0e0;
+
+  /* ── 의료 정보 전달 시스템 색 (Apple 시스템에 없지만 의료 도메인 필수 유지) */
   --color-danger: #DC2626;
-  --color-info: #2563EB;
-  --color-placeholder: #E5E7EB;
+  --color-info: #0066cc;               /* info=accent로 단일화 */
   --color-success: #059669;
-  --color-text-muted: #9CA3AF;
-  --color-text-primary: #111827;
-  --color-text-secondary: #6B7280;
   --color-warning: #D97706;
 
-  /* 챌린지 트랙 구분색 (받은 디자인 ckd-challenge.html 팔레트) */
+  /* ── 챌린지 트랙 컬러: 정보 전달 필수 → 유지 (DESIGN-apple은 단일 액센트지만 도메인 적합도 우선) */
   --color-track-dialysis: #1D9E75;
   --color-track-dialysis-bg: #E1F5EE;
   --color-track-ckd: #7F77DD;
@@ -27,32 +46,60 @@
   --color-track-wellness: #3F7A1F;
   --color-track-wellness-bg: #EAF3DE;
 
-  --font-size-xs: 12px;
-  --font-size-sm: 14px;
-  --font-size-md: 16px;
-  --font-size-lg: 18px;
-  --font-size-xl: 22px;
-  --font-size-2xl: 28px;
-  --font-size-3xl: 36px;
+  /* ── Typography (Apple SF Pro 스케일에 매핑 — body 17px 룰) */
+  --font-size-xs: 12px;       /* fine-print, nav-link */
+  --font-size-sm: 14px;       /* caption / button-utility */
+  --font-size-md: 17px;       /* body — Apple 본문 17px (기존 16px → 17px 상향) */
+  --font-size-lg: 21px;       /* tagline */
+  --font-size-xl: 28px;       /* lead */
+  --font-size-2xl: 34px;      /* display-md */
+  --font-size-3xl: 40px;      /* display-lg */
+  --font-size-hero: 56px;     /* hero-display */
 
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  /* ── Radius (Apple: 0/8/11/18 + pill) */
+  --radius-sm: 8px;           /* utility button (구 4px 자리 채움) */
+  --radius-md: 11px;          /* pearl capsule */
+  --radius-lg: 18px;          /* store utility card (구 12px 자리 채움 — 18px로 상향) */
+  --radius-pill: 9999px;      /* Apple signature pill */
+  --radius-full: 9999px;
 
+  /* ── Spacing (Apple 8 base + 17/80 추가) */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 12px;
-  --spacing-lg: 16px;
+  --spacing-lg: 17px;         /* Apple 본문 line-height 기반 (구 16px → 17px) */
   --spacing-xl: 24px;
   --spacing-2xl: 32px;
+  --spacing-3xl: 48px;
+  --spacing-section: 80px;    /* 풀-블리드 타일 vertical padding */
 }
 
 body {
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  /* SF Pro 우선 (macOS/iOS Safari에서 시스템폰트 적용), 비-Apple 환경은 Inter fallback */
+  font-family: system-ui, -apple-system, "SF Pro Text", "SF Pro Display", BlinkMacSystemFont, "Inter", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 17px;             /* Apple body 17px 룰 */
+  line-height: 1.47;
+  letter-spacing: -0.022em;    /* Apple tight tracking (≈ -0.374px at 17px) */
   margin: 0;
   color: var(--color-text-primary);
-  /* DisclaimerFooter(고정, ~32px) 가림 방지 */
-  padding-bottom: 36px;
+  background: var(--color-bg);
+  padding-bottom: 36px;        /* DisclaimerFooter 가림 방지 */
+}
+
+/* Apple display headline (h1~h3) — 600 weight + negative tracking */
+h1, h2, h3 {
+  font-family: system-ui, -apple-system, "SF Pro Display", BlinkMacSystemFont, "Inter", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1.1;
+}
+
+/* Apple system press feedback — 모든 버튼에 scale 0.95 */
+button:active {
+  transform: scale(0.97);
+  transition: transform 0.05s ease-out;
 }
 
 /* 모바일: 하단 탭바(56px) + 면책 footer(~32px) 가림 방지 */

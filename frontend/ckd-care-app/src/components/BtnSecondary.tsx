@@ -14,7 +14,7 @@ export function BtnSecondary({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center justify-center rounded-md border border-border-strong bg-bg px-[16px] py-[12px] text-sm font-normal text-text-primary ${className}`}
+      className={`flex items-center justify-center rounded-pill border border-accent bg-bg px-[22px] py-[11px] text-md font-normal text-accent transition hover:bg-bg-alt ${className}`}
       style={height ? { height } : undefined}
     >
       {label}

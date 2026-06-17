@@ -36,23 +36,23 @@ export function TopNav({ brand = "CKD CARE" }: TopNavProps) {
   ];
 
   return (
-    <nav className="flex h-[56px] w-full items-center justify-between border-b border-border bg-bg px-[16px] py-[12px]">
-      <div className="flex items-center gap-[24px]">
-        <Link to="/dashboard" className="text-lg font-bold text-text-primary">
+    <nav className="flex h-[52px] w-full items-center justify-between bg-bg-black px-[16px] py-[8px]">
+      <div className="flex items-center gap-[20px]">
+        <Link to="/dashboard" className="text-sm font-normal text-text-on-dark tracking-tight">
           {brand}
         </Link>
-        <div className="hidden items-center gap-[4px] md:flex">
+        <div className="hidden items-center gap-[2px] md:flex">
           {navItems.map(({ to, icon: Icon, label }) => (
             <Link
               key={to}
               to={to}
-              className={`flex items-center gap-[6px] rounded-md px-[10px] py-[6px] text-sm transition-colors ${
+              className={`flex items-center gap-[6px] rounded-sm px-[10px] py-[6px] text-sm transition-colors ${
                 location.pathname === to
-                  ? "bg-accent text-bg font-bold"
-                  : "text-text-secondary hover:bg-bg-alt"
+                  ? "text-text-on-dark font-normal"
+                  : "text-text-muted-on-dark hover:text-text-on-dark"
               }`}
             >
-              <Icon size={16} />
+              <Icon size={14} />
               {label}
             </Link>
           ))}
@@ -63,7 +63,7 @@ export function TopNav({ brand = "CKD CARE" }: TopNavProps) {
         {user?.is_admin && (
           <Link
             to="/admin"
-            className="flex items-center gap-[6px] rounded-md border border-amber-400 bg-amber-50 px-[10px] py-[6px] text-xs font-bold text-amber-700 hover:bg-amber-100"
+            className="flex items-center gap-[6px] rounded-sm bg-accent px-[10px] py-[6px] text-xs font-normal text-text-on-dark hover:opacity-90"
             title="관리자 화면"
           >
             <Shield size={14} />
@@ -73,29 +73,29 @@ export function TopNav({ brand = "CKD CARE" }: TopNavProps) {
         {balance !== null && (
           <Link
             to="/shop"
-            className="flex items-center gap-[4px] rounded-md px-[8px] py-[6px] text-sm text-text-secondary hover:bg-bg-alt"
+            className="flex items-center gap-[4px] rounded-sm px-[8px] py-[6px] text-sm text-text-on-dark hover:bg-bg-tile-dark"
             title="포인트 잔액 — 상점으로 이동"
           >
-            <Coins size={16} className="text-amber-500" />
-            <span className="font-bold">{balance.toLocaleString()}</span>
+            <Coins size={14} className="text-amber-400" />
+            <span className="font-normal">{balance.toLocaleString()}</span>
           </Link>
         )}
         <Link
           to="/notifications"
-          className="relative flex h-[36px] w-[36px] items-center justify-center rounded-md text-text-secondary hover:bg-bg-alt"
+          className="relative flex h-[36px] w-[36px] items-center justify-center rounded-sm text-text-on-dark hover:bg-bg-tile-dark"
         >
-          <Bell size={20} />
+          <Bell size={18} />
           {unread > 0 && (
-            <span className="absolute right-[4px] top-[4px] flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-danger px-[3px] text-[10px] font-bold text-bg">
+            <span className="absolute right-[4px] top-[4px] flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-danger px-[3px] text-[10px] font-bold text-text-on-dark">
               {unread > 99 ? "99+" : unread}
             </span>
           )}
         </Link>
         <Link
           to="/mypage"
-          className="flex h-[36px] w-[36px] items-center justify-center rounded-md text-text-secondary hover:bg-bg-alt"
+          className="flex h-[36px] w-[36px] items-center justify-center rounded-sm text-text-on-dark hover:bg-bg-tile-dark"
         >
-          <User size={20} />
+          <User size={18} />
         </Link>
       </div>
     </nav>

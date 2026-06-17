@@ -6,7 +6,7 @@ interface TagProps {
 export function Tag({ label = "G2", className = "" }: TagProps) {
   return (
     <span
-      className={`inline-flex items-center rounded-sm border border-border bg-bg-alt px-[8px] py-[4px] text-xs font-bold text-text-primary ${className}`}
+      className={`inline-flex items-center rounded-pill bg-bg-alt px-[10px] py-[4px] text-xs font-semibold text-text-secondary ${className}`}
     >
       {label}
     </span>
