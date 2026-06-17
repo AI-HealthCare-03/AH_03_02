@@ -14,12 +14,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import random
 
 import numpy as np
 import pandas as pd
 
 from . import config
 
+# 재현성: 데이터 분할·샘플링 시드 고정 (학습 재현). 추론은 산출물 동결로 이미 완전
+# 결정론 — scripts/check_determinism.py 가 동일 입력 N회 반복 편차 0 을 검증한다.
+SEED = 42
 DEFAULT_TIME_LIMIT = 3600  # 노트북③ 모델1·2 공통
 TARGET_RECALL = 0.88  # 노트북③ threshold 기준
 
@@ -67,6 +71,8 @@ def compute_threshold(predictor, val: pd.DataFrame, features: list[str], target_
 
 
 def main() -> None:
+    random.seed(SEED)
+    np.random.seed(SEED)
     ap = argparse.ArgumentParser(description="CKD AutoGluon 학습")
     ap.add_argument("--quick", action="store_true", help="빠른 검증(time_limit 300s)")
     args = ap.parse_args()
