@@ -367,6 +367,39 @@
 
 ---
 
+### ✅ PATCH `/health-checks/{id}` — 검진 결과 수정
+> 본인 소유 검진 1건 수정. 페이로드는 POST와 동일(전체 필드 덮어쓰기). eGFR/CKD stage/app_group 재계산.
+> 프론트(`CheckupHistoryPage`)는 최신 검진에만 수정 버튼 노출.
+
+인증 필요
+
+**요청** — `HealthCheckCreateRequest`와 동일
+
+**응답 `200`** — HealthCheckResponse
+**에러** `404` — 존재하지 않거나 타인 데이터
+
+---
+
+### ✅ DELETE `/health-checks/{id}` — 검진 결과 1건 삭제
+인증 필요
+
+**응답 `204`**
+**에러** `404` — 존재하지 않거나 타인 데이터
+
+---
+
+### ✅ DELETE `/health-checks` — 검진 결과 전체 삭제
+> 본인의 모든 검진 기록 일괄 삭제. 삭제 건수 반환.
+
+인증 필요
+
+**응답 `200`**
+```json
+{ "deleted_count": 5 }
+```
+
+---
+
 ### 🔲 POST `/health-checks/ocr` — 건강검진지 OCR 업로드 (P0)
 > REQ-DATA-001~004 — Naver Clova OCR API 연동, Rate Limit 5회/분
 
@@ -994,6 +1027,9 @@
 | POST | `/health-checks` | ✅ | P0 | ✅ |
 | GET | `/health-checks` | ✅ | P0 | ✅ |
 | GET | `/health-checks/{id}` | ✅ | P0 | ✅ |
+| PATCH | `/health-checks/{id}` | ✅ | P0 | ✅ |
+| DELETE | `/health-checks/{id}` | ✅ | P0 | ✅ |
+| DELETE | `/health-checks` | ✅ | P0 | ✅ |
 | POST | `/health-checks/ocr` | ✅ | P0 | 🔲 |
 | GET | `/health-checks/ocr/{id}` | ✅ | P0 | 🔲 |
 | POST | `/lifestyle-surveys` | ✅ | P0 | ✅ |

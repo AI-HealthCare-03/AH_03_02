@@ -365,6 +365,76 @@ class HealthCheckService:
         """본인 소유 검진 삭제. 없으면 False."""
         return await self._repo.delete_by_id(health_check_id, user_id)
 
+    async def delete_all_health_checks(self, user_id: int) -> int:
+        """본인 검진 전부 삭제. 삭제된 건수 반환."""
+        return await self._repo.delete_all_by_user(user_id)
+
+    async def update_health_check(
+        self,
+        health_check_id: int,
+        user_id: int,
+        user_age: int,
+        user_gender: Gender,
+        dto: HealthCheckCreateRequest,
+    ) -> HealthCheckResponse | None:
+        """본인 소유 검진 수정. 없으면 None. eGFR/CKD stage/app_group 재계산.
+
+        ✱ 정책: 최신 검진의 수정 흐름이지만 권한·동작은 단건 PATCH로 통합 — 본인 소유면 어떤 row든 수정 가능.
+        프론트(`CheckupHistoryPage`)에서 최신 1건에만 수정 버튼 노출하여 UX 정책 시행.
+        """
+        bmi = self._calculate_bmi(dto.weight, dto.height)
+        egfr: float | None = None
+        ckd_stage: CkdStage | None = None
+        if dto.creatinine is not None:
+            egfr = self._estimate_egfr(dto.creatinine, user_age, user_gender)
+            ckd_stage = self._get_ckd_stage(egfr)
+
+        lifestyle = await LifestyleSurvey.filter(user_id=user_id).order_by("-surveyed_date", "-id").first()
+        ckd_diagnosed = bool(lifestyle.ckd_diagnosed) if lifestyle else False
+        dialysis_type = lifestyle.dialysis_type if (lifestyle and ckd_diagnosed) else None
+        app_group = self._assign_app_group(
+            egfr,
+            dto.systolic_bp,
+            dto.diastolic_bp,
+            dto.fasting_glucose,
+            ckd_diagnosed=ckd_diagnosed,
+            dialysis_type=dialysis_type,
+        )
+
+        hc = await self._repo.update_by_id(
+            health_check_id,
+            user_id,
+            checked_date=dto.checked_date,
+            systolic_bp=dto.systolic_bp,
+            diastolic_bp=dto.diastolic_bp,
+            fasting_glucose=dto.fasting_glucose,
+            creatinine=dto.creatinine,
+            total_cholesterol=dto.total_cholesterol,
+            hdl_cholesterol=dto.hdl_cholesterol,
+            triglycerides=dto.triglycerides,
+            ldl_cholesterol=dto.ldl_cholesterol,
+            hemoglobin=dto.hemoglobin,
+            ast=dto.ast,
+            alt=dto.alt,
+            urine_protein=dto.urine_protein,
+            urine_glucose=dto.urine_glucose,
+            weight=dto.weight,
+            height=dto.height,
+            bmi=bmi,
+            waist_circumference=dto.waist_circumference,
+            egfr_estimated=egfr,
+            ckd_stage=ckd_stage,
+            app_group=app_group,
+            dialysis_type=dialysis_type,
+        )
+        if hc is None:
+            return None
+
+        safety_warning = self._check_safety_warning(dto.systolic_bp, dto.diastolic_bp, dto.fasting_glucose, egfr)
+        response = HealthCheckResponse.model_validate(hc)
+        response.safety_warning = safety_warning
+        return response
+
     # ── 모델1 리포트 헬퍼 (순수 함수, app_group 기반) ─────────────────────────
 
     @staticmethod

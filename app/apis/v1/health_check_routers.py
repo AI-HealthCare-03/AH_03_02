@@ -109,6 +109,48 @@ async def delete_health_check(
     return Response(None, status_code=status.HTTP_204_NO_CONTENT)
 
 
+@health_check_router.patch(
+    "/{health_check_id}",
+    response_model=HealthCheckResponse,
+    status_code=status.HTTP_200_OK,
+    summary="검진 결과 수정",
+    description=(
+        "본인 소유 검진 1건 수정. 모든 필드 전체 덮어쓰기(create와 동일 페이로드). "
+        "프론트는 최신 검진에만 수정 버튼을 노출하지만, 백엔드는 본인 소유면 어떤 row든 수정 허용."
+    ),
+)
+async def update_health_check(
+    health_check_id: int,
+    request: HealthCheckCreateRequest,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[HealthCheckService, Depends(HealthCheckService)],
+) -> Response:
+    result = await service.update_health_check(
+        health_check_id=health_check_id,
+        user_id=user.id,
+        user_age=_get_user_age(user),
+        user_gender=user.gender,
+        dto=request,
+    )
+    if result is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="검진 기록을 찾을 수 없습니다.")
+    return Response(result.model_dump(), status_code=status.HTTP_200_OK)
+
+
+@health_check_router.delete(
+    "",
+    status_code=status.HTTP_200_OK,
+    summary="검진 기록 전체 삭제",
+    description="본인의 모든 검진 기록을 한 번에 삭제. 삭제된 건수 반환.",
+)
+async def delete_all_health_checks(
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[HealthCheckService, Depends(HealthCheckService)],
+) -> Response:
+    deleted_count = await service.delete_all_health_checks(user_id=user.id)
+    return Response({"deleted_count": deleted_count}, status_code=status.HTTP_200_OK)
+
+
 @health_check_router.get(
     "/{health_check_id}/report",
     response_model=ReportResponse,
