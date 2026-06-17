@@ -643,16 +643,16 @@ export function DashboardPage() {
         )}
 
         {/* 넓은 화면 2열 — 행1: 달력(좌) | 카테고리 진행률 + 건강지표(우) */}
-        <div className="mt-[24px] grid grid-cols-1 gap-[16px] lg:grid-cols-5 lg:items-start">
+        <div className="mt-[24px] grid grid-cols-1 gap-[16px] lg:grid-cols-5">
           {/* 좌: 월별 달성 달력 */}
           <div className="lg:col-span-2">
             <MonthCalendarWidget />
           </div>
-          {/* 우: 카테고리별 라디알 미니 + 최신 건강지표 */}
+          {/* 우: 카테고리별 라디알 미니 + 최신 건강지표 (좌 달력 높이에 맞춰 채움) */}
           <div className="flex flex-col gap-[16px] lg:col-span-3">
             <RadialMiniWidget />
             {h && (
-              <div className="grid grid-cols-2 gap-[16px] sm:grid-cols-4">
+              <div className="grid grid-cols-2 gap-[16px] sm:grid-cols-4 lg:flex-1">
                 {[
                   { label: "혈압", value: `${h.systolic_bp}/${h.diastolic_bp}`, unit: "mmHg" },
                   { label: "공복혈당", value: String(h.fasting_glucose), unit: "mg/dL" },
@@ -671,10 +671,10 @@ export function DashboardPage() {
 
         {/* 넓은 화면 2열 — 행2: 챌린지 현황(좌) | 생활습관 요약(우) */}
         {(cs || ls) && (
-          <div className="mt-[24px] grid grid-cols-1 gap-[16px] lg:grid-cols-5 lg:items-start">
+          <div className="mt-[24px] grid grid-cols-1 gap-[16px] lg:grid-cols-5">
             {cs && (
               <div className="lg:col-span-2">
-                <Card title="챌린지 현황">
+                <Card title="챌린지 현황" className="h-full">
                   <div className="flex flex-wrap gap-[32px]">
                     {[
                       { label: "진행 중", value: cs.active_count },
@@ -693,7 +693,7 @@ export function DashboardPage() {
             )}
             {ls && (
               <div className="lg:col-span-3">
-                <Card title={`생활습관 요약 (${ls.surveyed_date})`}>
+                <Card title={`생활습관 요약 (${ls.surveyed_date})`} className="h-full">
                   <div className="flex flex-wrap gap-[24px] text-sm text-text-primary">
                     <span>흡연: {SMOKING_LABEL[ls.smoking_status] ?? ls.smoking_status}</span>
                     <span>음주: {DRINKING_LABEL[ls.drinking_frequency] ?? ls.drinking_frequency}</span>
