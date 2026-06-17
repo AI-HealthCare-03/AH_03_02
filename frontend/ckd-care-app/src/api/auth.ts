@@ -63,6 +63,8 @@ export const authApi = {
   me: () => api.get<UserInfo>("/users/me"),
   changePassword: (body: { current_password: string; new_password: string }) =>
     api.patch<void>("/users/me/password", body),
+  updateMe: (body: { name?: string; birthday?: string; phone_number?: string }) =>
+    api.patch<UserInfo>("/users/me", body),
   deleteAccount: () => api.delete<void>("/users/me"),
   forgotPassword: (email: string) => api.post<{ temp_password: string }>("/auth/forgot-password", { email }),
   // 새 2단계 흐름
