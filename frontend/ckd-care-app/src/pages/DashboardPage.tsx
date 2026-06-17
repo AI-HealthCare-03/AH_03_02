@@ -17,9 +17,8 @@ import { Tag } from "../components/Tag";
 import { Card } from "../components/Card";
 import { EggWidget } from "../components/EggWidget";
 import { WelcomeModal } from "../components/WelcomeModal";
-import { HeatmapWidget } from "../components/HeatmapWidget";
+import { MonthCalendarWidget } from "../components/MonthCalendarWidget";
 import { RadialMiniWidget } from "../components/RadialMiniWidget";
-import { WeeklyProgressWidget } from "../components/WeeklyProgressWidget";
 import { EgfrSimulationWidget } from "../components/EgfrSimulationWidget";
 import { DiagnosedDashboard } from "../components/DiagnosedDashboard";
 import { dashboardApi, type EgfrTrend } from "../api/dashboard";
@@ -643,15 +642,14 @@ export function DashboardPage() {
           </div>
         )}
 
-        {/* Row2b: 챌린지 잔디 히트맵 */}
+        {/* Row2b: 월별 달성 달력 */}
         <div className="mt-[24px]">
-          <HeatmapWidget />
+          <MonthCalendarWidget />
         </div>
 
-        {/* Row2c: 카테고리별 라디알 미니 + 주간 달성 */}
-        <div className="mt-[24px] grid grid-cols-1 gap-[16px] sm:grid-cols-2">
+        {/* Row2c: 카테고리별 라디알 미니 */}
+        <div className="mt-[24px]">
           <RadialMiniWidget />
-          <WeeklyProgressWidget />
         </div>
 
         {/* Row3: 최신 건강지표 카드 */}

@@ -1,7 +1,7 @@
 import type { ChallengeStats } from "../api/dashboard";
 import { SocietyBannerSlider } from "./SocietyBannerSlider";
 import { ChallengeStatsCard } from "./ChallengeStatsCard";
-import { HeatmapWidget } from "./HeatmapWidget";
+import { MonthCalendarWidget } from "./MonthCalendarWidget";
 import { EggWidget } from "./EggWidget";
 import { WaterTrendCard } from "./WaterTrendCard";
 import { WeightTrendCard } from "./WeightTrendCard";
@@ -21,7 +21,7 @@ export function DiagnosedDashboard({ challengeStats }: { challengeStats?: Challe
       <div className="grid grid-cols-1 items-start gap-[16px] md:grid-cols-3">
         <div className="flex flex-col gap-[16px] md:col-span-2">
           {challengeStats && <ChallengeStatsCard stats={challengeStats} title="챌린지 현황 & 관리" />}
-          <HeatmapWidget />
+          <MonthCalendarWidget />
         </div>
         <EggWidget />
       </div>
