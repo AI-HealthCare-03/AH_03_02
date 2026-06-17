@@ -885,16 +885,25 @@ function LifestyleDetailTable({ items }: { items: LifestyleItem[] }) {
 }
 
 // ===== 리포트 메타 카드 =====
-function gradeStyle(grade: string): { bg: string; text: string } {
-  if (grade === "높음") return { bg: "#fee2e2", text: "#DC2626" };
-  if (grade === "주의") return { bg: "#fef9c3", text: "#CA8A04" };
+const APP_GROUP_BADGE: Record<string, string> = {
+  G1: "위험",
+  G2: "원인주의",
+  G3: "사전주의",
+  G4: "양호",
+};
+
+function gradeStyle(label: string): { bg: string; text: string } {
+  if (label === "위험") return { bg: "#fee2e2", text: "#DC2626" };
+  if (label === "원인주의") return { bg: "#fef3c7", text: "#D97706" };
+  if (label === "사전주의") return { bg: "#fef9c3", text: "#CA8A04" };
   return { bg: "#dcfce7", text: "#16A34A" };
 }
 
 function ReportMetaCard({ meta }: { meta: ReportMeta | null | undefined }) {
   if (!meta) return null;
 
-  const grade = gradeStyle(meta.grade);
+  const badgeLabel = (meta.group ? APP_GROUP_BADGE[meta.group] : null) ?? meta.grade;
+  const grade = gradeStyle(badgeLabel);
   const conditionsText = meta.conditions.length > 0 ? meta.conditions.join(" · ") : "없음";
   const familyText = meta.family_history.length > 0 ? meta.family_history.join(" · ") : "없음";
 
@@ -907,17 +916,22 @@ function ReportMetaCard({ meta }: { meta: ReportMeta | null | undefined }) {
           className="rounded-md px-[10px] py-[3px] text-xs font-bold"
           style={{ backgroundColor: grade.bg, color: grade.text }}
         >
-          등급: {meta.grade}
+          등급: {badgeLabel}
         </span>
       </div>
 
-      {/* CKD 위험도 점수 — 별도 행으로 명확히 분리 */}
+      {/* 만성콩팥병 위험률 — 별도 행으로 명확히 분리 */}
       {meta.score !== null && (
-        <p className="text-sm font-medium text-text-secondary">
-          CKD 위험도 선별 점수{" "}
-          <span className="text-lg font-bold text-text-primary">{meta.score}</span>
-          <span className="text-sm text-text-muted"> / 100</span>
-        </p>
+        <div className="flex flex-col gap-[2px]">
+          <p className="text-sm font-medium text-text-secondary">
+            만성콩팥병 위험률{" "}
+            <span className="text-lg font-bold text-text-primary">{meta.score}</span>
+            <span className="text-sm text-text-muted">%</span>
+          </p>
+          <p className="text-xs text-text-muted">
+            신장 기능 검사 수치를 제외한 다른 건강 지표로 본 만성콩팥병 가능성 수치입니다
+          </p>
+        </div>
       )}
 
       {/* 배경 요인 */}

@@ -102,7 +102,31 @@ function EgfrGauge({ value, calculating }: { value: number | null; calculating?:
   );
 }
 
-function RiskGauge({ score, calculating }: { score: number | null; calculating?: boolean }) {
+// 4구간 등급 계기판 — app_group(G1~G4) 기반, 왼쪽(D=양호)→오른쪽(A=위험)
+const RISK_ZONES = [
+  { key: "G4", letter: "D", start: -135, end: -67.5, color: "#059669",
+    tooltip: "현재 양호한 상태로, 예방적 건강 습관 유지를 권장합니다" },
+  { key: "G3", letter: "C", start: -67.5, end: 0, color: "#84CC16",
+    tooltip: "현재 검사상 뚜렷한 이상은 없으나, 여러 건강 지표를 종합할 때 주의가 필요합니다" },
+  { key: "G2", letter: "B", start: 0, end: 67.5, color: "#F59E0B",
+    tooltip: "신장은 아직 정상이지만, 신장 건강에 영향을 주는 위험 요인이 있어 관리가 필요합니다" },
+  { key: "G1", letter: "A", start: 67.5, end: 135, color: "#EF4444",
+    tooltip: "신장 기능이 저하된 상태로, 신장내과 진료와 정기 관리가 필요합니다" },
+];
+// 각 구간 중심각 (바늘 위치)
+const RISK_NEEDLE_DEG: Record<string, number> = { G4: -101.25, G3: -33.75, G2: 33.75, G1: 101.25 };
+
+function RiskGauge({
+  score,
+  calculating,
+  appGroup,
+}: {
+  score: number | null;
+  calculating?: boolean;
+  appGroup?: string | null;
+}) {
+  const [hoveredZone, setHoveredZone] = useState<string | null>(null);
+
   if (score === null)
     return (
       <div className="flex h-[360px] flex-col items-center justify-center gap-2 text-sm text-text-muted">
@@ -117,26 +141,123 @@ function RiskGauge({ score, calculating }: { score: number | null; calculating?:
         )}
       </div>
     );
-  // 모델1 sigmoid 출력 분포: 학습셋 양성 1.04% (memory §800). 실측 0~10% 범위.
-  // 임계값을 분포에 맞춰 조정 — 30/60% 기준은 모델이 도달 불가능한 영역.
-  const color = score < 1 ? "#059669" : score < 3 ? "#D97706" : "#DC2626";
-  const level = score < 1 ? "낮음" : score < 3 ? "주의" : "위험";
-  // 게이지 채움 = raw 비율 그대로 (표시 숫자와 일치, 정직 표시).
-  const fillDeg = score * 3.6;
+
+  const cx = 110, cy = 115, r = 78, SW = 16;
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const pt = (deg: number, radius: number) => ({
+    x: cx + radius * Math.cos(toRad(deg)),
+    y: cy + radius * Math.sin(toRad(deg)),
+  });
+  const arcD = (s: number, e: number) => {
+    const a = pt(s, r), b = pt(e, r);
+    return `M ${a.x} ${a.y} A ${r} ${r} 0 0 1 ${b.x} ${b.y}`;
+  };
+
+  const needleAngle = appGroup != null ? (RISK_NEEDLE_DEG[appGroup] ?? null) : null;
+  const activeKey = hoveredZone ?? appGroup ?? null;
+  const activeTooltip = RISK_ZONES.find((z) => z.key === activeKey)?.tooltip ?? null;
+
+  const LBL_R = r - 24; // 구간 문자(A~D) — 호 안쪽
+  const END_R = r + 22; // 양끝 레이블 — 호 바깥쪽
+
   return (
-    <div className="relative flex flex-col items-center justify-center gap-3 p-4 rounded-lg border border-border bg-bg shadow-card" style={{ height: 360 }}>
-      <span className="absolute right-3 top-3 rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">예상값 · 진단 아님</span>
-      <div
-        className="relative flex h-[220px] w-[220px] items-center justify-center rounded-full"
-        style={{ background: `conic-gradient(${color} ${fillDeg}deg, #E5E7EB ${fillDeg}deg)` }}
-      >
-        <div className="flex h-[184px] w-[184px] flex-col items-center justify-center rounded-full bg-bg">
-          <span className="text-5xl font-bold leading-none" style={{ color }}>{score.toFixed(1)}%</span>
-          <span className="mt-1 text-base font-semibold text-text-secondary">{level}</span>
-        </div>
+    <div
+      className="relative flex flex-col items-center justify-center gap-2 p-4 rounded-lg border border-border bg-bg shadow-card"
+      style={{ height: 360 }}
+    >
+      <span className="absolute right-3 top-3 rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+        예상값 · 진단 아님
+      </span>
+
+      <svg viewBox="0 0 220 220" className="w-full max-w-[220px]" style={{ height: 190 }}>
+        {/* 배경 호 (270°, 회색) */}
+        <path
+          d={`M ${pt(-135, r).x} ${pt(-135, r).y} A ${r} ${r} 0 1 1 ${pt(135, r).x} ${pt(135, r).y}`}
+          fill="none" stroke="#E5E7EB" strokeWidth={SW} strokeLinecap="round"
+        />
+
+        {/* 4구간 색상 호 */}
+        {RISK_ZONES.map((z) => (
+          <path
+            key={z.key}
+            d={arcD(z.start, z.end)}
+            fill="none"
+            stroke={z.color}
+            strokeWidth={SW}
+            strokeLinecap="butt"
+            opacity={hoveredZone !== null && hoveredZone !== z.key ? 0.3 : 1}
+          />
+        ))}
+
+        {/* hover 히트 영역 (투명 두꺼운 호) */}
+        {RISK_ZONES.map((z) => (
+          <path
+            key={`hit-${z.key}`}
+            d={arcD(z.start, z.end)}
+            fill="none"
+            stroke="rgba(0,0,0,0)"
+            strokeWidth={SW + 14}
+            strokeLinecap="butt"
+            pointerEvents="stroke"
+            style={{ cursor: "pointer" }}
+            onMouseEnter={() => setHoveredZone(z.key)}
+            onMouseLeave={() => setHoveredZone(null)}
+          />
+        ))}
+
+        {/* 구간 문자 레이블 (호 안쪽) */}
+        {RISK_ZONES.map((z) => {
+          const mid = (z.start + z.end) / 2;
+          const p = pt(mid, LBL_R);
+          return (
+            <text
+              key={`lbl-${z.key}`}
+              x={p.x} y={p.y}
+              textAnchor="middle" dominantBaseline="middle"
+              fontSize="11" fontWeight="bold"
+              fill={hoveredZone !== null && hoveredZone !== z.key ? "#CBD5E1" : z.color}
+            >
+              {z.letter}
+            </text>
+          );
+        })}
+
+        {/* 양끝 레이블 */}
+        <text x={pt(-135, END_R).x} y={pt(-135, END_R).y}
+          textAnchor="middle" dominantBaseline="middle" fontSize="9" fill="#9CA3AF">양호</text>
+        <text x={pt(135, END_R).x} y={pt(135, END_R).y}
+          textAnchor="middle" dominantBaseline="middle" fontSize="9" fill="#9CA3AF">위험</text>
+
+        {/* 바늘 */}
+        {needleAngle !== null && (
+          <>
+            <line
+              x1={cx} y1={cy}
+              x2={cx + (r - SW - 18) * Math.cos(toRad(needleAngle))}
+              y2={cy + (r - SW - 18) * Math.sin(toRad(needleAngle))}
+              stroke="#1F2937" strokeWidth="3" strokeLinecap="round"
+            />
+            <circle cx={cx} cy={cy} r="5" fill="#1F2937" />
+          </>
+        )}
+      </svg>
+
+      <p className="text-base font-bold text-text-primary">신장 건강 등급</p>
+
+      {/* 구간 설명 (hover 시 변경, 기본값은 현재 그룹) */}
+      <p className="min-h-[2.5rem] px-2 text-center text-xs text-text-secondary">
+        {activeTooltip}
+      </p>
+
+      {/* score 보조 표시 */}
+      <div className="flex flex-col items-center gap-[1px]">
+        <p className="text-xs text-text-muted">
+          만성콩팥병 위험률 <span className="font-semibold">{score.toFixed(1)}%</span>
+        </p>
+        <p className="px-2 text-center text-xs text-text-muted">
+          신장 기능 검사 수치를 제외한 다른 건강 지표로 본 만성콩팥병 가능성 수치입니다
+        </p>
       </div>
-      <p className="text-base font-bold text-text-primary">CKD 위험도</p>
-      <p className="text-xs text-text-muted">※ 예상값 (의료 진단 아님)</p>
     </div>
   );
 }
@@ -490,6 +611,7 @@ export function DashboardPage() {
                 <RiskGauge
                   score={h?.ckd_risk_score != null ? h.ckd_risk_score * 100 : null}
                   calculating={!!h && h.ckd_risk_score == null}
+                  appGroup={h?.app_group}
                 />
               </div>
               <EggWidget />
