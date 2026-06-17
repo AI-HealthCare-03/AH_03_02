@@ -13,7 +13,7 @@ from app.dtos.challenge import (
     ChallengeTrack,
     CheckinRequest,
     CheckInResponse,
-    DailyChecklistItemResponse,
+    ChecklistToggleResponse,
     DailyChecklistResponse,
     HeatmapResponse,
     JoinChallengeRequest,
@@ -118,10 +118,10 @@ async def get_daily_checklist(
 
 @challenge_router.post(
     "/daily-checklist/{item_key}",
-    response_model=DailyChecklistItemResponse,
+    response_model=ChecklistToggleResponse,
     status_code=status.HTTP_200_OK,
     summary="필수체크 항목 토글",
-    description="오늘의 필수체크 항목을 완료/취소 토글합니다.",
+    description="오늘의 필수체크 항목을 완료/취소 토글하고 포인트·알 성장 적립 결과를 반환합니다.",
 )
 async def toggle_daily_checklist(
     item_key: str,
@@ -129,7 +129,7 @@ async def toggle_daily_checklist(
     service: Annotated[ChallengeService, Depends(ChallengeService)],
 ) -> Response:
     result = await service.toggle_daily_checklist(user_id=user.id, item_key=item_key, today=date.today())
-    return Response(result.model_dump(), status_code=status.HTTP_200_OK)
+    return Response(result.model_dump(mode="json"), status_code=status.HTTP_200_OK)
 
 
 @challenge_router.get(

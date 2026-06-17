@@ -38,6 +38,7 @@ export function useChallengeData() {
   const [stageError, setStageError] = useState<string | null>(null);
   const [checkinResult, setCheckinResult] = useState<CheckInResponse | null>(null);
   const [completeBusy, setCompleteBusy] = useState<number | null>(null);
+  const [checklistToast, setChecklistToast] = useState<string | null>(null);
 
   async function loadAll() {
     try {
@@ -109,6 +110,23 @@ export function useChallengeData() {
     try {
       const res = await challengeApi.toggleChecklist(itemKey);
       setChecklist((prev) => prev.map((i) => (i.item_key === itemKey ? { ...i, checked: res.checked } : i)));
+      // 포인트 적립/회수 → TopNav 잔액 등 갱신
+      invalidateDash();
+      // 토스트 메시지 구성
+      let msg: string | null = null;
+      if (res.full_bonus_awarded > 0) {
+        msg = `🎉 매일 필수 체크 완료! +${res.points_awarded}pt`;
+        if (res.egg?.hatched) msg += ` · ${res.egg.character_name ?? "캐릭터"} 부화!`;
+        else if (res.egg?.evolved_to) msg += ` · ${res.egg.evolved_to}단계 진화!`;
+      } else if (res.points_awarded > 0) {
+        msg = `+${res.points_awarded}pt 적립`;
+      } else if (res.points_awarded < 0) {
+        msg = `체크 해제 (${res.points_awarded}pt)`;
+      }
+      if (msg) {
+        setChecklistToast(msg);
+        setTimeout(() => setChecklistToast(null), 2000);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "체크 실패");
     } finally {
@@ -231,6 +249,7 @@ export function useChallengeData() {
     completeBusy,
     checkinResult,
     setCheckinResult,
+    checklistToast,
     stageToast,
     stageSaving,
     stageError,

@@ -50,6 +50,11 @@ export function ChallengeMainView({ cd, onStageEdit }: Props) {
             {cd.stageToast}
           </div>
         )}
+        {cd.checklistToast && (
+          <div className="mx-5 mt-1 rounded-md bg-primary-soft px-3 py-2 text-sm font-medium text-primary" role="status">
+            {cd.checklistToast}
+          </div>
+        )}
 
         {tab === "challenge" && (
           <>

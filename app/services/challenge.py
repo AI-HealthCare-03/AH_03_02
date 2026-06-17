@@ -13,6 +13,7 @@ from app.dtos.challenge import (
     ChallengeResponse,
     CheckinAwardResponse,
     CheckInResponse,
+    ChecklistToggleResponse,
     DailyChecklistItemResponse,
     DailyChecklistResponse,
     EggUpdateResponse,
@@ -245,20 +246,19 @@ class ChallengeService:
 
         return DailyChecklistResponse(date=today, track=track, items=items)
 
-    async def toggle_daily_checklist(self, user_id: int, item_key: str, today: date) -> DailyChecklistItemResponse:
-        """필수 체크리스트 항목 토글.
+    async def toggle_daily_checklist(self, user_id: int, item_key: str, today: date) -> ChecklistToggleResponse:
+        """필수 체크리스트 항목 토글 + 포인트·알 성장 연동.
 
-        item_key가 사용자 트랙의 REQUIRED_CHECKLIST 키가 아니면 400.
-        있으면 checked 토글, 없으면 checked=True 로 생성.
+        - 항목 체크(on): +5 적립 / 해제(off): -5 회수 (당일 순합 멱등)
+        - 4개 전체완료로 전이: +30 보너스 + 알 진행도 +1 (EggService, 체크인과 동일 경로)
+        - 전체완료 깨짐: -30 회수 (알 진행도는 유지 — 선택 챌린지 취소와 동일 정책)
+        - in_transaction 원자성
         """
         profile = await self._profile_repo.get_by_user(user_id)
-        if profile is None:
-            track = ChallengeTrack.WELLNESS
-        else:
-            track = profile.track
-
+        track = profile.track if profile else ChallengeTrack.WELLNESS
         track_key = track.value if hasattr(track, "value") else str(track)
-        valid_keys = {k for k, _ in REQUIRED_CHECKLIST.get(track_key, [])}
+        checklist_items = REQUIRED_CHECKLIST.get(track_key, [])
+        valid_keys = {k for k, _ in checklist_items}
 
         if item_key not in valid_keys:
             raise HTTPException(
@@ -266,16 +266,53 @@ class ChallengeService:
                 detail=f"유효하지 않은 체크리스트 항목입니다: {item_key}",
             )
 
-        log = await self._checklist_repo.upsert_toggle(user_id, today, item_key)
-
-        # 항목 text 조회 (REQUIRED_CHECKLIST에서 검색)
-        checklist_items = REQUIRED_CHECKLIST.get(track_key, [])
+        required_count = len(checklist_items)
         text = next((t for k, t in checklist_items if k == item_key), item_key)
 
-        return DailyChecklistItemResponse(
+        egg_update = None
+        full_bonus = 0
+        async with in_transaction():
+            log = await self._checklist_repo.upsert_toggle(user_id, today, item_key)
+            item_delta = await self._points.toggle_checklist_item_points(user_id, item_key, today, checked=log.checked)
+
+            logs = await self._checklist_repo.list_by_date(user_id, today)
+            checked_count = sum(1 for lg in logs if lg.checked)
+            now_complete = required_count > 0 and checked_count == required_count
+
+            if log.checked and now_complete:
+                full_bonus = await self._points.award_checklist_full(user_id, today)
+                if full_bonus > 0:
+                    egg_update = await self._eggs.progress_and_check(user_id=user_id)
+            # 전체완료가 깨질 때만 -30 회수. 부분 미체크(원래 미완료)에서도 이 분기에 들어오나,
+            # revoke_checklist_full 은 멱등 — 회수할 CHECKLIST_FULL 보너스가 없으면 0을 반환하므로 안전.
+            elif not log.checked and not now_complete:
+                full_bonus = -(await self._points.revoke_checklist_full(user_id, today))
+
+        egg_dto = None
+        if egg_update is not None:
+            egg_dto = EggUpdateResponse(
+                progress_checkins=egg_update.progress_checkins,
+                current_stage=egg_update.current_stage,
+                goal_70_just_alerted=egg_update.goal_70_just_alerted,
+                goal_90_just_alerted=egg_update.goal_90_just_alerted,
+                stage_bonus=egg_update.stage_bonus,
+                stage_milestone=egg_update.stage_milestone,
+                hatched=egg_update.hatched,
+                evolved_to=egg_update.evolved_to,
+                is_legendary=egg_update.is_legendary,
+                species=egg_update.species.value if egg_update.species else None,
+                character_name=egg_update.character_name,
+                new_egg_no=egg_update.new_egg_no,
+            )
+
+        return ChecklistToggleResponse(
             item_key=log.item_key,
             text=text,
             checked=log.checked,
+            points_awarded=item_delta + full_bonus,
+            all_completed=now_complete,
+            full_bonus_awarded=full_bonus if full_bonus > 0 else 0,
+            egg=egg_dto,
         )
 
     # ── 챌린지 참여 ──────────────────────────────────────────────────────────

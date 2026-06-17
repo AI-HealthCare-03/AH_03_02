@@ -149,6 +149,16 @@ export interface DailyChecklistResponse {
   items: DailyChecklistItem[];
 }
 
+export interface DailyChecklistToggleResult {
+  item_key: string;
+  text: string;
+  checked: boolean;
+  points_awarded: number;   // 이번 토글 순변동 (+5/+35/-5/-35/0)
+  all_completed: boolean;
+  full_bonus_awarded: number; // 0 또는 30
+  egg: EggUpdate | null;
+}
+
 // ── challengeApi ─────────────────────────────────────────────────────────────
 export const challengeApi = {
   // ── 신버전 (트랙·스테이지·필수체크) ─────────────────────────────────────
@@ -158,7 +168,7 @@ export const challengeApi = {
     api.put<MyTrack>("/challenges/my-track", { stage }),
   dailyChecklist: () => api.get<DailyChecklistResponse>("/challenges/daily-checklist"),
   toggleChecklist: (itemKey: string) =>
-    api.post<DailyChecklistItem>(`/challenges/daily-checklist/${itemKey}`, {}),
+    api.post<DailyChecklistToggleResult>(`/challenges/daily-checklist/${itemKey}`, {}),
   listByTrackStage: (track: ChallengeTrack, stage: number) =>
     api.get<ChallengeListResponse>(`/challenges?track=${track}&stage=${stage}`),
   // ── 기존 유지 (참여·체크인·게이미피케이션) ──────────────────────────────

@@ -14,6 +14,8 @@ class PointReason(StrEnum):
     PROTECT_CONSUME = "PROTECT_CONSUME"
     REFUND = "REFUND"
     CHECKIN_CANCEL = "CHECKIN_CANCEL"
+    CHECKLIST_ITEM = "CHECKLIST_ITEM"  # 필수 체크리스트 항목 완료 +5 (회수 시 음수)
+    CHECKLIST_FULL = "CHECKLIST_FULL"  # 필수 체크리스트 전체 완료 보너스 +30 (회수 시 음수)
 
 
 class ItemCode(StrEnum):
