@@ -31,8 +31,7 @@ class TestChecklistItemPoints(TestCase):
         svc = PointService()
         # 첫 체크 → +5
         assert (
-            await svc.toggle_checklist_item_points(user.id, "medication", TODAY, checked=True)
-            == CHECKLIST_ITEM_POINT
+            await svc.toggle_checklist_item_points(user.id, "medication", TODAY, checked=True) == CHECKLIST_ITEM_POINT
         )
         # 같은 항목 다시 checked=True (멱등) → 0
         assert await svc.toggle_checklist_item_points(user.id, "medication", TODAY, checked=True) == 0
@@ -44,8 +43,7 @@ class TestChecklistItemPoints(TestCase):
         await svc.toggle_checklist_item_points(user.id, "medication", TODAY, checked=True)
         # 해제 → -5
         assert (
-            await svc.toggle_checklist_item_points(user.id, "medication", TODAY, checked=False)
-            == -CHECKLIST_ITEM_POINT
+            await svc.toggle_checklist_item_points(user.id, "medication", TODAY, checked=False) == -CHECKLIST_ITEM_POINT
         )
         # 이미 net 0 → 추가 해제는 0
         assert await svc.toggle_checklist_item_points(user.id, "medication", TODAY, checked=False) == 0
