@@ -149,7 +149,7 @@ export function AppointmentCalendarPage() {
     <div className="flex min-h-screen flex-col bg-bg-alt">
       <div className="mx-auto w-full max-w-[28rem] pb-16">
         <header className="flex items-center gap-2 border-b border-border bg-bg px-4 py-3">
-          <button onClick={() => navigate("/challenge")} className="text-text-muted" aria-label="뒤로">
+          <button onClick={() => navigate(-1)} className="text-text-muted" aria-label="뒤로">
             ←
           </button>
           <h1 className="flex items-center gap-1.5 font-bold text-text-primary">

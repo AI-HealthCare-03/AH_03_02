@@ -87,10 +87,21 @@ export function useChallengeData() {
       checkedToday: uc ? uc.last_checkin_date === today : false,
     };
   });
-  const rows = activeCat ? rowsAll.filter((r) => r.challenge.category === activeCat) : rowsAll;
+  // 선택 챌린지 목록: 카테고리 필터 + 이미 선택한 챌린지는 숨김(오늘 진행도로 이동)
+  const rows = (activeCat ? rowsAll.filter((r) => r.challenge.category === activeCat) : rowsAll).filter(
+    (r) => r.userChallengeId === null,
+  );
+  // 카테고리 enum → 트랙 라벨(한글). 오늘 진행도에서 그룹 뱃지로 표시.
+  const catLabelOf = (cat: ChallengeCategory) =>
+    myTrack?.categories.find((c) => c.category === cat)?.label ?? String(cat);
   const selectedRows = rowsAll
     .filter((r) => r.userChallengeId !== null)
-    .map((r) => ({ userChallengeId: r.userChallengeId as number, name: r.challenge.name, completed: r.checkedToday }));
+    .map((r) => ({
+      userChallengeId: r.userChallengeId as number,
+      name: r.challenge.name,
+      completed: r.checkedToday,
+      categoryLabel: catLabelOf(r.challenge.category),
+    }));
 
   async function toggleChecklist(itemKey: string) {
     setCheckBusy(itemKey);
@@ -161,6 +172,21 @@ export function useChallengeData() {
     }
   }
 
+  // 오늘 진행도에서 선택 취소(참여 해제) → 다시 선택 챌린지 목록으로 복귀
+  async function cancelSelect(userChallengeId: number) {
+    setCompleteBusy(userChallengeId);
+    setError("");
+    try {
+      await challengeApi.abandon(userChallengeId);
+      invalidateDash();
+      await loadAll();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "선택 취소 실패");
+    } finally {
+      setCompleteBusy(null);
+    }
+  }
+
   // view 전환은 호출 컴포넌트가 담당. 여기선 데이터 처리 + 토스트만(성공 시 true).
   async function saveStage(stage: number): Promise<boolean> {
     setStageSaving(true);
@@ -219,6 +245,7 @@ export function useChallengeData() {
     toggleSelect,
     complete,
     uncomplete,
+    cancelSelect,
     saveStage,
   };
 }
