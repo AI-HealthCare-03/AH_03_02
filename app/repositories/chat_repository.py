@@ -1,4 +1,4 @@
-from app.models.chat import ChatMessage, ChatRole
+from app.models.chat import ChatMessage, ChatRole, MessageFeedback
 
 
 class ChatRepository:
@@ -10,3 +10,17 @@ class ChatRepository:
         total = await qs.count()
         items = await qs.order_by("created_at").offset(offset).limit(limit)
         return total, items
+
+    async def get_message(self, message_id: int) -> ChatMessage | None:
+        return await ChatMessage.get_or_none(id=message_id)
+
+
+class MessageFeedbackRepository:
+    async def upsert(self, *, user_id: int, chat_message_id: int, rating: int, comment: str | None) -> MessageFeedback:
+        """메시지+사용자당 1건 — 이미 있으면 갱신(재제출), 없으면 생성."""
+        obj, _ = await MessageFeedback.update_or_create(
+            user_id=user_id,
+            chat_message_id=chat_message_id,
+            defaults={"rating": rating, "comment": comment},
+        )
+        return obj
