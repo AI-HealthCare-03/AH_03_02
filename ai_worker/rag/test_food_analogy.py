@@ -79,7 +79,9 @@ def test_apply_replaces_marker_and_adds_disclaimer():
     out = fa.apply_analogies("하루 약 48g⟦단백질:48:g⟧입니다.")
     assert "닭가슴살" in out and "달걀" in out
     assert "⟦" not in out and "⟧" not in out
-    assert "참고용" in out
+    assert "가늠하기" in out
+    # 면책이 "분량)" 직후에 삽입되어 "입니다." 앞에 위치하는지 확인
+    assert out.index("가늠하기") < out.index("입니다.")
 
 
 def test_apply_unmatched_marker_removed_silently():
@@ -99,7 +101,7 @@ def test_apply_multiple_markers():
     out = fa.apply_analogies("단백질 48g⟦단백질:48:g⟧, 나트륨 2000mg⟦나트륨:2000:mg⟧.")
     assert "닭가슴살" in out
     assert "소금" in out
-    assert out.count("참고용") == 1  # 면책 중복 없음
+    assert out.count("가늠하기") == 1  # 면책 중복 없음
 
 
 def test_apply_marker_not_exposed():
@@ -129,13 +131,13 @@ def test_analogy_node_applies_to_generation():
 def test_apply_unit_mismatch_removed():
     """단위 불일치(나트륨을 g로 오기록) → 마커 제거, 잘못된 비유 안 나옴."""
     out = fa.apply_analogies("나트륨 약 2g⟦나트륨:2:g⟧")
-    assert "⟦" not in out and "소금" not in out and "참고용" not in out
+    assert "⟦" not in out and "소금" not in out and "가늠하기" not in out
 
 
 def test_apply_unit_match_ok():
     """올바른 단위(나트륨 mg)는 정상 비유 생성."""
     out = fa.apply_analogies("나트륨 2000mg⟦나트륨:2000:mg⟧")
-    assert "소금" in out and "참고용" in out
+    assert "소금" in out and "가늠하기" in out
 
 
 # ── 수정1: 음수 마커 노출 방지 ────────────────────────────────────────────────

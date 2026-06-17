@@ -51,6 +51,7 @@ def _build_payload(
         "urine_protein_qual": 1
         if dto.urine_protein == "POSITIVE"
         else (0 if dto.urine_protein == "NEGATIVE" else None),
+        "urine_glucose": 1 if dto.urine_glucose == "POSITIVE" else (0 if dto.urine_glucose == "NEGATIVE" else None),
         # LifestyleSurvey (없으면 안전 기본값)
         "smoking_status": ls.smoking_status.value if ls else "NEVER",
         "drinking_frequency": _DRINKING_TO_INT.get(ls.drinking_frequency.value, 0) if ls else 0,
@@ -152,6 +153,7 @@ async def republish_for_latest_health_check(user_id: int) -> int | None:
         ast=hc.ast,
         alt=hc.alt,
         urine_protein=hc.urine_protein,
+        urine_glucose=hc.urine_glucose,
     )
     await publish_ckd_job(
         health_check_id=hc.id,

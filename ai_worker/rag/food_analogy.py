@@ -21,7 +21,11 @@ _MARKER_RE = re.compile(r"⟦([^:⟧]+):([\d.]+):([^⟧]+)⟧")
 # 느슨한 마커 제거용 정규식 — 음수·형식 이상 등 _MARKER_RE가 놓친 잔여 마커까지 제거
 _LOOSE_MARKER_RE = re.compile(r"⟦[^⟧]*⟧")
 
-ANALOGY_DISCLAIMER = "\n\n💡 음식 비유는 양을 가늠하기 위한 참고용이며, 실제 식품 선택은 영양사·주치의와 상담하세요."
+ANALOGY_DISCLAIMER = (
+    "\n\n> ⚠️ 위 음식 예시는 단백질 양이 어느 정도인지 가늠하기 위한 것이며, "
+    "실제로 드시는 양은 조리법·식품에 따라 달라질 수 있어요. "
+    "식품 선택은 영양사·주치의와 상담하세요."
+)
 
 
 def load_food_table() -> dict:
@@ -106,4 +110,10 @@ def apply_analogies(text: str) -> str:
     out = _MARKER_RE.sub(_sub, text)
     # 형식 이상(음수 등) 잔여 마커까지 제거 → 노출 0 보장
     out = _LOOSE_MARKER_RE.sub("", out)
-    return out + ANALOGY_DISCLAIMER if inserted else out
+    if not inserted:
+        return out
+    last_idx = out.rfind("분량)")
+    if last_idx == -1:
+        return out + ANALOGY_DISCLAIMER  # 폴백: 분량) 못 찾으면 맨 끝
+    insert_at = last_idx + len("분량)")
+    return out[:insert_at] + ANALOGY_DISCLAIMER + out[insert_at:]
