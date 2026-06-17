@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { ClipboardCheck, FileText, ChevronDown, ChevronUp, Download } from "lucide-react";
+import { ClipboardCheck, FileText, ChevronDown, ChevronUp, Download, Copy, Check } from "lucide-react";
 import { Markdown } from "../components/Markdown";
 import {
   ResponsiveContainer,
@@ -15,7 +15,6 @@ import {
 import { Navigate } from "react-router-dom";
 import { TopNav } from "../components/TopNav";
 import { ScreenLabel } from "../components/ScreenLabel";
-import { BtnSecondary } from "../components/BtnSecondary";
 import { useDiagnosed } from "../hooks/useDiagnosed";
 import {
   healthCheckApi,
@@ -1266,16 +1265,19 @@ export function LLMActionGuidePage() {
             </div>
 
             <div className="print-hidden flex gap-[12px]">
-              <BtnSecondary
-                label={copied ? "복사됨 ✓" : "복사"}
-                className="flex-1"
+              <button
+                type="button"
                 onClick={() => {
                   if (!hasGuide) return;
                   navigator.clipboard.writeText(aiGuide);
                   setCopied(true);
                   setTimeout(() => setCopied(false), 2000);
                 }}
-              />
+                className="inline-flex flex-1 items-center justify-center gap-[6px] rounded-lg border border-border bg-bg px-[14px] py-[8px] text-sm font-medium text-text-secondary shadow-sm transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
+              >
+                {copied ? <Check className="h-[15px] w-[15px]" /> : <Copy className="h-[15px] w-[15px]" />}
+                {copied ? "복사됨" : "복사"}
+              </button>
               <button
                 disabled={pdfBusy || latestId === null}
                 onClick={async () => {
