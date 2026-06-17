@@ -6,13 +6,14 @@ import { SPECIES_EMOJI, SPECIES_LABEL, type CharacterSpecies } from "../api/gami
 interface Props {
   result: CheckInResponse | null;
   onClose: () => void;
+  variant?: "checkin" | "checklist";
 }
 
 /**
  * 체크인 직후 보상·이벤트를 한 번에 보여주는 모달.
  * 우선순위: 부화 > 럭키 > 스테이지 보너스 > 스트릭 보너스 > 기본 보상.
  */
-export function CheckinResultModal({ result, onClose }: Props) {
+export function CheckinResultModal({ result, onClose, variant = "checkin" }: Props) {
   const [confetti, setConfetti] = useState<{ x: number; y: number; rot: number; color: string }[]>([]);
 
   useEffect(() => {
@@ -44,8 +45,9 @@ export function CheckinResultModal({ result, onClose }: Props) {
   const characterName = egg?.character_name;
 
   // 메인 헤드라인
-  let title = "체크인 완료!";
-  let subtitle = "꾸준한 한 걸음에 보상이 쌓였어요.";
+  let title = variant === "checklist" ? "✅ 매일 필수 체크 완료!" : "체크인 완료!";
+  let subtitle =
+    variant === "checklist" ? "오늘 필수 체크를 모두 끝냈어요." : "꾸준한 한 걸음에 보상이 쌓였어요.";
   let iconNode: React.ReactNode = (
     <div className="flex h-[88px] w-[88px] items-center justify-center rounded-full bg-amber-50">
       <Coins size={40} className="text-amber-500" />
@@ -151,7 +153,7 @@ export function CheckinResultModal({ result, onClose }: Props) {
         {award && (
           <div className="mt-5 rounded-md border border-border bg-bg-alt px-4 py-3">
             <div className="flex flex-col gap-1.5">
-              <RewardRow label="체크인" amount={award.base} />
+              <RewardRow label={variant === "checklist" ? "필수 체크 완료" : "체크인"} amount={award.base} />
               {award.lucky && <RewardRow label="✨ 럭키 ×2" amount={award.lucky_extra} highlight />}
               {egg && egg.stage_bonus > 0 && (
                 <RewardRow label={`🥚 알 ${egg.stage_milestone}% 보너스`} amount={egg.stage_bonus} highlight />

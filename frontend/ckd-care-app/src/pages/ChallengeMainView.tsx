@@ -3,6 +3,7 @@ import { ChevronRight, FlaskConical, CalendarDays } from "lucide-react";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 import { CheckinResultModal } from "../components/CheckinResultModal";
+import { PointPopModal } from "../components/PointPopModal";
 import { EggWidget } from "../components/EggWidget";
 import { STAGES } from "../components/challenge/trackTheme";
 import { DailyChecklist } from "../components/challenge/DailyChecklist";
@@ -39,6 +40,12 @@ export function ChallengeMainView({ cd, onStageEdit }: Props) {
   return (
     <div className="flex min-h-screen flex-col bg-bg-alt">
       <CheckinResultModal result={cd.checkinResult} onClose={() => cd.setCheckinResult(null)} />
+      <CheckinResultModal
+        variant="checklist"
+        result={cd.checklistFullResult}
+        onClose={() => cd.setChecklistFullResult(null)}
+      />
+      <PointPopModal amount={cd.itemPointPop} onClose={() => cd.setItemPointPop(null)} />
       <ScreenLabel label="11 · 챌린지 메인 (REQ-CHG-01)" />
       <TopNav />
       <main className="mx-auto flex w-full max-w-[680px] flex-1 flex-col pb-10">
@@ -50,12 +57,6 @@ export function ChallengeMainView({ cd, onStageEdit }: Props) {
             {cd.stageToast}
           </div>
         )}
-        {cd.checklistToast && (
-          <div className="mx-5 mt-1 rounded-md bg-primary-soft px-3 py-2 text-sm font-medium text-primary" role="status">
-            {cd.checklistToast}
-          </div>
-        )}
-
         {tab === "challenge" && (
           <>
             {/* 헤더 — 날짜·트랙·단계 배지 */}
