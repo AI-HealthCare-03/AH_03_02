@@ -11,7 +11,7 @@ from app.dtos.health_check import (
     ReportMeta,
     ReportResponse,
 )
-from app.models.health_check import AppGroup, CkdStage, DialysisType, HealthCheck
+from app.models.health_check import AppGroup, CkdStage, DialysisType, HealthCheck, UrineResult
 from app.models.lifestyle_survey import LifestyleSurvey, SmokingStatus
 from app.models.safety_event import SafetyEvent, SafetyEventType
 from app.models.users import Gender, User
@@ -510,6 +510,11 @@ class HealthCheckService:
             "bmi": 10,
             "waist_height_ratio": 11,
             "smoking_current": 12,
+            "ast": 13,
+            "alt": 14,
+            "hemoglobin": 15,
+            "urine_protein_qual": 16,
+            "urine_glucose": 17,
         }
 
         # 원시 값 수집
@@ -541,6 +546,24 @@ class HealthCheckService:
             raw["smoking_current"] = float(smoke_map.get(ls.smoking_status, 0))
         else:
             raw["smoking_current"] = None
+
+        raw["ast"] = hc.ast
+        raw["alt"] = hc.alt
+        raw["hemoglobin"] = hc.hemoglobin
+        raw["urine_protein_qual"] = (
+            1.0
+            if hc.urine_protein == UrineResult.POSITIVE
+            else 0.0
+            if hc.urine_protein == UrineResult.NEGATIVE
+            else None
+        )
+        raw["urine_glucose"] = (
+            1.0
+            if hc.urine_glucose == UrineResult.POSITIVE
+            else 0.0
+            if hc.urine_glucose == UrineResult.NEGATIVE
+            else None
+        )
 
         items: list[ClinicalItem] = []
         for feature, val in raw.items():
