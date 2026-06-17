@@ -642,65 +642,67 @@ export function DashboardPage() {
           </div>
         )}
 
-        {/* Row2b: 월별 달성 달력 */}
-        <div className="mt-[24px]">
-          <MonthCalendarWidget />
-        </div>
-
-        {/* Row2c: 카테고리별 라디알 미니 */}
-        <div className="mt-[24px]">
-          <RadialMiniWidget />
-        </div>
-
-        {/* Row3: 최신 건강지표 카드 */}
-        {h && (
-          <div className="mt-[24px] grid grid-cols-2 gap-[16px] sm:grid-cols-4">
-            {[
-              { label: "혈압", value: `${h.systolic_bp}/${h.diastolic_bp}`, unit: "mmHg" },
-              { label: "공복혈당", value: String(h.fasting_glucose), unit: "mg/dL" },
-              { label: "BMI", value: String(h.bmi), unit: "" },
-              { label: "검진일", value: h.checked_date, unit: "" },
-            ].map((item) => (
-              <Card key={item.label} title={item.label}>
-                <p className="text-xl font-bold text-text-primary">{item.value}</p>
-                {item.unit && <p className="text-xs text-text-muted">{item.unit}</p>}
-              </Card>
-            ))}
+        {/* 넓은 화면 2열 — 행1: 달력(좌) | 카테고리 진행률 + 건강지표(우) */}
+        <div className="mt-[24px] grid grid-cols-1 gap-[16px] lg:grid-cols-5 lg:items-start">
+          {/* 좌: 월별 달성 달력 */}
+          <div className="lg:col-span-2">
+            <MonthCalendarWidget />
           </div>
-        )}
-
-        {/* Row4: 챌린지 현황 */}
-        {cs && (
-          <div className="mt-[24px]">
-            <Card title="챌린지 현황">
-              <div className="flex gap-[32px]">
+          {/* 우: 카테고리별 라디알 미니 + 최신 건강지표 */}
+          <div className="flex flex-col gap-[16px] lg:col-span-3">
+            <RadialMiniWidget />
+            {h && (
+              <div className="grid grid-cols-2 gap-[16px] sm:grid-cols-4">
                 {[
-                  { label: "진행 중", value: cs.active_count },
-                  { label: "완료", value: cs.completed_count },
-                  { label: "총 체크인", value: cs.total_checkins },
-                  { label: "최장 연속", value: `${cs.best_streak}일` },
-                ].map((s) => (
-                  <div key={s.label} className="flex flex-col items-center">
-                    <span className="text-2xl font-bold text-accent">{s.value}</span>
-                    <span className="text-xs text-text-secondary">{s.label}</span>
-                  </div>
+                  { label: "혈압", value: `${h.systolic_bp}/${h.diastolic_bp}`, unit: "mmHg" },
+                  { label: "공복혈당", value: String(h.fasting_glucose), unit: "mg/dL" },
+                  { label: "BMI", value: String(h.bmi), unit: "" },
+                  { label: "검진일", value: h.checked_date, unit: "" },
+                ].map((item) => (
+                  <Card key={item.label} title={item.label}>
+                    <p className="text-xl font-bold text-text-primary">{item.value}</p>
+                    {item.unit && <p className="text-xs text-text-muted">{item.unit}</p>}
+                  </Card>
                 ))}
               </div>
-            </Card>
+            )}
           </div>
-        )}
+        </div>
 
-        {/* Row5: 생활습관 요약 */}
-        {ls && (
-          <div className="mt-[24px]">
-            <Card title={`생활습관 요약 (${ls.surveyed_date})`}>
-              <div className="flex gap-[24px] text-sm text-text-primary">
-                <span>흡연: {SMOKING_LABEL[ls.smoking_status] ?? ls.smoking_status}</span>
-                <span>음주: {DRINKING_LABEL[ls.drinking_frequency] ?? ls.drinking_frequency}</span>
-                <span>운동: 주 {ls.exercise_days_per_week}회</span>
-                {ls.stress_level && <span>스트레스: {STRESS_LABEL[ls.stress_level] ?? ls.stress_level}</span>}
+        {/* 넓은 화면 2열 — 행2: 챌린지 현황(좌) | 생활습관 요약(우) */}
+        {(cs || ls) && (
+          <div className="mt-[24px] grid grid-cols-1 gap-[16px] lg:grid-cols-5 lg:items-start">
+            {cs && (
+              <div className="lg:col-span-2">
+                <Card title="챌린지 현황">
+                  <div className="flex flex-wrap gap-[32px]">
+                    {[
+                      { label: "진행 중", value: cs.active_count },
+                      { label: "완료", value: cs.completed_count },
+                      { label: "총 체크인", value: cs.total_checkins },
+                      { label: "최장 연속", value: `${cs.best_streak}일` },
+                    ].map((s) => (
+                      <div key={s.label} className="flex flex-col items-center">
+                        <span className="text-2xl font-bold text-accent">{s.value}</span>
+                        <span className="text-xs text-text-secondary">{s.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
               </div>
-            </Card>
+            )}
+            {ls && (
+              <div className="lg:col-span-3">
+                <Card title={`생활습관 요약 (${ls.surveyed_date})`}>
+                  <div className="flex flex-wrap gap-[24px] text-sm text-text-primary">
+                    <span>흡연: {SMOKING_LABEL[ls.smoking_status] ?? ls.smoking_status}</span>
+                    <span>음주: {DRINKING_LABEL[ls.drinking_frequency] ?? ls.drinking_frequency}</span>
+                    <span>운동: 주 {ls.exercise_days_per_week}회</span>
+                    {ls.stress_level && <span>스트레스: {STRESS_LABEL[ls.stress_level] ?? ls.stress_level}</span>}
+                  </div>
+                </Card>
+              </div>
+            )}
           </div>
         )}
           </>
