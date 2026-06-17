@@ -1,39 +1,40 @@
 @import "tailwindcss";
 
 @theme {
-  /* ── 브랜드 (Variant B · 레퍼런스 미니멀 톤 · Periwinkle) ─────────
-     레퍼런스(Yujadesign 어드민) 차분한 periwinkle 블루.
-     레이아웃은 그대로, 톤만 미니멀·차분하게. */
-  --color-primary: #5B7BD5;
-  --color-primary-hover: #4A68C0;
-  --color-primary-soft: #E8EDFA;
-  --color-accent: #5B7BD5;
-  --color-accent-hover: #4A68C0;
+  /* ── 브랜드 (Notion 톤 · 신뢰감 블루 + 따뜻한 페이퍼) ──────────
+     레퍼런스: DESIGN-notion.md — primary #0075de 단일 액센트
+     · 차가운 클리닉 톤을 페이퍼 오프화이트로 완화
+     · CKD 환자(고령 비율) 가독성 우선 */
+  --color-primary: #0075de;
+  --color-primary-hover: #0061b8;
+  --color-primary-soft: #e3f2ff;
+  --color-accent: #0075de;
+  --color-accent-hover: #0061b8;
 
-  /* ── 표면(Surface) — 연회색-블루틴트(레퍼런스 배경) ──────────── */
-  --color-bg: #FFFFFF;
-  --color-bg-alt: #F4F6FB;
-  --color-bg-muted: #EDF0F7;
-  --color-border: #E5E8F0; /* 얇은 보더 위주(그림자 약) */
-  --color-border-strong: #CBD2E0;
-  --color-placeholder: #E5E7EB;
+  /* ── 표면(Surface) — Notion 페이퍼 오프화이트 ──────────────── */
+  --color-bg: #ffffff;
+  --color-bg-alt: #f7f6f3;            /* Notion paper-soft (따뜻한 페이퍼 톤) */
+  --color-bg-muted: #efece8;          /* 한 단계 더 가라앉은 페이퍼 */
+  --color-border: #ebe9e6;            /* 페이퍼 톤 hairline */
+  --color-border-strong: #d1cec9;
+  --color-placeholder: #e5e3df;
 
-  /* ── 텍스트 — 네이비 그레이 계열 ──────────────────────────── */
-  --color-text-primary: #2D3548;
-  --color-text-secondary: #5A6478;
-  --color-text-muted: #98A0B3;
+  /* ── 텍스트 — Notion ink near-black ──────────────────────── */
+  --color-text-primary: #1d1d1f;       /* Notion ink — 깊은 near-black */
+  --color-text-secondary: #4d4d4d;     /* warmer body gray */
+  --color-text-muted: #888888;         /* 보조·캡션 */
 
-  /* ── 상태(Semantic) — soft 배경 토큰 동반 ───────────────────── */
+  /* ── 상태(Semantic) — 의료 정보 전달 필수 유지 ───────────── */
   --color-success: #059669;
-  --color-success-soft: #D1FAE5;
-  --color-info: #5B7BD5; /* primary로 통합 */
-  --color-info-soft: #E8EDFA;
-  --color-warning: #D97706;
-  --color-warning-soft: #FEF3C7;
-  --color-danger: #DC2626;
-  --color-danger-soft: #FEE2E2;
+  --color-success-soft: #d1fae5;
+  --color-info: #0075de;
+  --color-info-soft: #e3f2ff;
+  --color-warning: #d97706;
+  --color-warning-soft: #fef3c7;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fee2e2;
 
-  /* 챌린지 트랙 구분색 (받은 디자인 ckd-challenge.html 팔레트 — 유지) */
+  /* ── 챌린지 트랙 5색 (정보 전달 핵심 — Notion 단일 액센트 원칙 예외) */
   --color-track-dialysis: #1D9E75;
   --color-track-dialysis-bg: #E1F5EE;
   --color-track-ckd: #7F77DD;
@@ -45,45 +46,60 @@
   --color-track-wellness: #3F7A1F;
   --color-track-wellness-bg: #EAF3DE;
 
+  /* ── Typography (Notion 16px body 표준 + tight negative tracking) */
   --font-size-xs: 12px;
   --font-size-sm: 14px;
-  --font-size-md: 16px;
+  --font-size-md: 16px;        /* body */
   --font-size-lg: 18px;
   --font-size-xl: 22px;
   --font-size-2xl: 28px;
   --font-size-3xl: 36px;
+  --font-size-display: 48px;   /* 마케팅 히어로 (사용 시) */
 
-  /* ── radius — 각진 미니멀(레퍼런스) ─────────────────────────── */
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 10px;
-  --radius-2xl: 12px;
+  /* ── radius — Notion 친근한 둥근 (8 utility · 12 card · pill) ── */
+  --radius-sm: 6px;
+  --radius-md: 8px;            /* Notion utility button */
+  --radius-lg: 12px;           /* Notion card (8 → 12 상향) */
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-pill: 9999px;       /* Notion 마케팅 CTA · Tag */
+  --radius-full: 9999px;
 
-  /* ── elevation — 매우 약하게(보더 위주, 미니멀) ──────────────── */
-  --shadow-card: 0 1px 2px rgba(45, 53, 72, 0.05);
-  --shadow-card-hover: 0 2px 6px rgba(45, 53, 72, 0.08);
-  --shadow-elevated: 0 4px 14px rgba(45, 53, 72, 0.1);
+  /* ── elevation — Notion hairline + 매우 약한 layered shadow ── */
+  --shadow-card: 0 1px 2px rgba(15, 15, 15, 0.04);
+  --shadow-card-hover: 0 2px 8px rgba(15, 15, 15, 0.08);
+  --shadow-elevated: 0 6px 16px rgba(15, 15, 15, 0.10);
 
+  /* ── Spacing (Notion 여백 우선) */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 12px;
   --spacing-lg: 16px;
   --spacing-xl: 24px;
   --spacing-2xl: 32px;
+  --spacing-3xl: 48px;
 }
 
 body {
   font-family:
-    "Pretendard Variable", Pretendard, "Inter", system-ui, -apple-system,
-    sans-serif;
+    "Pretendard Variable", Pretendard, "Inter", "NotionInter", system-ui,
+    -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;             /* Notion 본문 leading */
+  letter-spacing: -0.01em;      /* tight negative tracking */
   margin: 0;
   color: var(--color-text-primary);
   background: var(--color-bg-alt);
-  letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   /* DisclaimerFooter(고정, ~32px) 가림 방지 */
   padding-bottom: 36px;
+}
+
+/* 헤드라인 — Notion tight tracking */
+h1, h2, h3 {
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 /* 모바일: 하단 탭바(56px) + 면책 footer(~32px) 가림 방지 */
