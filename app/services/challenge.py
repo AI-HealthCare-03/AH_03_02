@@ -253,7 +253,7 @@ class ChallengeService:
 
         - 항목 체크(on): +5 적립 / 해제(off): -5 회수 (당일 순합 멱등)
         - 4개 전체완료로 전이: +30 보너스 + 알 진행도 +1 (EggService, 체크인과 동일 경로)
-        - 전체완료 깨짐: -30 회수 (알 진행도는 유지 — 선택 챌린지 취소와 동일 정책)
+        - 전체완료 깨짐: -30 회수 + 알 진행도 -1 롤백 (선택 챌린지 취소와 동일 정책)
         - in_transaction 원자성
         """
         profile = await self._profile_repo.get_by_user(user_id)
@@ -288,7 +288,10 @@ class ChallengeService:
             # 전체완료가 깨질 때만 -30 회수. 부분 미체크(원래 미완료)에서도 이 분기에 들어오나,
             # revoke_checklist_full 은 멱등 — 회수할 CHECKLIST_FULL 보너스가 없으면 0을 반환하므로 안전.
             elif not log.checked and not now_complete:
-                full_bonus = -(await self._points.revoke_checklist_full(user_id, today))
+                revoked = await self._points.revoke_checklist_full(user_id, today)
+                full_bonus = -revoked
+                if revoked > 0:
+                    await self._eggs.rollback_checkin(user_id)
 
         egg_dto = None
         if egg_update is not None:
