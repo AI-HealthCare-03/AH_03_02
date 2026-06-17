@@ -617,8 +617,12 @@ class ChallengeService:
     # ── 카테고리 진행률 ───────────────────────────────────────────────────────
 
     async def get_category_progress(self, user_id: int) -> CategoryProgressResponse:
-        """카테고리 5종별 active 챌린지 평균 진행률 (REQ-DASH-001 ⑥)."""
-        active_list = await self._user_repo.list_active_by_user(user_id)
+        """카테고리 5종별 active+completed 챌린지 평균 진행률 (REQ-DASH-001 ⑥).
+
+        COMPLETED 포함: 완수 상태 챌린지가 집계에서 빠지면 진행률이 0으로 보이는 버그 방지.
+        ABANDONED 제외: 포기한 챌린지는 진행률에 반영하지 않음.
+        """
+        active_list = await self._user_repo.list_active_and_completed_by_user(user_id)
         # 카테고리별 집계
         by_cat: dict[ChallengeCategory, dict] = {
             cat: {"active_count": 0, "total_checkins": 0, "total_duration": 0} for cat in ChallengeCategory
