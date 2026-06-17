@@ -525,12 +525,12 @@ class ChallengeService:
         from app.models.gamification import PointReason, PointTransaction
 
         start_dt = datetime.combine(start, time.min)
-        end_dt = datetime.combine(end, time.max)
+        end_exclusive = datetime.combine(end + timedelta(days=1), time.min)
         rows = await PointTransaction.filter(
             user_id=user_id,
             reason__in=[PointReason.CHECKIN, PointReason.LUCKY, PointReason.CHECKIN_CANCEL],
             created_at__gte=start_dt,
-            created_at__lte=end_dt,
+            created_at__lt=end_exclusive,
         ).values("created_at", "reason", "extra")
         cids = {
             r["extra"].get("challenge_id")
@@ -573,6 +573,7 @@ class ChallengeService:
         track = profile.track if profile else ChallengeTrack.WELLNESS
         track_key = track.value if hasattr(track, "value") else str(track)
         required_count = len(REQUIRED_CHECKLIST.get(track_key, []))
+        required_keys = {k for k, _ in REQUIRED_CHECKLIST.get(track_key, [])}
 
         checked_by_date = await self._calendar_checked_by_date(user_id, start, end)
         selected_by_date = await self._calendar_selected_by_date(user_id, start, end)
@@ -581,7 +582,7 @@ class ChallengeService:
         achieved = gold = streak = max_streak = 0
         cur = start
         while cur <= end:
-            req = required_count > 0 and len(checked_by_date.get(cur, set())) >= required_count
+            req = required_count > 0 and len(checked_by_date.get(cur, set()) & required_keys) >= required_count
             sel_count = len(selected_by_date.get(cur, set()))
             if not req:
                 level = "none"
