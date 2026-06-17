@@ -11,11 +11,11 @@ from starlette import status
 
 from app.core import config
 from app.core.redis_client import get_redis
-from app.dtos.chat import ChatMessageResponse
+from app.dtos.chat import ChatMessageResponse, MessageFeedbackResponse
 from app.models.chat import ChatRole
 from app.models.health_check import HealthCheck
 from app.models.lifestyle_survey import LifestyleSurvey
-from app.repositories.chat_repository import ChatRepository
+from app.repositories.chat_repository import ChatRepository, MessageFeedbackRepository
 from app.services.diet_flags import dialysis_to_track, load_diet_flags
 
 
@@ -27,6 +27,7 @@ def _sse(event: dict) -> str:
 class ChatService:
     def __init__(self) -> None:
         self._repo = ChatRepository()
+        self._fb_repo = MessageFeedbackRepository()
 
     async def _build_user_context(self, user_id: int) -> dict:  # noqa: C901
         """최신 검진·생활습관설문에서 eGFR·risk_group·track·ckd_cause + 식이 플래그 추출. 없으면 부분/빈 dict."""
@@ -120,7 +121,7 @@ class ChatService:
         # 성공 경로에서만 USER·ASSISTANT 메시지를 함께 저장 (I-1)
         await self._repo.add(user_id=user_id, role=ChatRole.USER, content=question)
         saved = await self._repo.add(user_id=user_id, role=ChatRole.ASSISTANT, content=answer)
-        return ChatMessageResponse(answer=answer, created_at=saved.created_at)
+        return ChatMessageResponse(message_id=saved.id, answer=answer, created_at=saved.created_at)
 
     async def ask_stream(self, user_id: int, question: str) -> AsyncGenerator[str, None]:
         """RAG worker에 스트리밍 잡 발행 → rag_resp 청크를 SSE(data: ...) 로 점진 yield.
@@ -164,7 +165,9 @@ class ChatService:
                             full = ev.get("answer") or full
                             # 성공 시에만 USER·ASSISTANT 저장 (기존 ask 고아방지 정책과 동일)
                             await self._repo.add(user_id=user_id, role=ChatRole.USER, content=question)
-                            await self._repo.add(user_id=user_id, role=ChatRole.ASSISTANT, content=full)
+                            saved = await self._repo.add(user_id=user_id, role=ChatRole.ASSISTANT, content=full)
+                            # 프론트 피드백 연결용으로 저장된 어시스턴트 메시지 id 를 done 이벤트에 실어 보낸다
+                            ev["message_id"] = saved.id
                             yield _sse(ev)
                             return
                         elif etype == "error":
@@ -172,3 +175,27 @@ class ChatService:
                             return
         finally:
             await redis.delete(resp_key)
+
+    async def submit_feedback(
+        self, *, user_id: int, message_id: int, rating: int, comment: str | None
+    ) -> MessageFeedbackResponse:
+        """AI 답변(어시스턴트 메시지)에 대한 사용자 피드백을 저장한다 (수집 → 저장 루프).
+
+        본인 대화의 어시스턴트 메시지에만 허용. 같은 메시지에 재제출 시 upsert 로 갱신.
+
+        Raises:
+            HTTPException 404: 메시지가 존재하지 않을 때
+            HTTPException 403: 본인 메시지가 아닐 때
+            HTTPException 400: 사용자 질문(USER) 메시지에 피드백하려 할 때
+        """
+        msg = await self._repo.get_message(message_id)
+        if msg is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="메시지를 찾을 수 없습니다.")
+        if msg.user_id != user_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="본인 대화의 답변에만 피드백할 수 있습니다."
+            )
+        if msg.role != ChatRole.ASSISTANT:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="AI 답변에만 피드백할 수 있습니다.")
+        fb = await self._fb_repo.upsert(user_id=user_id, chat_message_id=message_id, rating=rating, comment=comment)
+        return MessageFeedbackResponse(message_id=message_id, rating=fb.rating, created_at=fb.created_at)

@@ -1,14 +1,16 @@
-import { Bot, Send, User as UserIcon } from "lucide-react";
+import { Bot, Send, ThumbsDown, ThumbsUp, User as UserIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { TopNav } from "../components/TopNav";
 import { ScreenLabel } from "../components/ScreenLabel";
-import { askStream } from "../api/chat";
+import { askStream, chatApi, type FeedbackRating } from "../api/chat";
 import { Markdown } from "../components/Markdown";
 
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   created_at: string;
+  messageId?: number; // 어시스턴트 답변의 서버 id (피드백 연결용)
+  feedback?: FeedbackRating; // 사용자가 남긴 피드백 (없으면 미평가)
 }
 
 const QUESTION_MAX = 2000;
@@ -66,14 +68,17 @@ export function RAGChatbotPage() {
         // 최종 답변(onDone)만 출력해 재생성 시 리셋·깜빡임을 없앤다.
         onToken: () => {},
         onReset: () => {},
-        onDone: (answer) => {
+        onDone: (answer, messageId) => {
           setLoading(false);
           // 빈 어시스턴트 메시지를 추가하고 청크 단위로 누적(가짜 스트리밍 — 약 1초 내 완료).
           // 서버는 최종 답변만 보내므로 Self-RAG 재생성 리셋과 무관하다.
           let assistantIdx = -1;
           setMessages((prev) => {
             assistantIdx = prev.length;
-            return [...prev, { role: "assistant", content: "", created_at: new Date().toISOString() }];
+            return [
+              ...prev,
+              { role: "assistant", content: "", created_at: new Date().toISOString(), messageId },
+            ];
           });
           const step = Math.max(3, Math.ceil(answer.length / 60)); // 약 60프레임(≈1초)에 완료
           let shown = 0;
@@ -108,6 +113,28 @@ export function RAGChatbotPage() {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       send(input);
+    }
+  }
+
+  // AI 답변 피드백 — 낙관적 반영 후 서버 전송, 실패 시 롤백
+  async function handleFeedback(index: number, rating: FeedbackRating) {
+    const target = messages[index];
+    if (!target?.messageId || target.feedback !== undefined) return;
+    setMessages((prev) => {
+      if (index >= prev.length) return prev;
+      const updated = [...prev];
+      updated[index] = { ...updated[index], feedback: rating };
+      return updated;
+    });
+    try {
+      await chatApi.feedback(target.messageId, rating);
+    } catch {
+      setMessages((prev) => {
+        if (index >= prev.length) return prev;
+        const updated = [...prev];
+        updated[index] = { ...updated[index], feedback: undefined };
+        return updated;
+      });
     }
   }
 
@@ -161,7 +188,7 @@ export function RAGChatbotPage() {
             )}
 
             {messages.map((m, i) => (
-              <MessageBubble key={i} message={m} />
+              <MessageBubble key={i} message={m} onFeedback={(rating) => handleFeedback(i, rating)} />
             ))}
 
             {/* 타이핑 인디케이터: 첫 토큰 수신 전까지만 표시 */}
@@ -218,7 +245,13 @@ export function RAGChatbotPage() {
   );
 }
 
-function MessageBubble({ message }: { message: ChatMessage }) {
+function MessageBubble({
+  message,
+  onFeedback,
+}: {
+  message: ChatMessage;
+  onFeedback?: (rating: FeedbackRating) => void;
+}) {
   if (message.role === "user") {
     return (
       <div className="flex items-start justify-end gap-[8px]">
@@ -231,13 +264,49 @@ function MessageBubble({ message }: { message: ChatMessage }) {
       </div>
     );
   }
+  // 답변 본문이 렌더되고 서버 id 가 있을 때만 피드백 노출 (가짜 스트리밍 첫 프레임 제외)
+  const showFeedback = message.messageId !== undefined && message.content.length > 0;
   return (
     <div className="flex items-start gap-[8px]">
       <div className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-full bg-accent">
         <Bot size={18} className="text-bg" />
       </div>
-      <div className="max-w-[80%] rounded-lg border border-border bg-bg px-[12px] py-[10px] shadow-card">
-        <Markdown>{message.content}</Markdown>
+      <div className="flex max-w-[80%] flex-col gap-[6px]">
+        <div className="rounded-lg border border-border bg-bg px-[12px] py-[10px] shadow-card">
+          <Markdown>{message.content}</Markdown>
+        </div>
+        {showFeedback && (
+          <div className="flex items-center gap-[8px] pl-[2px]">
+            {message.feedback === undefined ? (
+              <>
+                <span className="text-xs text-text-muted">이 답변이 도움이 되었나요?</span>
+                <button
+                  type="button"
+                  aria-label="도움이 됐어요"
+                  onClick={() => onFeedback?.(1)}
+                  className="flex items-center gap-[4px] rounded-md border border-border bg-bg px-[8px] py-[4px] text-xs text-text-secondary transition-colors hover:border-accent hover:text-accent"
+                >
+                  <ThumbsUp size={14} />
+                  도움돼요
+                </button>
+                <button
+                  type="button"
+                  aria-label="아쉬워요"
+                  onClick={() => onFeedback?.(-1)}
+                  className="flex items-center gap-[4px] rounded-md border border-border bg-bg px-[8px] py-[4px] text-xs text-text-secondary transition-colors hover:border-accent hover:text-accent"
+                >
+                  <ThumbsDown size={14} />
+                  아쉬워요
+                </button>
+              </>
+            ) : (
+              <span className="flex items-center gap-[4px] text-xs text-text-muted">
+                {message.feedback === 1 ? <ThumbsUp size={14} /> : <ThumbsDown size={14} />}
+                의견 감사합니다
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

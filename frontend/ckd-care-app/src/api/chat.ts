@@ -5,20 +5,32 @@ export interface ChatMessageCreateRequest {
 }
 
 export interface ChatMessageResponse {
+  message_id: number;
   answer: string;
+  created_at: string;
+}
+
+export type FeedbackRating = 1 | -1;
+
+export interface MessageFeedbackResponse {
+  message_id: number;
+  rating: number;
   created_at: string;
 }
 
 export const chatApi = {
   ask: (question: string) =>
     api.post<ChatMessageResponse>("/chat/messages", { question } satisfies ChatMessageCreateRequest),
+  // AI 답변에 대한 도움됨(+1)/안됨(-1) 피드백 — 같은 답변에 재전송 시 서버가 upsert 갱신
+  feedback: (messageId: number, rating: FeedbackRating, comment?: string) =>
+    api.post<MessageFeedbackResponse>(`/chat/messages/${messageId}/feedback`, { rating, comment }),
 };
 
 // SSE 스트리밍 이벤트 핸들러 인터페이스
 export interface ChatStreamHandlers {
   onToken: (text: string) => void;
   onReset: () => void;
-  onDone: (answer: string) => void;
+  onDone: (answer: string, messageId: number) => void;
   onError: (message: string) => void;
 }
 
@@ -26,7 +38,7 @@ export interface ChatStreamHandlers {
 type StreamEvent =
   | { type: "token"; text: string }
   | { type: "reset" }
-  | { type: "done"; answer: string }
+  | { type: "done"; answer: string; message_id: number }
   | { type: "error"; error: string };
 
 /**
@@ -93,8 +105,8 @@ export async function askStream(
       } else if (ev.type === "reset") {
         handlers.onReset();
       } else if (ev.type === "done") {
-        // done 이벤트: 스트리밍 토큰과 다른 최종본(면책 문구 등 포함)으로 교체
-        handlers.onDone(ev.answer ?? "");
+        // done 이벤트: 스트리밍 토큰과 다른 최종본(면책 문구 등 포함)으로 교체 + 피드백 연결용 message_id
+        handlers.onDone(ev.answer ?? "", ev.message_id);
         return;
       } else if (ev.type === "error") {
         handlers.onError(ev.error ?? "오류가 발생했습니다.");
