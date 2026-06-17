@@ -79,7 +79,7 @@ export function EggWidget({ aspectBackground = false }: { aspectBackground?: boo
   const proficiencyLabel = PROFICIENCY_LABEL[proficiency] ?? "입문";
 
   return (
-    <div className="flex h-full flex-col items-center gap-[10px] rounded-lg border border-border bg-bg p-[16px] shadow-card">
+    <div className="flex h-full flex-col items-center justify-center gap-[10px] rounded-lg border border-border bg-bg p-[16px] shadow-card">
       {/* 캐릭터 아이콘 + 숙련도 배경 (와이드 사각형, 시연 임팩트 강화) */}
       <div
         className={`relative flex w-full items-center justify-center overflow-hidden rounded-xl ring-2 ring-border shadow-sm ${
