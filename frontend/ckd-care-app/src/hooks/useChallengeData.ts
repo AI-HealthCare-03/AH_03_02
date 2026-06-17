@@ -38,7 +38,8 @@ export function useChallengeData() {
   const [stageError, setStageError] = useState<string | null>(null);
   const [checkinResult, setCheckinResult] = useState<CheckInResponse | null>(null);
   const [completeBusy, setCompleteBusy] = useState<number | null>(null);
-  const [checklistToast, setChecklistToast] = useState<string | null>(null);
+  const [checklistFullResult, setChecklistFullResult] = useState<CheckInResponse | null>(null);
+  const [itemPointPop, setItemPointPop] = useState<number | null>(null);
 
   async function loadAll() {
     try {
@@ -110,23 +111,33 @@ export function useChallengeData() {
     try {
       const res = await challengeApi.toggleChecklist(itemKey);
       setChecklist((prev) => prev.map((i) => (i.item_key === itemKey ? { ...i, checked: res.checked } : i)));
-      // 포인트 적립/회수 → TopNav 잔액 등 갱신
       invalidateDash();
-      // 토스트 메시지 구성
-      let msg: string | null = null;
       if (res.full_bonus_awarded > 0) {
-        msg = `🎉 매일 필수 체크 완료! +${res.points_awarded}pt`;
-        if (res.egg?.hatched) msg += ` · ${res.egg.character_name ?? "캐릭터"} 부화!`;
-        else if (res.egg?.evolved_to) msg += ` · ${res.egg.evolved_to}단계 진화!`;
+        // 4개 전체완료 → 선택 체크인과 동일한 풀 모달 (보너스 +30 + 알 부화/진화)
+        setChecklistFullResult({
+          id: 0,
+          streak_count: 0,
+          total_checkins: 0,
+          last_checkin_date: "",
+          status: "ACTIVE",
+          message: "",
+          award: {
+            base: res.full_bonus_awarded,
+            lucky: false,
+            lucky_extra: 0,
+            streak_bonus: 0,
+            streak_milestone: 0,
+            full_participation: false,
+            full_participation_bonus: 0,
+            total: res.full_bonus_awarded,
+          },
+          egg: res.egg,
+        });
       } else if (res.points_awarded > 0) {
-        msg = `+${res.points_awarded}pt 적립`;
-      } else if (res.points_awarded < 0) {
-        msg = `체크 해제 (${res.points_awarded}pt)`;
+        // 항목 1개 체크 → 가벼운 모달
+        setItemPointPop(res.points_awarded);
       }
-      if (msg) {
-        setChecklistToast(msg);
-        setTimeout(() => setChecklistToast(null), 2000);
-      }
+      // points_awarded <= 0 (해제 등) → 모달 없음
     } catch (e) {
       setError(e instanceof Error ? e.message : "체크 실패");
     } finally {
@@ -249,7 +260,10 @@ export function useChallengeData() {
     completeBusy,
     checkinResult,
     setCheckinResult,
-    checklistToast,
+    checklistFullResult,
+    setChecklistFullResult,
+    itemPointPop,
+    setItemPointPop,
     stageToast,
     stageSaving,
     stageError,
