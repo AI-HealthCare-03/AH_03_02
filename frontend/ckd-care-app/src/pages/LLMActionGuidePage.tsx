@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { ClipboardCheck, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import { ClipboardCheck, FileText, ChevronDown, ChevronUp, Download } from "lucide-react";
 import { Markdown } from "../components/Markdown";
 import {
   ResponsiveContainer,
@@ -966,6 +966,7 @@ function ReportMetaCard({ meta }: { meta: ReportMeta | null | undefined }) {
 
 const GUIDE_TIMEOUT_MS = 45000; // 가이드 선생성 대기 상한(~25s 생성 + 여유)
 
+
 // ===== 섹션 헤딩 컴포넌트 =====
 function SectionHeading({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
@@ -1015,7 +1016,8 @@ export function LLMActionGuidePage() {
   });
 
   const [guideTimedOut, setGuideTimedOut] = useState(false);
-  const [copied, setCopied] = useState(false); // 복사 버튼 클릭 피드백
+  const [copied, setCopied] = useState(false);
+  const [pdfBusy, setPdfBusy] = useState(false);
 
   // shap 준비 후 ai_guide가 빈 채로 GUIDE_TIMEOUT_MS 경과하면 실패 표시로 전환
   useEffect(() => {
@@ -1077,6 +1079,7 @@ export function LLMActionGuidePage() {
       {/* ===== 풀폭 세로 레이아웃 — 최대 1100px 센터 정렬 ===== */}
       <main className="flex flex-1 flex-col gap-[24px] px-[16px] py-[28px] md:px-[32px] md:py-[36px]">
         <div className="mx-auto w-full max-w-[1100px] flex flex-col gap-[40px]">
+
 
           {/* ─── 에러 배너 ─── */}
           {error && (
@@ -1262,7 +1265,7 @@ export function LLMActionGuidePage() {
               </div>
             </div>
 
-            <div className="flex gap-[12px]">
+            <div className="print-hidden flex gap-[12px]">
               <BtnSecondary
                 label={copied ? "복사됨 ✓" : "복사"}
                 className="flex-1"
@@ -1273,6 +1276,24 @@ export function LLMActionGuidePage() {
                   setTimeout(() => setCopied(false), 2000);
                 }}
               />
+              <button
+                disabled={pdfBusy || latestId === null}
+                onClick={async () => {
+                  if (pdfBusy || latestId === null) return;
+                  setPdfBusy(true);
+                  try {
+                    await healthCheckApi.downloadPdf(latestId);
+                  } catch (e) {
+                    alert(e instanceof Error ? e.message : "PDF 다운로드 중 오류가 발생했습니다.");
+                  } finally {
+                    setPdfBusy(false);
+                  }
+                }}
+                className="inline-flex flex-1 items-center justify-center gap-[6px] rounded-lg border border-border bg-bg px-[14px] py-[8px] text-sm font-medium text-text-secondary shadow-sm transition-colors hover:border-accent hover:text-accent disabled:opacity-50"
+              >
+                <Download className="h-[15px] w-[15px]" />
+                {pdfBusy ? "생성 중…" : "PDF 다운로드"}
+              </button>
             </div>
 
             <p className="text-xs leading-[1.5] text-text-muted">

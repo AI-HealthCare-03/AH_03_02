@@ -1,8 +1,13 @@
+import logging
 from datetime import date
 from typing import Annotated
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from fastapi.responses import ORJSONResponse as Response
+from fastapi.responses import StreamingResponse
+
+logger = logging.getLogger(__name__)
 
 from app.dependencies.security import get_request_user
 from app.dtos.health_check import (
@@ -14,6 +19,7 @@ from app.dtos.health_check import (
 from app.models.users import User
 from app.services import ocr as ocr_service
 from app.services.health_check import HealthCheckService
+from app.services.pdf_report import render_report_pdf
 
 health_check_router = APIRouter(prefix="/health-checks", tags=["health-checks"])
 
@@ -174,6 +180,36 @@ async def get_report(
             detail="검진 기록을 찾을 수 없습니다.",
         )
     return Response(result.model_dump(), status_code=status.HTTP_200_OK)
+
+
+@health_check_router.get(
+    "/{health_check_id}/pdf",
+    status_code=status.HTTP_200_OK,
+    summary="건강 리포트 PDF 다운로드",
+    description="검진 기록의 리포트를 A4 PDF로 생성합니다.",
+)
+async def download_report_pdf(
+    health_check_id: int,
+    user: Annotated[User, Depends(get_request_user)],
+    service: Annotated[HealthCheckService, Depends(HealthCheckService)],
+) -> StreamingResponse:
+    result = await service.get_report(health_check_id=health_check_id, user_id=user.id)
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="검진 기록을 찾을 수 없습니다.",
+        )
+    try:
+        pdf_bytes = render_report_pdf(result, checked_date=date.today().isoformat())
+    except Exception as exc:
+        logger.exception("PDF 생성 오류 (health_check_id=%s): %s", health_check_id, exc)
+        raise HTTPException(status_code=500, detail=f"PDF 생성 실패: {exc}") from exc
+    filename = f"건강리포트_{date.today().isoformat()}.pdf"
+    return StreamingResponse(
+        iter([pdf_bytes]),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename*=UTF-8''{quote(filename)}"},
+    )
 
 
 @health_check_router.post(

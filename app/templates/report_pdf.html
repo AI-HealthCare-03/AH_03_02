@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<style>
+/* ─── 폰트 ─────────────────────────────────── */
+body {
+  font-family: Korean, Arial, sans-serif;
+  font-size: 10pt;
+  color: #222;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─── 페이지 ────────────────────────────────── */
+@page {
+  size: A4 portrait;
+  margin: 16mm 14mm 16mm 14mm;
+}
+
+/* ─── 헤더·섹션 ─────────────────────────────── */
+.report-title {
+  font-size: 18pt;
+  font-weight: bold;
+  color: #1a2a3a;
+  text-align: center;
+  margin-bottom: 4px;
+}
+.report-subtitle {
+  font-size: 9pt;
+  color: #888;
+  text-align: center;
+  margin-bottom: 18px;
+}
+.section-heading {
+  font-size: 12pt;
+  font-weight: bold;
+  color: #1a2a3a;
+  border-bottom: 2px solid #1a2a3a;
+  padding-bottom: 4px;
+  margin-top: 18px;
+  margin-bottom: 10px;
+}
+.section-sub {
+  font-size: 8.5pt;
+  color: #888;
+  display: block;
+  margin-top: -8px;
+  margin-bottom: 10px;
+}
+
+/* ─── 카드 ──────────────────────────────────── */
+.card {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  page-break-inside: avoid;
+}
+.card-title {
+  font-size: 10pt;
+  font-weight: bold;
+  color: #1a2a3a;
+  margin-bottom: 6px;
+}
+
+/* ─── 메타 카드 ─────────────────────────────── */
+.meta-row {
+  font-size: 9.5pt;
+  color: #444;
+  margin-bottom: 3px;
+}
+.meta-label {
+  color: #888;
+  font-size: 8.5pt;
+}
+.grade-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 9pt;
+  font-weight: bold;
+}
+
+/* ─── SHAP 막대 ─────────────────────────────── */
+.shap-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 4px;
+}
+.shap-table td {
+  padding: 2px 4px;
+  vertical-align: middle;
+}
+.shap-rank {
+  font-size: 8.5pt;
+  color: #888;
+  width: 14px;
+}
+.shap-label {
+  font-size: 9pt;
+  color: #333;
+  width: 38%;
+}
+.shap-bar-cell {
+  width: 42%;
+}
+.shap-bar-track {
+  background-color: #f0f0f0;
+  height: 14px;
+  border-radius: 2px;
+  width: 100%;
+}
+.shap-bar-fill {
+  height: 14px;
+  border-radius: 2px;
+  display: block;
+}
+.shap-pct {
+  font-size: 8.5pt;
+  font-weight: bold;
+  text-align: right;
+  width: 38px;
+}
+.shap-panel-title {
+  font-size: 8.5pt;
+  font-weight: bold;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+/* ─── 테이블 (임상·생활습관) ────────────────── */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 9pt;
+  page-break-inside: avoid;
+}
+.data-table th {
+  background-color: #2c3e50;
+  color: #fff;
+  padding: 5px 7px;
+  font-size: 8.5pt;
+  text-align: left;
+}
+.data-table td {
+  padding: 5px 7px;
+  border-bottom: 1px solid #eee;
+  vertical-align: middle;
+}
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+.cat-row td {
+  background-color: #dfe6ec;
+  font-size: 8.5pt;
+  font-weight: bold;
+  color: #34495e;
+  padding: 3px 7px;
+}
+.badge {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 8pt;
+  font-weight: bold;
+}
+.direction-high { color: #dc2626; font-size: 8pt; }
+.direction-low  { color: #2563eb; font-size: 8pt; }
+
+/* ─── 권장 검사 ─────────────────────────────── */
+.test-list {
+  margin: 0;
+  padding-left: 16px;
+}
+.test-list li {
+  font-size: 9.5pt;
+  color: #333;
+  margin-bottom: 3px;
+}
+
+/* ─── AI 가이드 ─────────────────────────────── */
+.ai-guide-box {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 12px 14px;
+  font-size: 9.5pt;
+  line-height: 1.7;
+  color: #333;
+  page-break-inside: avoid;
+}
+.ai-guide-box h3 {
+  font-size: 10.5pt;
+  color: #1a2a3a;
+  margin: 10px 0 4px;
+}
+.ai-guide-box h4 {
+  font-size: 10pt;
+  color: #2c3e50;
+  margin: 8px 0 4px;
+}
+.ai-guide-box ul {
+  margin: 4px 0;
+  padding-left: 14px;
+}
+.ai-guide-box li {
+  margin-bottom: 2px;
+}
+.ai-guide-box p {
+  margin: 4px 0;
+}
+
+/* ─── 면책 ──────────────────────────────────── */
+.disclaimer {
+  font-size: 8.5pt;
+  color: #b45309;
+  border: 1px solid #fbbf24;
+  background-color: #fef3c7;
+  border-radius: 4px;
+  padding: 7px 10px;
+  margin-top: 10px;
+  page-break-inside: avoid;
+}
+
+/* ─── 요약 카드 ─────────────────────────────── */
+.summary-card {
+  border: 1px solid #c3d9f5;
+  background-color: #eff6ff;
+  border-radius: 4px;
+  padding: 9px 12px;
+  font-size: 9.5pt;
+  color: #333;
+  margin-bottom: 8px;
+  page-break-inside: avoid;
+}
+
+/* ─── 점수 박스 ─────────────────────────────── */
+.score-box {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  page-break-inside: avoid;
+}
+.score-value {
+  font-size: 22pt;
+  font-weight: bold;
+  color: #1a2a3a;
+}
+.score-denom {
+  font-size: 10pt;
+  color: #888;
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ 제목 ═══════════════════════════ -->
+<div class="report-title">건강 리포트</div>
+<div class="report-subtitle">생성일: {{ checked_date }}</div>
+
+<!-- ═══════════════════════════ 1. 리포트 메타 ═════════════════ -->
+{% if ctx.meta %}
+{% set meta = ctx.meta %}
+<div class="card">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="70%">
+        <div style="font-size:11pt; font-weight:bold; color:#1a2a3a; margin-bottom:4px;">
+          {{ meta.group_title }}
+          {% if meta.grade %}
+          &nbsp;
+          {% set g = meta.grade %}
+          {% if g == "높음" or g == "CKD 진단" or g == "투석·이식" %}
+            <span class="grade-badge" style="background:#fee2e2;color:#b91c1c;">{{ g }}</span>
+          {% elif g == "주의" %}
+            <span class="grade-badge" style="background:#fef3c7;color:#b45309;">{{ g }}</span>
+          {% else %}
+            <span class="grade-badge" style="background:#dcfce7;color:#166534;">{{ g }}</span>
+          {% endif %}
+          {% endif %}
+        </div>
+        {% if meta.score is not none %}
+        <div class="meta-row">
+          만성콩팥병 위험률: <strong>{{ meta.score | round(1) }}%</strong>
+          <span style="font-size:8pt;color:#888;"> (신장 검사 수치 제외 기타 지표 기준)</span>
+        </div>
+        {% endif %}
+        <div class="meta-row">
+          <span class="meta-label">나이·성별</span>&nbsp;
+          {% if meta.age %}{{ meta.age }}세{% else %}—{% endif %} ·
+          {{ meta.gender or "—" }}
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">기저질환</span>&nbsp;
+          {{ meta.conditions | join(", ") if meta.conditions else "없음" }}
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">가족력</span>&nbsp;
+          {{ meta.family_history | join(", ") if meta.family_history else "없음" }}
+        </div>
+        {% if meta.peer_top_pct is not none %}
+        <div class="meta-row">
+          <span class="meta-label">또래 비교</span>&nbsp;
+          상위 {{ meta.peer_top_pct }}%
+          {% if meta.peer_relative %} · {{ meta.peer_relative }}{% endif %}
+        </div>
+        {% endif %}
+      </td>
+      <td width="30%" style="vertical-align:top; padding-left:12px;">
+        {% if meta.group_message %}
+        <div style="font-size:8.5pt;color:#555;line-height:1.6;white-space:pre-line;">{{ meta.group_message[:200] }}{% if meta.group_message|length > 200 %}…{% endif %}</div>
+        {% endif %}
+      </td>
+    </tr>
+  </table>
+</div>
+{% endif %}
+
+<!-- ═══════════════════════════ 2. CKD 위험 분석 ══════════════ -->
+<div class="section-heading">CKD 위험 분석</div>
+<span class="section-sub">혈액·신체 계측 기반 CKD 선별 위험 요인</span>
+
+<!-- SHAP 막대 2패널 -->
+{% if ctx.model1_raise.bars or ctx.model1_lower.bars %}
+<div class="card">
+  <div class="card-title">SHAP 영향 요인 분석</div>
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="48%" style="vertical-align:top; padding-right:8px;">
+        <!-- 위험 상승 패널 -->
+        <div class="shap-panel-title" style="color:{{ ctx.model1_raise.color }};">
+          {{ ctx.model1_raise.title }}
+        </div>
+        {% if ctx.model1_raise.bars %}
+        <table class="shap-table">
+          {% for bar in ctx.model1_raise.bars %}
+          <tr>
+            <td class="shap-rank">{{ bar.rank }}.</td>
+            <td class="shap-label">{{ bar.label }}</td>
+            <td class="shap-bar-cell">
+              <div class="shap-bar-track">
+                <span class="shap-bar-fill" style="width:{{ bar.bar_pct }}%;background-color:{{ bar.color }};padding-left:3px;font-size:8pt;color:#fff;">{{ bar.value_text }}</span>
+              </div>
+            </td>
+            <td class="shap-pct" style="color:{{ bar.color }};">{{ bar.total_pct }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+        {% else %}
+        <div style="font-size:8.5pt;color:#aaa;">해당 항목 없음</div>
+        {% endif %}
+      </td>
+      <td width="4%" style="border-left:1px solid #e0e0e0;"></td>
+      <td width="48%" style="vertical-align:top; padding-left:8px;">
+        <!-- 위험 하강 패널 -->
+        <div class="shap-panel-title" style="color:{{ ctx.model1_lower.color }};">
+          {{ ctx.model1_lower.title }}
+        </div>
+        {% if ctx.model1_lower.bars %}
+        <table class="shap-table">
+          {% for bar in ctx.model1_lower.bars %}
+          <tr>
+            <td class="shap-rank">{{ bar.rank }}.</td>
+            <td class="shap-label">{{ bar.label }}</td>
+            <td class="shap-bar-cell">
+              <div class="shap-bar-track">
+                <span class="shap-bar-fill" style="width:{{ bar.bar_pct }}%;background-color:{{ bar.color }};padding-left:3px;font-size:8pt;color:#fff;">{{ bar.value_text }}</span>
+              </div>
+            </td>
+            <td class="shap-pct" style="color:{{ bar.color }};">{{ bar.total_pct }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+        {% else %}
+        <div style="font-size:8.5pt;color:#aaa;">해당 항목 없음</div>
+        {% endif %}
+      </td>
+    </tr>
+  </table>
+  <div style="font-size:8pt;color:#aaa;margin-top:6px;">
+    ※ 막대 위 숫자는 측정값, 우측 %는 전체 영향 중 해당 항목 비중입니다.
+  </div>
+</div>
+{% endif %}
+
+<!-- 모델1 종합 요약 -->
+{% if ctx.model1_summary %}
+<div class="summary-card">{{ ctx.model1_summary }}</div>
+{% endif %}
+
+<!-- 임상 상세 분석표 -->
+{% if ctx.clinical_grouped %}
+<div class="card" style="padding:0;">
+  <div style="padding:8px 12px;border-bottom:1px solid #e0e0e0;">
+    <span class="card-title">임상 상세 분석표</span>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width:22%;">항목</th>
+        <th style="width:20%;">정상범위</th>
+        <th style="width:18%;">현재값</th>
+        <th style="width:14%;text-align:center;">상태</th>
+        <th style="width:26%;">설명</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for cat, items in ctx.clinical_grouped %}
+      <tr class="cat-row">
+        <td colspan="5">〔 {{ cat }} 〕</td>
+      </tr>
+      {% for item in items %}
+      <tr style="border-left:3px solid {{ ctx.status_text[item.status_level] }};">
+        <td style="font-weight:bold;">{{ item.label }}</td>
+        <td style="font-size:8.5pt;color:#666;">{{ item.normal_range }}</td>
+        <td>
+          {{ item.value_text }}
+          {% if item.direction == "high" %}<span class="direction-high"> ▲</span>{% endif %}
+          {% if item.direction == "low"  %}<span class="direction-low"> ▼</span>{% endif %}
+        </td>
+        <td style="text-align:center;">
+          <span class="badge" style="background:{{ ctx.status_bg[item.status_level] }};color:{{ ctx.status_text[item.status_level] }};">
+            {{ item.status }}
+          </span>
+        </td>
+        <td style="font-size:8pt;color:#555;">{{ item.desc[:60] }}{% if item.desc|length > 60 %}…{% endif %}</td>
+      </tr>
+      {% endfor %}
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<!-- 권장 검사 -->
+{% if ctx.recommended_tests %}
+<div class="card">
+  <div class="card-title">권장 검사</div>
+  <ul class="test-list">
+    {% for test in ctx.recommended_tests %}
+    <li>{{ test }}</li>
+    {% endfor %}
+  </ul>
+  <div style="font-size:8pt;color:#aaa;margin-top:6px;">※ AI 분석 기반 참고 사항이며, 의료 진단이 아닙니다.</div>
+</div>
+{% endif %}
+
+<!-- ═══════════════════════════ 3. 생활습관 분석 ══════════════ -->
+<div class="section-heading">생활습관 분석</div>
+<span class="section-sub">음주·흡연·운동·식이·수면 등 생활습관 위험 요인</span>
+
+{% if ctx.lifestyle_score %}
+<div class="score-box">
+  <div style="font-size:8.5pt;color:#888;margin-bottom:2px;">종합 생활습관 점수</div>
+  <span class="score-value">{{ ctx.lifestyle_score }}</span>
+  <span class="score-denom"> / 100</span>
+</div>
+{% endif %}
+
+{% if ctx.peer_text %}
+<div style="font-size:9pt;color:#555;margin-bottom:8px;">또래 비교: {{ ctx.peer_text }}</div>
+{% endif %}
+
+<!-- 모델2 SHAP -->
+{% if ctx.model2_raise.bars or ctx.model2_lower.bars %}
+<div class="card">
+  <div class="card-title">SHAP 영향 요인 분석</div>
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+      <td width="48%" style="vertical-align:top; padding-right:8px;">
+        <div class="shap-panel-title" style="color:{{ ctx.model2_raise.color }};">{{ ctx.model2_raise.title }}</div>
+        {% if ctx.model2_raise.bars %}
+        <table class="shap-table">
+          {% for bar in ctx.model2_raise.bars %}
+          <tr>
+            <td class="shap-rank">{{ bar.rank }}.</td>
+            <td class="shap-label">{{ bar.label }}</td>
+            <td class="shap-bar-cell">
+              <div class="shap-bar-track">
+                <span class="shap-bar-fill" style="width:{{ bar.bar_pct }}%;background-color:{{ bar.color }};padding-left:3px;font-size:8pt;color:#fff;">{{ bar.value_text }}</span>
+              </div>
+            </td>
+            <td class="shap-pct" style="color:{{ bar.color }};">{{ bar.total_pct }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+        {% else %}
+        <div style="font-size:8.5pt;color:#aaa;">해당 항목 없음</div>
+        {% endif %}
+      </td>
+      <td width="4%" style="border-left:1px solid #e0e0e0;"></td>
+      <td width="48%" style="vertical-align:top; padding-left:8px;">
+        <div class="shap-panel-title" style="color:{{ ctx.model2_lower.color }};">{{ ctx.model2_lower.title }}</div>
+        {% if ctx.model2_lower.bars %}
+        <table class="shap-table">
+          {% for bar in ctx.model2_lower.bars %}
+          <tr>
+            <td class="shap-rank">{{ bar.rank }}.</td>
+            <td class="shap-label">{{ bar.label }}</td>
+            <td class="shap-bar-cell">
+              <div class="shap-bar-track">
+                <span class="shap-bar-fill" style="width:{{ bar.bar_pct }}%;background-color:{{ bar.color }};padding-left:3px;font-size:8pt;color:#fff;">{{ bar.value_text }}</span>
+              </div>
+            </td>
+            <td class="shap-pct" style="color:{{ bar.color }};">{{ bar.total_pct }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+        {% else %}
+        <div style="font-size:8.5pt;color:#aaa;">해당 항목 없음</div>
+        {% endif %}
+      </td>
+    </tr>
+  </table>
+</div>
+{% endif %}
+
+<!-- 생활습관 도메인 요약 -->
+{% if ctx.domain_summaries %}
+<div class="card">
+  <div class="card-title">생활습관 핵심 요약</div>
+  {% for d in ctx.domain_summaries %}
+  <div style="margin-bottom:6px;">
+    <span style="font-weight:bold;font-size:9.5pt;">{{ d.domain_label }}</span>
+    {% if d.improve_count > 0 %}
+      <span class="badge" style="background:#fee2e2;color:#b91c1c;margin-left:4px;">개선 필요 {{ d.improve_count }}개</span>
+    {% else %}
+      <span class="badge" style="background:#dcfce7;color:#166534;margin-left:4px;">양호</span>
+    {% endif %}
+    &nbsp;<span style="font-size:9pt;color:#555;">{{ d.summary }}</span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- 생활습관 상세 분석표 -->
+{% if ctx.lifestyle_improve or ctx.lifestyle_maintain %}
+<div class="card" style="padding:0;">
+  <div style="padding:8px 12px;border-bottom:1px solid #e0e0e0;">
+    <span class="card-title">생활습관 상세 분석표</span>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width:22%;">항목</th>
+        <th style="width:20%;">정상범위</th>
+        <th style="width:18%;">현재값</th>
+        <th style="width:14%;text-align:center;">상태</th>
+        <th style="width:26%;">행동 지침</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if ctx.lifestyle_improve %}
+      <tr class="cat-row">
+        <td colspan="5" style="background:#fff5f5;color:#b91c1c;">〔 개선이 필요한 항목 〕</td>
+      </tr>
+      {% for item in ctx.lifestyle_improve %}
+      <tr style="border-left:3px solid #dc2626;">
+        <td style="font-weight:bold;">{{ item.label }}</td>
+        <td style="font-size:8.5pt;color:#666;">{{ item.normal_range }}</td>
+        <td>{{ item.value_text }}</td>
+        <td style="text-align:center;">
+          <span class="badge" style="background:{{ ctx.status_bg[item.status_level] }};color:{{ ctx.status_text[item.status_level] }};">
+            {{ item.status }}
+          </span>
+        </td>
+        <td style="font-size:8pt;color:#555;">{{ item.action[:60] if item.action else "—" }}{% if item.action and item.action|length > 60 %}…{% endif %}</td>
+      </tr>
+      {% endfor %}
+      {% endif %}
+
+      {% if ctx.lifestyle_maintain %}
+      <tr class="cat-row">
+        <td colspan="5" style="background:#f0fdf4;color:#166534;">〔 잘 관리되고 있는 항목 〕</td>
+      </tr>
+      {% for item in ctx.lifestyle_maintain %}
+      <tr style="border-left:3px solid #16a34a;">
+        <td style="font-weight:bold;">{{ item.label }}</td>
+        <td style="font-size:8.5pt;color:#666;">{{ item.normal_range }}</td>
+        <td>{{ item.value_text }}</td>
+        <td style="text-align:center;">
+          <span class="badge" style="background:{{ ctx.status_bg[item.status_level] }};color:{{ ctx.status_text[item.status_level] }};">
+            {{ item.status }}
+          </span>
+        </td>
+        <td style="font-size:8pt;color:#555;">—</td>
+      </tr>
+      {% endfor %}
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<!-- ═══════════════════════════ 4. AI 행동 가이드 ══════════════ -->
+<div class="section-heading">AI 행동 가이드</div>
+<span class="section-sub">SHAP 분석 기반 개인화 생활 개선 가이드</span>
+
+{% if ctx.ai_guide_html %}
+<div class="ai-guide-box">{{ ctx.ai_guide_html | safe }}</div>
+{% else %}
+<div style="font-size:9pt;color:#aaa;padding:8px 0;">AI 가이드가 아직 준비되지 않았습니다.</div>
+{% endif %}
+
+<!-- 면책 -->
+<div class="disclaimer">
+  본 서비스는 의료 진단·처방을 대체하지 않습니다. 정확한 진단·치료는 의사 상담을 받으세요.
+  사용자 PII는 토큰화되어 AI에 전송되며, 본 리포트는 참고 자료입니다.
+</div>
+
+</body>
+</html>
