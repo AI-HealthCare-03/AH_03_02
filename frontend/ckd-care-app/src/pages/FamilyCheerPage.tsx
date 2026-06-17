@@ -44,7 +44,7 @@ export function FamilyCheerPage() {
           {members.map((m) => (
             <div
               key={m.name}
-              className="flex flex-1 flex-col items-center gap-[12px] rounded-md border border-border bg-bg p-[16px]"
+              className="flex flex-1 flex-col items-center gap-[12px] rounded-lg border border-border bg-bg p-[16px] shadow-card"
             >
               <div className="h-[64px] w-[64px] rounded-full bg-placeholder" />
               <p className="text-md font-bold text-text-primary">{m.name}</p>
@@ -59,7 +59,7 @@ export function FamilyCheerPage() {
           ))}
         </div>
 
-        <div className="flex w-[760px] flex-col gap-[12px] rounded-md border border-border bg-bg p-[16px]">
+        <div className="flex w-[760px] flex-col gap-[12px] rounded-lg border border-border bg-bg p-[16px] shadow-card">
           <p className="text-sm font-bold text-text-primary">
             응원 메시지 작성 (아빠에게)
           </p>

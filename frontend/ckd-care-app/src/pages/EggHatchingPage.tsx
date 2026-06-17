@@ -50,7 +50,7 @@ export function EggHatchingPage() {
           {grades.map((g) => (
             <div
               key={g.label}
-              className={`flex w-[160px] flex-col items-center gap-[8px] rounded-md border p-[16px] ${
+              className={`flex w-[160px] flex-col items-center gap-[8px] rounded-lg border p-[16px] shadow-card ${
                 g.active
                   ? "border-accent bg-accent/5"
                   : "border-border bg-bg"

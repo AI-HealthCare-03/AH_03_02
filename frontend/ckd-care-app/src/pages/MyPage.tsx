@@ -78,7 +78,7 @@ export function MyPage() {
         {/* 왼쪽: 프로필 + 메뉴 */}
         <div className="flex w-full flex-col gap-[16px] md:w-[360px]">
           {/* 프로필 카드 */}
-          <div className="flex flex-col items-center gap-[12px] rounded-md border border-border bg-bg p-[24px]">
+          <div className="flex flex-col items-center gap-[12px] rounded-lg border border-border bg-bg shadow-card p-[24px]">
             <div className="flex h-[80px] w-[80px] items-center justify-center rounded-full bg-accent/20">
               <span className="text-2xl font-bold text-accent">{initial}</span>
             </div>
@@ -126,7 +126,7 @@ export function MyPage() {
         {/* 오른쪽: 패널 */}
         <div className="flex w-full flex-col gap-[16px] md:w-[480px]">
           {panel === "logout" && (
-            <div className="flex flex-col items-center gap-[24px] rounded-md border border-border bg-bg p-[40px]">
+            <div className="flex flex-col items-center gap-[24px] rounded-lg border border-border bg-bg shadow-card p-[40px]">
               <LogOut size={48} className="text-text-muted" />
               <div className="text-center">
                 <p className="text-lg font-bold text-text-primary">로그아웃</p>
@@ -149,7 +149,7 @@ export function MyPage() {
           {panel === "account" && (
             <div className="flex flex-col gap-[16px]">
               {/* 비밀번호 변경 */}
-              <div className="rounded-md border border-border bg-bg p-[24px]">
+              <div className="rounded-lg border border-border bg-bg shadow-card p-[24px]">
                 <h2 className="mb-[16px] flex items-center gap-[8px] text-lg font-bold text-text-primary">
                   <KeyRound size={20} />
                   비밀번호 변경
@@ -187,7 +187,7 @@ export function MyPage() {
               </div>
 
               {/* 회원 탈퇴 */}
-              <div className="rounded-md border border-danger bg-bg p-[24px]">
+              <div className="rounded-lg border border-danger bg-bg shadow-card p-[24px]">
                 <h2 className="mb-[8px] flex items-center gap-[8px] text-lg font-bold text-danger">
                   <UserX size={20} />
                   회원 탈퇴

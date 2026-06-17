@@ -123,7 +123,7 @@ export function SignupPage() {
     <div className="flex min-h-screen flex-col bg-bg-alt">
       <ScreenLabel label="02 · 회원가입 (REQ-AUTH-02)" />
       <main className="flex flex-1 items-center justify-center p-[32px]">
-        <div className="flex w-[520px] flex-col gap-[24px] rounded-lg border border-border bg-bg p-[40px]">
+        <div className="flex w-[520px] flex-col gap-[24px] rounded-lg border border-border bg-bg shadow-card p-[40px]">
           <h1 className="text-2xl font-bold text-text-primary">회원가입</h1>
 
           <div className="flex flex-col gap-[16px]">

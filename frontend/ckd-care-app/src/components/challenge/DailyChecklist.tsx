@@ -18,7 +18,7 @@ export function DailyChecklist({ items, busyKey, onToggle }: Props) {
               key={item.item_key}
               onClick={() => onToggle(item.item_key)}
               disabled={busy}
-              className={`flex items-start gap-3 rounded-md border p-3 text-left transition-colors disabled:opacity-60 ${
+              className={`flex items-start gap-3 rounded-lg border p-3 text-left shadow-card transition-all hover:shadow-card-hover disabled:opacity-60 ${
                 item.checked ? "border-success/40 bg-success/5" : "border-border bg-bg"
               }`}
             >

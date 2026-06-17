@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { FileText, ListChecks } from "lucide-react";
+import { FileText, ListChecks, ChevronRight } from "lucide-react";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 
@@ -22,9 +22,14 @@ export function LifestyleManagementPage() {
         <div className="grid grid-cols-1 gap-[16px] md:grid-cols-2">
           <button
             onClick={() => navigate("/lifestyle-survey")}
-            className="flex flex-col items-start gap-[12px] rounded-md border border-border bg-bg p-[24px] text-left transition-colors hover:border-accent hover:bg-accent/5"
+            className="group flex flex-col items-start gap-[12px] rounded-lg border border-border bg-bg p-[24px] text-left shadow-card transition-all hover:border-accent hover:shadow-card-hover"
           >
-            <FileText size={32} className="text-accent" />
+            <div className="flex w-full items-center justify-between">
+              <div className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                <FileText size={24} />
+              </div>
+              <ChevronRight size={20} className="text-text-muted transition-colors group-hover:text-accent" />
+            </div>
             <div>
               <p className="text-lg font-bold text-text-primary">생활습관 설문하기</p>
               <p className="mt-[4px] text-sm text-text-secondary">
@@ -35,9 +40,14 @@ export function LifestyleManagementPage() {
 
           <button
             onClick={() => navigate("/lifestyle-survey-history")}
-            className="flex flex-col items-start gap-[12px] rounded-md border border-border bg-bg p-[24px] text-left transition-colors hover:border-accent hover:bg-accent/5"
+            className="group flex flex-col items-start gap-[12px] rounded-lg border border-border bg-bg p-[24px] text-left shadow-card transition-all hover:border-accent hover:shadow-card-hover"
           >
-            <ListChecks size={32} className="text-accent" />
+            <div className="flex w-full items-center justify-between">
+              <div className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                <ListChecks size={24} />
+              </div>
+              <ChevronRight size={20} className="text-text-muted transition-colors group-hover:text-accent" />
+            </div>
             <div>
               <p className="text-lg font-bold text-text-primary">생활습관 설문 이력 보기</p>
               <p className="mt-[4px] text-sm text-text-secondary">

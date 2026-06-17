@@ -21,7 +21,7 @@ export function WeeklyProgressWidget() {
 
   if (loading) {
     return (
-      <div className="rounded-md border border-border bg-bg p-4">
+      <div className="rounded-lg border border-border bg-bg p-4 shadow-card">
         <p className="text-sm text-text-muted">로딩 중...</p>
       </div>
     );
@@ -40,7 +40,7 @@ export function WeeklyProgressWidget() {
   const slots: HeatmapDay[] = Array.from({ length: 7 }, (_, i) => days[i] ?? { date: `empty-${i}`, count: 0 });
 
   return (
-    <div className="rounded-md border border-border bg-bg p-4">
+    <div className="rounded-lg border border-border bg-bg p-4 shadow-card">
       <div className="mb-3 flex items-center justify-between">
         <p className="text-sm font-bold text-text-primary">이번 주 달성</p>
         <p className="text-xs text-text-muted">

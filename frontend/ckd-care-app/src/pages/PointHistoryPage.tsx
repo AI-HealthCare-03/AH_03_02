@@ -65,7 +65,7 @@ export function PointHistoryPage() {
               return (
                 <div
                   key={tx.id}
-                  className="flex items-center justify-between rounded-md border border-border bg-bg px-[16px] py-[12px]"
+                  className="flex items-center justify-between rounded-lg border border-border bg-bg shadow-card px-[16px] py-[12px]"
                 >
                   <div className="flex items-center gap-[12px]">
                     <Coins

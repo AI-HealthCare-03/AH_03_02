@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import type { ChallengeTrack } from "../../api/challenge";
 import { STAGES, TRACK_THEME } from "./trackTheme";
 
@@ -19,7 +20,7 @@ export function StageSelectView({ track, current, onSave, onBack, saving, error 
   return (
     <div className="flex flex-1 flex-col">
       <div className="flex items-center gap-3 border-b border-border px-6 py-4">
-        <button onClick={onBack} className="text-xl text-text-secondary" aria-label="뒤로">←</button>
+        <button onClick={onBack} className="text-text-secondary transition-colors hover:text-accent" aria-label="뒤로"><ArrowLeft size={22} /></button>
         <h1 className="flex-1 text-[17px] font-medium text-text-primary">{theme.label}</h1>
       </div>
       <div className="mx-auto w-full max-w-[480px] px-5 pt-5">
@@ -37,7 +38,7 @@ export function StageSelectView({ track, current, onSave, onBack, saving, error 
             <button
               key={s.num}
               onClick={() => setSelected(s.num)}
-              className={`flex items-center gap-3.5 rounded-md border bg-bg p-4 text-left transition-colors hover:border-border-strong ${
+              className={`flex items-center gap-3.5 rounded-lg border bg-bg p-4 text-left shadow-card transition-all hover:border-border-strong hover:shadow-card-hover ${
                 isSelected ? `${theme.borderClass} border-2` : "border-border"
               }`}
             >
@@ -63,7 +64,7 @@ export function StageSelectView({ track, current, onSave, onBack, saving, error 
         <button
           onClick={() => onSave(selected)}
           disabled={!changed || saving}
-          className="w-full rounded-md bg-accent py-3 text-sm font-semibold text-white disabled:opacity-40"
+          className="w-full rounded-lg bg-accent py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-hover disabled:opacity-40"
         >
           {saving ? "저장 중…" : "변경 저장"}
         </button>

@@ -11,7 +11,7 @@ export function DailyQuizPage() {
       <TopNav />
 
       <main className="flex flex-1 flex-col items-center justify-center p-[32px]">
-        <div className="flex w-[560px] flex-col items-center gap-[16px] rounded-lg border border-border bg-bg p-[40px]">
+        <div className="flex w-[560px] flex-col items-center gap-[16px] rounded-lg border border-border bg-bg p-[40px] shadow-card">
           <div className="flex w-full items-center justify-center gap-[8px]">
             <Tag label="DAY 14" />
             <Tag label="✨ 정답 시 포인트 2배" />

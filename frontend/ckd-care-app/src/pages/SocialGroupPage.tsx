@@ -32,7 +32,7 @@ export function SocialGroupPage() {
             <BtnPrimary label="링크 복사" />
           </div>
 
-          <div className="flex flex-col gap-[12px] rounded-md border border-border bg-bg p-[16px]">
+          <div className="flex flex-col gap-[12px] rounded-lg border border-border bg-bg p-[16px] shadow-card">
             <h3 className="text-md font-bold text-text-primary">
               주간 그룹 랭킹 (달성률)
             </h3>
@@ -71,7 +71,7 @@ export function SocialGroupPage() {
 
         {/* 우측 */}
         <div className="flex flex-1 flex-col gap-[12px]">
-          <div className="flex flex-col gap-[12px] rounded-md border border-border bg-bg p-[16px]">
+          <div className="flex flex-col gap-[12px] rounded-lg border border-border bg-bg p-[16px] shadow-card">
             <h3 className="text-md font-bold text-text-primary">
               가족 합산 5만 보 챌린지
             </h3>
@@ -86,7 +86,7 @@ export function SocialGroupPage() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-[12px] rounded-md border border-border bg-bg p-[16px]">
+          <div className="flex flex-col gap-[12px] rounded-lg border border-border bg-bg p-[16px] shadow-card">
             <h3 className="text-md font-bold text-text-primary">멤버 (28명)</h3>
             <div className="flex gap-[8px]">
               {Array.from({ length: 5 }).map((_, i) => (

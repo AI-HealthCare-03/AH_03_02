@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ChevronRight, FlaskConical, CalendarDays } from "lucide-react";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 import { CheckinResultModal } from "../components/CheckinResultModal";
@@ -55,12 +56,12 @@ export function ChallengeMainView({ cd, onStageEdit }: Props) {
               <h1 className="mt-1 text-xl font-semibold text-text-primary">오늘의 챌린지</h1>
               {cd.myTrack && theme && (
                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <span className={`inline-flex items-center rounded-full px-2.5 py-1.5 text-xs font-medium ${theme.bgClass} ${theme.textClass}`}>
+                  <span className={`inline-flex items-center rounded-md px-2.5 py-1.5 text-xs font-medium ${theme.bgClass} ${theme.textClass}`}>
                     {cd.myTrack.track_label}
                   </span>
                   <button
                     onClick={onStageEdit}
-                    className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1.5 text-xs font-medium text-text-secondary hover:border-border-strong"
+                    className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs font-medium text-text-secondary hover:border-border-strong"
                   >
                     {cd.stageLabel} {STAGES.find((s) => s.num === cd.myTrack!.stage)?.label} · 변경 ›
                   </button>
@@ -128,17 +129,27 @@ export function ChallengeMainView({ cd, onStageEdit }: Props) {
               <div className="flex flex-col gap-2">
                 <button
                   onClick={() => navigate("/records/lab")}
-                  className="flex w-full items-center justify-between rounded-xl border border-border bg-bg p-4 text-left"
+                  className="group flex w-full items-center justify-between rounded-lg border border-border bg-bg p-4 text-left shadow-card transition-all hover:border-accent hover:shadow-card-hover"
                 >
-                  <span className="font-bold text-text-primary">🧪 검사 수치 기록장</span>
-                  <span className="text-text-muted">›</span>
+                  <span className="flex items-center gap-3">
+                    <span className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                      <FlaskConical size={20} />
+                    </span>
+                    <span className="font-bold text-text-primary">검사 수치 기록장</span>
+                  </span>
+                  <ChevronRight size={18} className="text-text-muted transition-transform group-hover:translate-x-[2px] group-hover:text-accent" />
                 </button>
                 <button
                   onClick={() => navigate("/records/appointments")}
-                  className="flex w-full items-center justify-between rounded-xl border border-border bg-bg p-4 text-left"
+                  className="group flex w-full items-center justify-between rounded-lg border border-border bg-bg p-4 text-left shadow-card transition-all hover:border-accent hover:shadow-card-hover"
                 >
-                  <span className="font-bold text-text-primary">📅 병원 진료일 캘린더</span>
-                  <span className="text-text-muted">›</span>
+                  <span className="flex items-center gap-3">
+                    <span className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                      <CalendarDays size={20} />
+                    </span>
+                    <span className="font-bold text-text-primary">병원 진료일 캘린더</span>
+                  </span>
+                  <ChevronRight size={18} className="text-text-muted transition-transform group-hover:translate-x-[2px] group-hover:text-accent" />
                 </button>
               </div>
             </section>

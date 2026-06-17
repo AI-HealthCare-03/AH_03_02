@@ -89,7 +89,7 @@ export function NotificationSettingsPage() {
       <TopNav />
 
       <main className="flex flex-1 flex-col items-center p-[32px]">
-        <div className="flex w-[600px] flex-col gap-[16px] rounded-md border border-border bg-bg p-[32px]">
+        <div className="flex w-[600px] flex-col gap-[16px] rounded-lg border border-border bg-bg p-[32px] shadow-card">
           <h1 className="text-xl font-bold text-text-primary">알림 설정</h1>
 
           {loading && <p className="text-sm text-text-secondary">불러오는 중...</p>}

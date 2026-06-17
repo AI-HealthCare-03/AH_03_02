@@ -112,7 +112,7 @@ export function SimulationPage() {
 
         {/* 진단자 가드 — 위험 예측 모델 미적용 → 시뮬레이션도 의미 없음 (모듈①) */}
         {isDiagnosed && (
-          <div className="rounded-md border border-amber-300 bg-amber-50 p-6">
+          <div className="rounded-lg border border-amber-300 bg-amber-50 p-6">
             <div className="flex items-start gap-3">
               <AlertCircle size={20} className="mt-0.5 shrink-0 text-amber-700" />
               <div className="flex-1">
@@ -134,7 +134,7 @@ export function SimulationPage() {
 
         {/* 비진단자: 시뮬레이션 5종 한정 안내 (신규 4종 카테고리 미반영) */}
         {!isDiagnosed && (
-          <div className="rounded-md border border-info bg-info/5 p-4">
+          <div className="rounded-lg border border-info bg-info/5 p-4">
             <div className="flex items-start gap-2">
               <Info size={18} className="mt-0.5 shrink-0 text-info" />
               <p className="text-sm leading-[1.6] text-text-secondary">
@@ -146,19 +146,19 @@ export function SimulationPage() {
         )}
 
         {!isDiagnosed && isLoading && (
-          <div className="rounded-md border border-border bg-bg p-6 text-center text-sm text-text-secondary">
+          <div className="rounded-lg border border-border bg-bg p-6 text-center text-sm text-text-secondary shadow-card">
             데이터를 불러오는 중...
           </div>
         )}
 
         {!isDiagnosed && error && (
-          <div className="rounded-md border border-danger bg-danger/5 p-4 text-sm text-danger">
+          <div className="rounded-lg border border-danger bg-danger/5 p-4 text-sm text-danger">
             데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.
           </div>
         )}
 
         {!isDiagnosed && data && !data.applicable && (
-          <div className="rounded-md border border-amber-300 bg-amber-50 p-4">
+          <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
             <div className="flex items-center gap-2">
               <AlertCircle size={18} className="text-amber-700" />
               <p className="text-sm font-bold text-amber-900">시뮬레이션 미적용</p>
@@ -193,7 +193,7 @@ export function SimulationPage() {
             </section>
 
             {/* 풀이 안내 */}
-            <section className="flex items-start gap-[10px] rounded-md border border-blue-200 bg-blue-50 p-[14px] text-xs leading-[1.7] text-blue-900">
+            <section className="flex items-start gap-[10px] rounded-lg border border-blue-200 bg-blue-50 p-[14px] text-xs leading-[1.7] text-blue-900">
               <Info size={16} className="mt-[1px] shrink-0 text-blue-600" />
               <p>
                 <span className="font-bold">읽는 법</span> — 각 카테고리는 이번 주에 며칠 실천했는지로 점수가 정해져요.
@@ -204,7 +204,7 @@ export function SimulationPage() {
             </section>
 
             {/* 슬라이더 + 버튼 */}
-            <section className="rounded-md border border-border bg-bg p-[20px]">
+            <section className="rounded-lg border border-border bg-bg p-[20px] shadow-card">
               <div className="mb-[16px] flex items-center justify-between gap-[8px]">
                 <div>
                   <h2 className="text-md font-bold text-text-primary">이번 주 카테고리별 실천 일수</h2>
@@ -246,7 +246,7 @@ export function SimulationPage() {
             </section>
 
             {/* 면책 */}
-            <section className="rounded-md border border-border bg-bg p-[16px] text-xs leading-[1.7] text-text-muted">
+            <section className="rounded-lg border border-border bg-bg p-[16px] text-xs leading-[1.7] text-text-muted shadow-card">
               <p>
                 ※ 가상 시뮬레이션 결과는 실제 측정값이 아닙니다. 표현은
                 <span className="font-bold text-text-secondary"> "위험을 낮출 수 있다" · "관리·개선에 도움이 됩니다" </span>
@@ -272,7 +272,7 @@ function CompareCard({
 }) {
   return (
     <div
-      className={`flex flex-1 flex-col items-center gap-[6px] rounded-md p-[20px] ${
+      className={`flex flex-1 flex-col items-center gap-[6px] rounded-lg p-[20px] shadow-card ${
         accent ? "border-2 border-accent bg-bg" : "border border-border bg-bg"
       }`}
     >

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { CloudUpload, ClipboardList } from "lucide-react";
+import { CloudUpload, ClipboardList, ChevronRight } from "lucide-react";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
 
@@ -22,9 +22,14 @@ export function CheckupInputMethodPage() {
         <div className="grid grid-cols-1 gap-[16px] md:grid-cols-2">
           <button
             onClick={() => navigate("/ocr-upload")}
-            className="flex flex-col items-start gap-[12px] rounded-md border border-border bg-bg p-[24px] text-left transition-colors hover:border-accent hover:bg-accent/5"
+            className="group flex flex-col items-start gap-[12px] rounded-lg border border-border bg-bg p-[24px] text-left shadow-card transition-all hover:border-accent hover:shadow-card-hover"
           >
-            <CloudUpload size={32} className="text-accent" />
+            <div className="flex w-full items-start justify-between">
+              <div className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                <CloudUpload size={24} />
+              </div>
+              <ChevronRight size={18} className="text-text-muted transition-transform group-hover:translate-x-[2px] group-hover:text-accent" />
+            </div>
             <div>
               <p className="text-lg font-bold text-text-primary">건강검진 결과지 업로드</p>
               <p className="mt-[4px] text-sm text-text-secondary">
@@ -35,9 +40,14 @@ export function CheckupInputMethodPage() {
 
           <button
             onClick={() => navigate("/manual-input")}
-            className="flex flex-col items-start gap-[12px] rounded-md border border-border bg-bg p-[24px] text-left transition-colors hover:border-accent hover:bg-accent/5"
+            className="group flex flex-col items-start gap-[12px] rounded-lg border border-border bg-bg p-[24px] text-left shadow-card transition-all hover:border-accent hover:shadow-card-hover"
           >
-            <ClipboardList size={32} className="text-accent" />
+            <div className="flex w-full items-start justify-between">
+              <div className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                <ClipboardList size={24} />
+              </div>
+              <ChevronRight size={18} className="text-text-muted transition-transform group-hover:translate-x-[2px] group-hover:text-accent" />
+            </div>
             <div>
               <p className="text-lg font-bold text-text-primary">결과지 없이 직접 입력하기</p>
               <p className="mt-[4px] text-sm text-text-secondary">

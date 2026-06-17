@@ -191,7 +191,7 @@ export function DailyCheckinPage() {
 
           {/* 미완료 일괄 체크인 헤더 */}
           {pending.length > 0 && (
-            <div className="mt-[24px] flex items-center justify-between rounded-md border border-border bg-bg p-[16px]">
+            <div className="mt-[24px] flex items-center justify-between rounded-lg border border-border bg-bg p-[16px] shadow-card">
               <div>
                 <p className="text-sm font-bold text-text-primary">미완료 {pending.length}개</p>
                 <p className="text-xs text-text-muted">한 번에 모두 체크인하면 풀 참여 보너스 +40pt를 받을 수 있어요.</p>
@@ -199,7 +199,7 @@ export function DailyCheckinPage() {
               <button
                 onClick={handleCheckinAll}
                 disabled={checkingIn !== null}
-                className="rounded-md bg-accent px-4 py-2 text-sm font-bold text-bg hover:bg-accent/90 disabled:opacity-50"
+                className="rounded-lg bg-accent px-4 py-2 text-sm font-bold text-bg shadow-sm transition-colors hover:bg-accent-hover disabled:opacity-50"
               >
                 {checkingIn === "all" ? "체크인 중..." : "전부 체크인"}
               </button>
@@ -214,9 +214,9 @@ export function DailyCheckinPage() {
                 if (!c) return null;
                 const Icon = CATEGORY_ICON[c.category];
                 return (
-                  <div key={uc.id} className="flex items-center gap-[16px] rounded-md border border-border bg-bg p-[16px]">
-                    <div className="flex h-[48px] w-[48px] items-center justify-center rounded-full bg-bg-alt">
-                      <Icon size={22} className="text-text-secondary" />
+                  <div key={uc.id} className="flex items-center gap-[16px] rounded-lg border border-border bg-bg p-[16px] shadow-card">
+                    <div className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+                      <Icon size={22} />
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-bold text-text-primary">{c.name}</p>

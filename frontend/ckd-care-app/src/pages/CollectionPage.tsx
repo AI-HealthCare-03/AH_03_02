@@ -134,7 +134,7 @@ export function CollectionPage() {
             🎉 부화한 캐릭터 ({characters.length})
           </h2>
           {characters.length === 0 ? (
-            <div className="rounded-md border border-dashed border-border bg-bg px-[16px] py-[24px] text-center">
+            <div className="rounded-lg border border-dashed border-border bg-bg px-[16px] py-[24px] text-center">
               <p className="text-sm text-text-muted">
                 아직 부화한 캐릭터가 없어요. 체크인을 꾸준히 해서 알을 부화시켜보세요!
               </p>
@@ -147,7 +147,7 @@ export function CollectionPage() {
                 return (
                   <div
                     key={c.egg_no}
-                    className="flex flex-col items-center gap-[8px] rounded-md border border-border bg-bg p-[16px]"
+                    className="flex flex-col items-center gap-[8px] rounded-lg border border-border bg-bg shadow-card p-[16px]"
                   >
                     <div className="flex h-[100px] w-[100px] items-center justify-center rounded-full bg-amber-50">
                       <CharacterImage species={c.species} stage={1} size={88} emojiClass="text-5xl" />
@@ -208,7 +208,7 @@ export function CollectionPage() {
             보유 스킨 ({ownedSkins.length})
           </h2>
           {ownedSkins.length === 0 ? (
-            <div className="rounded-md border border-dashed border-border bg-bg px-[16px] py-[24px] text-center">
+            <div className="rounded-lg border border-dashed border-border bg-bg px-[16px] py-[24px] text-center">
               <p className="text-sm text-text-muted">
                 보유한 스킨이 없어요. <a href="/shop" className="text-accent underline">상점</a>에서 구매할 수 있어요.
               </p>
@@ -262,8 +262,8 @@ function SkinCard({
   const animalStage = code ? ANIMAL_SKIN_TO_STAGE[code] ?? 1 : 1;
   return (
     <div
-      className={`flex flex-col items-center gap-[8px] rounded-md border-2 p-[12px] ${
-        active ? "border-accent bg-accent/5" : "border-border bg-bg"
+      className={`flex flex-col items-center gap-[8px] rounded-lg border-2 p-[12px] ${
+        active ? "border-accent bg-accent/5 shadow-card" : "border-border bg-bg shadow-card"
       }`}
     >
       <div className={`flex h-[60px] w-[60px] items-center justify-center overflow-hidden rounded-full ${color}`}>
@@ -275,7 +275,7 @@ function SkinCard({
       </div>
       <p className="text-xs font-bold text-text-primary text-center">{label}</p>
       {active ? (
-        <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-bold text-bg">장착 중</span>
+        <span className="rounded-md bg-accent px-2 py-0.5 text-xs font-bold text-bg">장착 중</span>
       ) : (
         <button
           onClick={onEquip}

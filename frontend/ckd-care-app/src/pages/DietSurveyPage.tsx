@@ -121,7 +121,7 @@ export function DietSurveyPage() {
 
         <div className="mt-[24px] flex w-[640px] flex-col gap-[16px]">
           {/* Q1: 국·찌개 */}
-          <div className="flex flex-col gap-[12px] rounded-md border border-border bg-bg p-[16px]">
+          <div className="flex flex-col gap-[12px] rounded-lg border border-border bg-bg p-[16px] shadow-card">
             <div className="flex items-center gap-[12px]">
               <Soup size={24} className="text-text-secondary" />
               <p className="flex-1 text-sm font-bold text-text-primary">
@@ -133,7 +133,7 @@ export function DietSurveyPage() {
           </div>
 
           {/* Q2: 단 음료 */}
-          <div className="flex flex-col gap-[12px] rounded-md border border-border bg-bg p-[16px]">
+          <div className="flex flex-col gap-[12px] rounded-lg border border-border bg-bg p-[16px] shadow-card">
             <div className="flex items-center gap-[12px]">
               <Coffee size={24} className="text-text-secondary" />
               <p className="flex-1 text-sm font-bold text-text-primary">
@@ -145,7 +145,7 @@ export function DietSurveyPage() {
           </div>
 
           {/* Q3: 튀긴 음식 */}
-          <div className="flex flex-col gap-[12px] rounded-md border border-border bg-bg p-[16px]">
+          <div className="flex flex-col gap-[12px] rounded-lg border border-border bg-bg p-[16px] shadow-card">
             <div className="flex items-center gap-[12px]">
               <Pizza size={24} className="text-text-secondary" />
               <p className="flex-1 text-sm font-bold text-text-primary">
@@ -157,7 +157,7 @@ export function DietSurveyPage() {
           </div>
 
           {/* Q4: 채소 */}
-          <div className="flex flex-col gap-[12px] rounded-md border border-border bg-bg p-[16px]">
+          <div className="flex flex-col gap-[12px] rounded-lg border border-border bg-bg p-[16px] shadow-card">
             <div className="flex items-center gap-[12px]">
               <Leaf size={24} className="text-text-secondary" />
               <p className="flex-1 text-sm font-bold text-text-primary">
@@ -193,7 +193,7 @@ export function DietSurveyPage() {
           {showKP && (
             <>
               {/* Q5: 칼륨 (과일·채소·콩류 빈도) */}
-              <div className="flex flex-col gap-[12px] rounded-md border border-border bg-bg p-[16px]">
+              <div className="flex flex-col gap-[12px] rounded-lg border border-border bg-bg p-[16px] shadow-card">
                 <div className="flex items-center gap-[12px]">
                   <Apple size={24} className="text-text-secondary" />
                   <p className="flex-1 text-sm font-bold text-text-primary">
@@ -205,7 +205,7 @@ export function DietSurveyPage() {
               </div>
 
               {/* Q6: 단백질 (고기·생선·계란 빈도) */}
-              <div className="flex flex-col gap-[12px] rounded-md border border-border bg-bg p-[16px]">
+              <div className="flex flex-col gap-[12px] rounded-lg border border-border bg-bg p-[16px] shadow-card">
                 <div className="flex items-center gap-[12px]">
                   <Beef size={24} className="text-text-secondary" />
                   <p className="flex-1 text-sm font-bold text-text-primary">

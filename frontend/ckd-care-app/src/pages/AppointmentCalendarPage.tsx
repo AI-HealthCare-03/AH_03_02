@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { CalendarDays, Pencil, X } from "lucide-react";
 import {
   appointmentApi,
   type AppointmentItem,
@@ -50,10 +51,10 @@ function AppointmentRow({
       </span>
       <span className="flex gap-2">
         <button onClick={() => onEdit(a)} className="text-text-muted hover:text-accent" title="수정">
-          ✎
+          <Pencil size={14} />
         </button>
         <button onClick={() => onDelete(a.id)} className="text-text-muted hover:text-warning" title="삭제">
-          ✕
+          <X size={14} />
         </button>
       </span>
     </li>
@@ -151,11 +152,14 @@ export function AppointmentCalendarPage() {
           <button onClick={() => navigate("/challenge")} className="text-text-muted" aria-label="뒤로">
             ←
           </button>
-          <h1 className="font-bold text-text-primary">📅 병원 진료일 캘린더</h1>
+          <h1 className="flex items-center gap-1.5 font-bold text-text-primary">
+            <CalendarDays size={18} className="text-accent" />
+            병원 진료일 캘린더
+          </h1>
         </header>
 
         {/* 다음 진료 D-day 배너 */}
-        <div className="mx-4 mt-3 rounded-xl border border-border bg-bg p-4">
+        <div className="mx-4 mt-3 rounded-lg border border-border bg-bg p-4 shadow-card">
           {next ? (
             <div className="flex items-center justify-between">
               <div className="text-sm text-text-secondary">
@@ -176,7 +180,7 @@ export function AppointmentCalendarPage() {
         </div>
 
         {/* 월 그리드 */}
-        <div className="mx-4 mt-3 rounded-xl border border-border bg-bg p-3">
+        <div className="mx-4 mt-3 rounded-lg border border-border bg-bg p-3 shadow-card">
           <div className="mb-2 flex items-center justify-between">
             <button onClick={() => moveMonth(-1)} className="px-2 text-text-muted">‹</button>
             <span className="text-sm font-bold text-text-primary">
@@ -219,7 +223,7 @@ export function AppointmentCalendarPage() {
         </div>
 
         {/* 일정 추가/수정 폼 */}
-        <section className="mx-4 mt-3 rounded-xl border border-border bg-bg p-4">
+        <section className="mx-4 mt-3 rounded-lg border border-border bg-bg p-4 shadow-card">
           <h2 className="mb-2 text-sm font-bold text-text-primary">
             {editId ? "일정 수정" : "일정 추가"}
           </h2>
@@ -262,7 +266,7 @@ export function AppointmentCalendarPage() {
             <button
               onClick={() => saveMut.mutate()}
               disabled={saveMut.isPending || !form.appt_date}
-              className="flex-1 rounded-lg border border-border bg-accent px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              className="flex-1 rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-accent-hover disabled:opacity-50"
             >
               {editId ? "수정 저장" : "추가"}
             </button>

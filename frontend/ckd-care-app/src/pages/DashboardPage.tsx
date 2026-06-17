@@ -26,6 +26,7 @@ import { dashboardApi, type EgfrTrend } from "../api/dashboard";
 import { pointsApi } from "../api/gamification";
 import { slumpApi, type SlumpStatusResponse } from "../api/slump";
 import { useAuth } from "../contexts/AuthContext";
+import { Stethoscope, ClipboardList, ChevronRight, CalendarCheck } from "lucide-react";
 
 function egfrWarning(v: number | null): { text: string; cls: string } | null {
   if (v === null || v >= 90) return null;
@@ -79,8 +80,8 @@ function EgfrGauge({ value, calculating }: { value: number | null; calculating?:
   const y2 = cy + r * Math.sin(toRad(endAngle));
   const largeArc = pct * 270 > 180 ? 1 : 0;
   return (
-    <div className="relative flex flex-col items-center justify-center gap-3 p-4 rounded-md border border-border bg-bg" style={{ height: 360 }}>
-      <span className="absolute right-3 top-3 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">검진 기반 · 진단 아님</span>
+    <div className="relative flex flex-col items-center justify-center gap-3 p-4 rounded-lg border border-border bg-bg shadow-card" style={{ height: 360 }}>
+      <span className="absolute right-3 top-3 rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">검진 기반 · 진단 아님</span>
       <svg viewBox="0 0 220 220" className="w-full max-w-[220px]" style={{ height: 220 }}>
         <path d={`M ${cx + r * Math.cos(toRad(-135))} ${cy + r * Math.sin(toRad(-135))} A ${r} ${r} 0 1 1 ${cx + r * Math.cos(toRad(135))} ${cy + r * Math.sin(toRad(135))}`}
           fill="none" stroke="#E5E7EB" strokeWidth="18" strokeLinecap="round" />
@@ -161,10 +162,10 @@ function RiskGauge({
 
   return (
     <div
-      className="relative flex flex-col items-center justify-center gap-2 p-4 rounded-md border border-border bg-bg"
+      className="relative flex flex-col items-center justify-center gap-2 p-4 rounded-lg border border-border bg-bg shadow-card"
       style={{ height: 360 }}
     >
-      <span className="absolute right-3 top-3 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+      <span className="absolute right-3 top-3 rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">
         예상값 · 진단 아님
       </span>
 
@@ -274,7 +275,7 @@ const EGFR_STAGES = [
 function EgfrTrendChart({ trend }: { trend: EgfrTrend | null }) {
   if (!trend || trend.data_points.length === 0) {
     return (
-      <div className="flex h-[240px] items-center justify-center rounded-md border border-border bg-bg text-sm text-text-muted">
+      <div className="flex h-[240px] items-center justify-center rounded-lg border border-border bg-bg text-sm text-text-muted shadow-card">
         eGFR 검진 데이터가 없습니다
       </div>
     );
@@ -286,7 +287,7 @@ function EgfrTrendChart({ trend }: { trend: EgfrTrend | null }) {
   }));
 
   return (
-    <div className="flex h-full flex-col rounded-md border border-border bg-bg p-4">
+    <div className="flex h-full flex-col rounded-lg border border-border bg-bg p-4 shadow-card">
       <div className="mb-2 flex items-center justify-between">
         <p className="text-sm font-bold text-text-primary">eGFR 추세 차트 (KDIGO 단계)</p>
         <p className="text-[10px] text-text-muted">※ 검진 기반 (의료 진단 아님)</p>
@@ -339,9 +340,10 @@ function EgfrTrendChart({ trend }: { trend: EgfrTrend | null }) {
           <Line
             type="monotone"
             dataKey="egfr"
-            stroke="#1F2937"
+            stroke="#2563EB"
             strokeWidth={2.5}
-            dot={{ r: 4, fill: "#1F2937" }}
+            dot={{ r: 4, fill: "#2563EB" }}
+            activeDot={{ r: 5, fill: "#2563EB" }}
             isAnimationActive={false}
           />
           </LineChart>
@@ -494,7 +496,7 @@ export function DashboardPage() {
         {slump?.is_slump && !slump.already_checked_in_today && (
           <Link
             to="/slump"
-            className="mb-4 flex items-center gap-[12px] rounded-md border border-amber-400 bg-amber-50 p-4 text-amber-900 transition-colors hover:bg-amber-100"
+            className="mb-4 flex items-center gap-[12px] rounded-lg border border-amber-400 bg-amber-50 p-4 text-amber-900 shadow-card transition-colors hover:bg-amber-100"
           >
             <span className="text-2xl">{slump.micro.icon}</span>
             <div className="flex-1">
@@ -510,7 +512,7 @@ export function DashboardPage() {
 
         {/* CKD 진단자 안내 — 이미 진단받은 경우 챌린지·자가관리보다 주치의 지시 우선 (서비스 정책) */}
         {ls?.ckd_diagnosed && (
-          <div role="alert" className="mb-4 rounded-md border border-red-400 bg-red-50 p-4 text-red-900">
+          <div role="alert" className="mb-4 rounded-lg border border-red-400 bg-red-50 p-4 text-red-900 shadow-card">
             <p className="text-sm font-bold">만성콩팥병(CKD) 진단을 받으셨군요</p>
             <p className="mt-1 text-xs leading-[1.7]">
               이미 진단을 받으신 경우, 본 앱의 챌린지·자가관리보다 <span className="font-bold">주치의·신장내과 전문의의 지시를 우선</span>하세요.
@@ -523,7 +525,7 @@ export function DashboardPage() {
         {ls?.is_pregnant && (
           <div
             role="alert"
-            className="mb-4 rounded-md border border-amber-400 bg-amber-50 p-4 text-amber-900"
+            className="mb-4 rounded-lg border border-amber-400 bg-amber-50 p-4 text-amber-900 shadow-card"
           >
             <p className="text-sm font-bold">임신 중 안전 안내</p>
             <p className="mt-1 text-xs leading-[1.7]">
@@ -545,8 +547,9 @@ export function DashboardPage() {
           <button
             onClick={handleAttendance}
             disabled={attendanceLoading}
-            className="shrink-0 self-start rounded-md bg-accent px-4 py-2 text-sm font-bold text-bg hover:bg-accent/90 disabled:opacity-50 sm:self-auto"
+            className="flex shrink-0 items-center gap-[6px] self-start rounded-lg bg-accent px-[18px] py-[10px] text-sm font-bold text-bg shadow-sm transition-colors hover:bg-accent-hover disabled:opacity-50 sm:self-auto"
           >
+            <CalendarCheck size={16} />
             {attendanceLoading ? "처리 중..." : "오늘의 출석체크"}
           </button>
         </div>
@@ -562,25 +565,35 @@ export function DashboardPage() {
         <div className="mt-[16px] grid grid-cols-1 gap-[12px] md:grid-cols-2">
           <Link
             to="/checkup-management"
-            className="flex items-center gap-[12px] rounded-md border border-border bg-bg p-[16px] transition-colors hover:border-accent hover:bg-accent/5"
+            className="group flex items-center gap-[14px] rounded-lg border border-border bg-bg p-[16px] shadow-card transition-all hover:border-accent hover:shadow-card-hover"
           >
-            <span className="text-2xl">🩺</span>
+            <span className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+              <Stethoscope size={22} />
+            </span>
             <div className="flex-1">
               <p className="text-sm font-bold text-text-primary">검진 이력 관리</p>
               <p className="mt-[2px] text-xs text-text-secondary">검진 수치 입력 · 이력 보기·삭제</p>
             </div>
-            <span className="text-text-muted">→</span>
+            <ChevronRight
+              size={18}
+              className="text-text-muted transition-transform group-hover:translate-x-[2px] group-hover:text-accent"
+            />
           </Link>
           <Link
             to="/lifestyle-management"
-            className="flex items-center gap-[12px] rounded-md border border-border bg-bg p-[16px] transition-colors hover:border-accent hover:bg-accent/5"
+            className="group flex items-center gap-[14px] rounded-lg border border-border bg-bg p-[16px] shadow-card transition-all hover:border-accent hover:shadow-card-hover"
           >
-            <span className="text-2xl">📋</span>
+            <span className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+              <ClipboardList size={22} />
+            </span>
             <div className="flex-1">
               <p className="text-sm font-bold text-text-primary">생활습관 설문 관리</p>
               <p className="mt-[2px] text-xs text-text-secondary">설문 작성 · 응답 이력 보기·삭제</p>
             </div>
-            <span className="text-text-muted">→</span>
+            <ChevronRight
+              size={18}
+              className="text-text-muted transition-transform group-hover:translate-x-[2px] group-hover:text-accent"
+            />
           </Link>
         </div>
 
@@ -614,7 +627,7 @@ export function DashboardPage() {
             ? "border-red-400 bg-red-50 text-red-900"
             : w.cls;
           return (
-            <div role="alert" className={`mt-[16px] rounded-md border p-4 transition-colors duration-[2000ms] ${cls}`}>
+            <div role="alert" className={`mt-[16px] rounded-lg border p-4 shadow-card transition-colors duration-[2000ms] ${cls}`}>
               <p className="text-sm font-semibold leading-[1.7]">{w.text}</p>
             </div>
           );
@@ -696,7 +709,7 @@ export function DashboardPage() {
         )}
 
         {!h && !loading && (
-          <div className="mt-[24px] rounded-md border border-dashed border-border bg-bg p-[24px] text-center">
+          <div className="mt-[24px] rounded-lg border border-dashed border-border bg-bg p-[24px] text-center">
             <p className="text-sm text-text-muted">아직 검진 데이터가 없습니다. 상단 "검진 이력 관리"에서 첫 검진을 입력해보세요.</p>
           </div>
         )}

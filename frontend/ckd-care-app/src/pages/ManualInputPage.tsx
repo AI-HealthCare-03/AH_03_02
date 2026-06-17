@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { AlertTriangle } from "lucide-react";
 import type { HealthCheckResponse, UrineResult } from "../api/healthCheck";
 import { ScreenLabel } from "../components/ScreenLabel";
 import { TopNav } from "../components/TopNav";
@@ -186,8 +187,11 @@ export function ManualInputPage() {
 
         {/* 안전 경고 (Safety Guard) */}
         {warning && (
-          <div className="mb-4 rounded-md border-2 border-danger bg-danger/10 p-[16px]">
-            <p className="text-sm font-bold text-danger">⚠ 주의</p>
+          <div className="mb-4 rounded-lg border-2 border-danger bg-danger/10 p-[16px] shadow-card">
+            <p className="flex items-center gap-[6px] text-sm font-bold text-danger">
+              <AlertTriangle size={16} />
+              주의
+            </p>
             <p className="mt-1 text-sm text-danger">{warning}</p>
             <button
               onClick={() => navigate("/dashboard")}
@@ -218,7 +222,7 @@ export function ManualInputPage() {
         <div className="mt-[24px] grid grid-cols-1 md:grid-cols-2 gap-[32px]">
           {/* 좌측 */}
           <div className="flex flex-col gap-[24px]">
-            <div className="rounded-md border border-border bg-bg p-[16px]">
+            <div className="rounded-lg border border-border bg-bg p-[16px] shadow-card">
               <p className="mb-[12px] text-md font-bold text-text-primary">신체계측 <span className="text-danger text-xs">* 필수</span></p>
               <div className="flex flex-col gap-[12px]">
                 <TextInput label="신장 (cm)" placeholder="170.0" value={form.height} onChange={set("height")} />
@@ -233,7 +237,7 @@ export function ManualInputPage() {
               </div>
             </div>
 
-            <div className="rounded-md border border-border bg-bg p-[16px]">
+            <div className="rounded-lg border border-border bg-bg p-[16px] shadow-card">
               <p className="mb-[12px] text-md font-bold text-text-primary">혈압 <span className="text-danger text-xs">* 필수</span></p>
               <div className="flex flex-col gap-[12px]">
                 <TextInput label="수축기 혈압 SBP (mmHg)" placeholder="120" value={form.systolic_bp} onChange={set("systolic_bp")} />
@@ -247,7 +251,7 @@ export function ManualInputPage() {
               </div>
             </div>
 
-            <div className="rounded-md border border-danger bg-bg p-[16px]">
+            <div className="rounded-lg border border-danger bg-bg p-[16px] shadow-card">
               <p className="mb-[12px] text-md font-bold text-danger">CKD 마커</p>
               <div className="flex flex-col gap-[12px]">
                 <TextInput label="크레아티닌 (mg/dL)" placeholder="1.0" value={form.creatinine} onChange={set("creatinine")} />
@@ -259,7 +263,7 @@ export function ManualInputPage() {
 
           {/* 우측 */}
           <div className="flex flex-col gap-[24px]">
-            <div className="rounded-md border border-border bg-bg p-[16px]">
+            <div className="rounded-lg border border-border bg-bg p-[16px] shadow-card">
               <p className="mb-[12px] text-md font-bold text-text-primary">혈액검사 <span className="text-danger text-xs">* 공복혈당 필수</span></p>
               <div className="flex flex-col gap-[12px]">
                 <TextInput label="공복혈당 (mg/dL)" placeholder="100" value={form.fasting_glucose} onChange={set("fasting_glucose")} />
@@ -285,7 +289,7 @@ export function ManualInputPage() {
               </div>
             </div>
 
-            <div className="rounded-md border border-border bg-bg p-[16px]">
+            <div className="rounded-lg border border-border bg-bg p-[16px] shadow-card">
               <p className="mb-[12px] text-md font-bold text-text-primary">요검사</p>
               <p className="mb-[8px] text-xs text-text-muted">요단백·요당은 양성/음성으로 입력하세요.</p>
               <div className="flex flex-col gap-[16px]">

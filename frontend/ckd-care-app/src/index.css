@@ -1,21 +1,39 @@
 @import "tailwindcss";
 
 @theme {
-  --color-accent: #1F2937;
-  --color-bg: #FFFFFF;
-  --color-bg-alt: #F5F5F5;
-  --color-border: #D1D5DB;
-  --color-border-strong: #9CA3AF;
-  --color-danger: #DC2626;
-  --color-info: #2563EB;
-  --color-placeholder: #E5E7EB;
-  --color-success: #059669;
-  --color-text-muted: #9CA3AF;
-  --color-text-primary: #111827;
-  --color-text-secondary: #6B7280;
-  --color-warning: #D97706;
+  /* ── 브랜드 (Variant B · 레퍼런스 미니멀 톤 · Periwinkle) ─────────
+     레퍼런스(Yujadesign 어드민) 차분한 periwinkle 블루.
+     레이아웃은 그대로, 톤만 미니멀·차분하게. */
+  --color-primary: #5B7BD5;
+  --color-primary-hover: #4A68C0;
+  --color-primary-soft: #E8EDFA;
+  --color-accent: #5B7BD5;
+  --color-accent-hover: #4A68C0;
 
-  /* 챌린지 트랙 구분색 (받은 디자인 ckd-challenge.html 팔레트) */
+  /* ── 표면(Surface) — 연회색-블루틴트(레퍼런스 배경) ──────────── */
+  --color-bg: #FFFFFF;
+  --color-bg-alt: #F4F6FB;
+  --color-bg-muted: #EDF0F7;
+  --color-border: #E5E8F0; /* 얇은 보더 위주(그림자 약) */
+  --color-border-strong: #CBD2E0;
+  --color-placeholder: #E5E7EB;
+
+  /* ── 텍스트 — 네이비 그레이 계열 ──────────────────────────── */
+  --color-text-primary: #2D3548;
+  --color-text-secondary: #5A6478;
+  --color-text-muted: #98A0B3;
+
+  /* ── 상태(Semantic) — soft 배경 토큰 동반 ───────────────────── */
+  --color-success: #059669;
+  --color-success-soft: #D1FAE5;
+  --color-info: #5B7BD5; /* primary로 통합 */
+  --color-info-soft: #E8EDFA;
+  --color-warning: #D97706;
+  --color-warning-soft: #FEF3C7;
+  --color-danger: #DC2626;
+  --color-danger-soft: #FEE2E2;
+
+  /* 챌린지 트랙 구분색 (받은 디자인 ckd-challenge.html 팔레트 — 유지) */
   --color-track-dialysis: #1D9E75;
   --color-track-dialysis-bg: #E1F5EE;
   --color-track-ckd: #7F77DD;
@@ -35,9 +53,17 @@
   --font-size-2xl: 28px;
   --font-size-3xl: 36px;
 
+  /* ── radius — 각진 미니멀(레퍼런스) ─────────────────────────── */
   --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-2xl: 12px;
+
+  /* ── elevation — 매우 약하게(보더 위주, 미니멀) ──────────────── */
+  --shadow-card: 0 1px 2px rgba(45, 53, 72, 0.05);
+  --shadow-card-hover: 0 2px 6px rgba(45, 53, 72, 0.08);
+  --shadow-elevated: 0 4px 14px rgba(45, 53, 72, 0.1);
 
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -48,9 +74,14 @@
 }
 
 body {
-  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-family:
+    "Pretendard Variable", Pretendard, "Inter", system-ui, -apple-system,
+    sans-serif;
   margin: 0;
   color: var(--color-text-primary);
+  background: var(--color-bg-alt);
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
   /* DisclaimerFooter(고정, ~32px) 가림 방지 */
   padding-bottom: 36px;
 }

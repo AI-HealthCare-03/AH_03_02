@@ -699,7 +699,7 @@ function LifestyleSummaryCard({
               <div className="flex flex-wrap items-center gap-[8px]">
                 <span className="text-sm font-semibold text-text-primary">{d.domain_label}</span>
                 <span
-                  className="rounded-full px-[8px] py-[2px] text-xs font-semibold"
+                  className="rounded-md px-[8px] py-[2px] text-xs font-semibold"
                   style={
                     improveItems.length > 0
                       ? { backgroundColor: "#fee2e2", color: "#DC2626" }
@@ -913,7 +913,7 @@ function ReportMetaCard({ meta }: { meta: ReportMeta | null | undefined }) {
       <div className="flex flex-wrap items-center gap-[10px]">
         <p className="text-base font-bold text-text-primary">{meta.group_title}</p>
         <span
-          className="rounded-full px-[10px] py-[3px] text-xs font-bold"
+          className="rounded-md px-[10px] py-[3px] text-xs font-bold"
           style={{ backgroundColor: grade.bg, color: grade.text }}
         >
           등급: {badgeLabel}
@@ -1247,7 +1247,7 @@ export function LLMActionGuidePage() {
               {!isLoading && hasGuide && <Markdown>{aiGuide}</Markdown>}
 
               {/* 면책 문구 */}
-              <div className="mt-[2px] rounded-md border border-warning bg-[#fef3c7] p-[12px]">
+              <div className="mt-[2px] rounded-lg border border-warning bg-[#fef3c7] p-[12px]">
                 <p className="text-xs leading-[1.5] text-warning">
                   본 서비스는 의료 진단·처방을 대체하지 않습니다. 정확한 진단·치료는 의사 상담을 받으세요.
                 </p>
