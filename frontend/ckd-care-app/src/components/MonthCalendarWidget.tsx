@@ -11,7 +11,10 @@ const LEVEL_BG: Record<CalendarLevel, string> = {
   silver: "#E8EEF4",
   gold: "#FAEEDA",
 };
-const todayStr = () => new Date().toISOString().slice(0, 10);
+const todayStr = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
 
 function ymOf(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
