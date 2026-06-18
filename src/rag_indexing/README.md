@@ -2,9 +2,9 @@
 
 > 만성콩팥병(CKD) 의료 가이드라인 RAG의 **인덱싱 트랙**.
 > 원본 문서(가이드라인 PDF·환자교육 MD)를 청킹·임베딩해 **Qdrant 벡터 DB에 적재**한다.
-> 추론 트랙(질문→검색→생성)은 `ai_worker/rag/`에서 별도로 구현한다 (Phase 4, 미구현).
+> 추론 트랙(질문→검색→생성)은 `ai_worker/rag/`에서 별도로 구현한다 (Phase 4 완료).
 
-**최종 갱신**: 2026-05-30 · 인덱싱 ✅ / 추론 ✅ (Phase 4 완료) / API·평가 ⏳ Phase 5~6
+**최종 갱신**: 2026-06-19 · 인덱싱 ✅ / 추론 ✅ (Phase 4) / API·SSE ✅ (Phase 5) / 평가·관찰성 ⏳ Phase 6
 
 ---
 
@@ -184,7 +184,7 @@ python ../src/rag_indexing/test_uploader.py    # 14
 - 통합 스모크 3/3, 단위 24 (`ai_worker/rag/test_*.py`)
 - 실행: `from ai_worker.rag import run` → `run("질문", user_context={"eGFR":50})`
 
-## 다음 — Phase 5~6
+## 다음 — Phase 6
 
-- **Phase 5**: `POST /api/v1/chat/messages` + Redis Stream + SSE + `ai_worker/main.py` task consumer
-- **Phase 6**: 평가셋(정확도·출처 인용률)·Langfuse 실통합·near-duplicate dedup 강화
+- **Phase 5 ✅ 완료**: `POST /api/v1/chat/messages` · `/messages/stream`(SSE 토큰 스트리밍) + Redis Stream(`rag_jobs`/`rag_resp`) + `ai_worker/main.py` consumer + `TokenStreamer`
+- **Phase 6 ⏳**: 평가셋(정확도·출처 인용률)·Langfuse 실통합·near-duplicate dedup 강화
