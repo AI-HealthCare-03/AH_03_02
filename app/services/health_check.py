@@ -484,6 +484,28 @@ class HealthCheckService:
         ]
 
     @staticmethod
+    def _enrich_shap_status(shap_list: list, gender: int) -> list:
+        """각 ShapItem dict에 status_level을 추가한다.
+
+        DB에 저장된 shap_model1 항목은 feature(한글)·value·shap·note만 가진다.
+        프론트는 status_level을 보고 shap < 0 이더라도 'danger' 항목을 '위험 낮춤'으로 표시하지 않는다.
+        SHAP 수치 자체는 변경하지 않는다(부호 왜곡 금지).
+        """
+        _reverse_label: dict[str, str] = {v: k for k, v in M1_LABEL.items()}
+        enriched = []
+        for item in shap_list:
+            if not isinstance(item, dict):
+                continue
+            entry = dict(item)
+            if "status_level" not in entry:
+                var = _reverse_label.get(entry.get("feature", ""))
+                if var:
+                    _, sl = m1_status(var, float(entry.get("value", 0.0)), gender)
+                    entry["status_level"] = sl
+            enriched.append(entry)
+        return enriched
+
+    @staticmethod
     def _model1_summary(
         app_group: AppGroup | None,
         egfr: float | None,
@@ -497,9 +519,11 @@ class HealthCheckService:
             return ""
 
         # 상위 위험변수 추출 (shap > 0, feature 기준 상위 2개)
+        # 가드: shap < 0 이더라도 status_level == "danger"인 항목은 '위험 낮춤'으로 표시하지 않는다.
+        # 이 함수는 positive(높임) 목록만 쓰므로 낮춤 가드는 프론트 렌더 단에서 status_level로 적용.
         top_features: list[str] = []
         if shap_model1:
-            # shap_model1은 dict list (feature, shap, value, note)
+            # shap_model1은 dict list (feature, shap, value, note, status_level)
             positive_items = [item for item in shap_model1 if isinstance(item, dict) and item.get("shap", 0) > 0]
             positive_items.sort(key=lambda x: x.get("shap", 0), reverse=True)
             top_features = [item["feature"] for item in positive_items[:2] if "feature" in item]
@@ -855,7 +879,7 @@ class HealthCheckService:
         # gender int 변환: MALE=1, FEMALE=0
         gender_int = 1 if user.gender == Gender.MALE else 0
 
-        shap_list = hc.shap_model1 or []
+        shap_list = self._enrich_shap_status(hc.shap_model1 or [], gender_int)
         recommended = self._recommend_tests(hc.app_group, hc.egfr_estimated)
         summary = self._model1_summary(hc.app_group, hc.egfr_estimated, shap_list)
 

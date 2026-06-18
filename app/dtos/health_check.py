@@ -94,6 +94,9 @@ class ShapItem(BaseModel):
     value: float
     shap: float
     note: str | None = None  # 모델1만 note 사용, 모델2 items는 None
+    # 임상 위험 수준 (good/info/caution/warnLight/danger).
+    # 프론트는 shap < 0 이더라도 status_level == "danger"이면 '위험 낮춤' 표시 제외.
+    status_level: str | None = None
 
 
 class PeerDistribution(BaseModel):
