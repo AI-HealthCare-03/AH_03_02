@@ -94,9 +94,12 @@ class ShapItem(BaseModel):
     value: float
     shap: float
     note: str | None = None  # 모델1만 note 사용, 모델2 items는 None
-    # 임상 위험 수준 (good/info/caution/warnLight/danger).
-    # 프론트는 shap < 0 이더라도 status_level == "danger"이면 '위험 낮춤' 표시 제외.
+    # 임상 단계 라벨 (예: "양성", "위험", "주의", "정상" …) — classify_shap_items 분류 기준.
+    status: str | None = None
+    # 임상 위험 수준 색상 코드 (good/info/caution/warnLight/danger) — 프론트 배경색 렌더용.
     status_level: str | None = None
+    # 모델2 전용 — m2_in_normal 게이트 분류 결과 ("improve" | "maintain")
+    side: str | None = None
 
 
 class PeerDistribution(BaseModel):

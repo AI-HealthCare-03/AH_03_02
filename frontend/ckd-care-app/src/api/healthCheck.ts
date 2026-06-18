@@ -72,6 +72,7 @@ export interface LifestyleShapItem {
   feature: string;
   value: number;
   shap: number;
+  side?: "improve" | "maintain";
 }
 
 export interface PeerDistribution {

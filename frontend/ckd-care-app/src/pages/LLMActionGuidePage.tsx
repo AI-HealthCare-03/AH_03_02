@@ -28,25 +28,26 @@ import {
 } from "../api/healthCheck";
 
 // ===== ShapImpactBars: 좌우 2패널 가로막대 차트 =====
-// shap > 0 → 위험 상승(빨강, 왼쪽), shap < 0 → 위험 하강(초록, 오른쪽)
+// M1: shap > 0 → 위험 상승(빨강), shap < 0 → 위험 하강(초록)
+// M2: side == "improve" → 개선 필요(빨강), side == "maintain" → 잘 관리(초록)
 function ShapImpactBars({
   items,
   raiseTitle,
   lowerTitle,
 }: {
-  items: { label: string; value: number; shap: number }[];
+  items: { label: string; value: number; shap: number; side?: "improve" | "maintain" }[];
   raiseTitle: string;
   lowerTitle: string;
 }) {
   // 전체 |shap| 합계 — 퍼센트 계산용 (필터된 항목 기준)
   const totalAbsShap = items.reduce((s, it) => s + Math.abs(it.shap), 0);
 
-  // shap 부호로 분리 후 |shap| 내림차순 정렬
+  // side 필드가 있으면 사용, 없으면 shap 부호로 분리
   const raiseItems = items
-    .filter((it) => it.shap > 0)
+    .filter((it) => (it.side !== undefined ? it.side === "improve" : it.shap > 0))
     .sort((a, b) => Math.abs(b.shap) - Math.abs(a.shap));
   const lowerItems = items
-    .filter((it) => it.shap < 0)
+    .filter((it) => (it.side !== undefined ? it.side === "maintain" : it.shap < 0))
     .sort((a, b) => Math.abs(b.shap) - Math.abs(a.shap));
 
   // 패널 내 최대 |shap| — 바 너비 비율 계산용
@@ -1183,6 +1184,7 @@ export function LLMActionGuidePage() {
                       label: it.feature,
                       value: it.value,
                       shap: it.shap,
+                      side: it.side,
                     }))}
                     raiseTitle="개선이 필요한 항목"
                     lowerTitle="잘 관리되고 있는 항목"
