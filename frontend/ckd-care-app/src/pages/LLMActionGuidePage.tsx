@@ -35,7 +35,7 @@ function ShapImpactBars({
   raiseTitle,
   lowerTitle,
 }: {
-  items: { label: string; value: number; shap: number; side?: "improve" | "maintain" }[];
+  items: { label: string; value: number; shap: number; side?: "improve" | "maintain" | "exclude" }[];
   raiseTitle: string;
   lowerTitle: string;
 }) {
