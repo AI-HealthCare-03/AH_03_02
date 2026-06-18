@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
  * localStorage에 토글 상태를 영구 저장. body class `large-font` 직접 부착해
  * index.css의 `body.large-font *` 선택자가 활성화되도록 한다.
  */
-const STORAGE_KEY = "ckd-care.large-font";
+const STORAGE_KEY = "kiniq.large-font";
 
 function getInitial(): boolean {
   if (typeof window === "undefined") return false;

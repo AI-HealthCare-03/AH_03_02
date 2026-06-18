@@ -61,3 +61,6 @@ results/
 
 # 임시 회귀 스크립트 (로컬 실행 전용 — git 제외)
 run_review.py
+
+# 발표 준비 폴더 (개인 작업물 — git 제외)
+/presentation/
