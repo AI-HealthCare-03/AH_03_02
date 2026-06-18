@@ -93,9 +93,15 @@ export function EggWidget({ aspectBackground = false }: { aspectBackground?: boo
         <div className="relative z-10">
           <CharacterImage species={displaySpecies} stage={displayStage} size={140} emojiClass="text-6xl" />
         </div>
-        {isComplete && (
-          <span className="absolute top-2 right-2 z-20 rounded-md bg-yellow-100 px-2 py-0.5 text-xs font-bold text-yellow-700 shadow">
-            ✨ 완전체
+        {stageIdx >= 1 && (
+          <span className={`absolute top-2 right-2 z-20 rounded-md px-2 py-0.5 text-xs font-bold shadow ${
+            isComplete
+              ? "bg-yellow-100 text-yellow-700"
+              : stageIdx === 2
+              ? "bg-green-100 text-green-700"
+              : "bg-sky-100 text-sky-700"
+          }`}>
+            {isComplete ? "✨ 완전체" : stageIdx === 2 ? "🌿 2단계" : "🌱 1단계"}
           </span>
         )}
         {/* 숙련도 배지 (좌하단) */}
