@@ -151,7 +151,7 @@ export function RAGChatbotPage() {
           <div className="flex items-center gap-[12px] border-b border-border bg-bg-alt p-[12px]">
             <Bot size={24} className="text-accent" />
             <div className="flex flex-col">
-              <h2 className="text-md font-bold text-text-primary">신장 케어 AI 어시스턴트</h2>
+              <h2 className="text-md font-bold text-text-primary">KiniQ AI 어시스턴트</h2>
               <p className="text-xs text-text-muted">
                 KDIGO 가이드라인·대한신장학회 자료 기반 일반 정보 제공 (의학적 진단·처방 아님)
               </p>

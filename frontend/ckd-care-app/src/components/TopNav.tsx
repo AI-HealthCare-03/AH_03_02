@@ -1,4 +1,4 @@
-import { User, Bell, LayoutDashboard, Trophy, Coins, Sparkles, Bot, Shield, FileBarChart, Type } from "lucide-react";
+import { User, Bell, LayoutDashboard, Trophy, Coins, Sparkles, Bot, Shield, FileBarChart, Type, Info, HelpCircle } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -38,6 +38,8 @@ export function TopNav({ brand = "KiniQ" }: TopNavProps) {
     { to: "/challenge", icon: Trophy, label: "챌린지" },
     { to: "/collection", icon: Sparkles, label: "컬렉션" },
     { to: "/rag-chatbot", icon: Bot, label: "AI 챗봇" },
+    { to: "/about", icon: Info, label: "About" },
+    { to: "/faq", icon: HelpCircle, label: "FAQ" },
   ];
 
   return (
