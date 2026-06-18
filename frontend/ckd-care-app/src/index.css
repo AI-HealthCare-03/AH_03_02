@@ -148,3 +148,46 @@ body.large-font button {
 .confetti-piece {
   animation: confetti-fall 2.5s ease-in forwards;
 }
+
+/* ──────────────────────────────────────────────
+   인쇄 / PDF 저장 전용 스타일
+────────────────────────────────────────────── */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 14mm 12mm;
+  }
+
+  /* 배경색·배지 색상 유지 */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    padding-bottom: 0 !important;
+    background: white !important;
+  }
+
+  /* 네비게이션·하단 탭바·인쇄 불필요 요소 숨기기 */
+  nav,
+  .print-hidden {
+    display: none !important;
+  }
+
+  /* main 안쪽 여백 축소 */
+  main {
+    padding: 8px 0 !important;
+  }
+
+  /* 카드(rounded-lg + border 조합) 페이지 중간 잘림 방지 */
+  div[class*="rounded-lg"][class*="border"] {
+    break-inside: avoid;
+  }
+
+  /* 섹션 단위 분리 힌트 */
+  section {
+    break-before: auto;
+    break-inside: avoid-page;
+  }
+}

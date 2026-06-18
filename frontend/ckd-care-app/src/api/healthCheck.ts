@@ -1,4 +1,4 @@
-import { api } from "./client";
+import { api, BASE, getToken } from "./client";
 
 export type DialysisType = "none" | "hemodialysis" | "peritoneal" | "transplant";
 export type UrineResult = "POSITIVE" | "NEGATIVE";
@@ -213,5 +213,25 @@ export const healthCheckApi = {
     const fd = new FormData();
     fd.append("file", file);
     return api.postForm<OCRResponse>("/health-checks/ocr", fd);
+  },
+  downloadPdf: async (id: number): Promise<void> => {
+    const token = getToken();
+    const res = await fetch(`${BASE}/health-checks/${id}/pdf`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      credentials: "include",
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      throw new Error(`PDF 다운로드 실패 (${res.status}): ${body.slice(0, 200)}`);
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `건강리포트_${new Date().toISOString().slice(0, 10)}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   },
 };
