@@ -534,6 +534,30 @@ class HealthCheckService:
         return enriched
 
     @staticmethod
+    def _enrich_m1_side(shap_list: list) -> list:
+        """classify_shap_items 결과로 각 M1 ShapItem dict에 side 필드를 채운다.
+
+        raise_items → "improve" (위험 높임·빨강)
+        lower_items → "maintain" (위험 낮춤·초록)
+        양쪽 제외(정상+shap>0) → "exclude" (ShapImpactBars 양쪽에서 자동 제외)
+
+        _enrich_shap_status 이후 호출 전제 — status/status_level이 채워진 상태여야 함.
+        """
+        if not shap_list:
+            return shap_list
+        classified = classify_shap_items(shap_list)
+        raise_ids = {id(it) for it in classified["raise_items"]}
+        lower_ids = {id(it) for it in classified["lower_items"]}
+        for it in shap_list:
+            if id(it) in raise_ids:
+                it["side"] = "improve"
+            elif id(it) in lower_ids:
+                it["side"] = "maintain"
+            else:
+                it["side"] = "exclude"
+        return shap_list
+
+    @staticmethod
     def _enrich_m2_side(shap2_raw: dict | None, gender_int: int) -> dict | None:
         """shap_model2 raw dict의 items에 side("improve"/"maintain") 필드를 추가한다.
 
@@ -931,6 +955,7 @@ class HealthCheckService:
         gender_int = 1 if user.gender == Gender.MALE else 0
 
         shap_list = self._enrich_shap_status(hc.shap_model1 or [], gender_int)
+        shap_list = self._enrich_m1_side(shap_list)
         recommended = self._recommend_tests(
             hc.app_group,
             sbp=hc.systolic_bp,

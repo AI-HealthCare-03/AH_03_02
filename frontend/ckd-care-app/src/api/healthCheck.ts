@@ -66,6 +66,7 @@ export interface ShapItem1 {
   value: number;
   shap: number;
   note?: string;
+  side?: "improve" | "maintain" | "exclude";
 }
 
 export interface LifestyleShapItem {
