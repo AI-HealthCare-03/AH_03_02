@@ -144,7 +144,7 @@ export function MyPage() {
             </div>
             <p className="text-lg font-bold text-text-primary">{user?.name ?? "—"}</p>
             <p className="text-sm text-text-secondary">{user?.email ?? "—"}</p>
-            <Tag label="CKD CARE" />
+            <Tag label="KiniQ" />
           </div>
 
           {/* 메뉴 리스트 */}

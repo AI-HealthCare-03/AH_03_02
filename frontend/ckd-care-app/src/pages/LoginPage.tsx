@@ -145,7 +145,7 @@ export function LoginPage() {
                 매일의 작은 습관으로
               </h2>
               <p className="mt-4 text-sm leading-relaxed text-text-secondary">
-                만성콩팥병(CKD)은 초기에 증상 없이 조용히 진행됩니다. CKD CARE는 검진 결과를 쉽게 이해하도록 돕고,
+                만성콩팥병(CKD)은 초기에 증상 없이 조용히 진행됩니다. KiniQ는 검진 결과를 쉽게 이해하도록 돕고,
                 매일의 챌린지로 신장 건강을 꾸준히 관리할 수 있게 합니다.
               </p>
             </div>
@@ -171,9 +171,13 @@ export function LoginPage() {
           {/* 우: 로그인 폼 */}
           <div className="mx-auto flex w-full max-w-[440px] flex-col gap-[24px] rounded-lg border border-border bg-bg shadow-card p-[24px] sm:p-[40px]">
           <div className="flex flex-col items-center gap-[8px]">
-            <h1 className="text-2xl font-bold text-text-primary">CKD CARE</h1>
+            <img
+              src="/logo/kiniq-vertical-color.svg"
+              alt="KiniQ"
+              className="h-[72px] w-auto"
+            />
             <p className="text-sm text-text-secondary text-center">
-              신장 건강 관리 챌린지에 오신 것을 환영합니다
+              만성콩팥병 환자 생활습관 관리 챌린지에 오신 것을 환영합니다
             </p>
           </div>
 

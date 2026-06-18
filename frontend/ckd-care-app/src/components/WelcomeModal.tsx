@@ -41,7 +41,7 @@ export function WelcomeModal({ userName, onStartCheckup, onSkip }: Props) {
           </span>
           <div>
             <p className="text-lg font-bold text-text-primary">
-              CKD Care에 오신 것을 환영합니다{userName ? `, ${userName} 님` : ""}!
+              KiniQ에 오신 것을 환영합니다{userName ? `, ${userName} 님` : ""}!
             </p>
             <p className="mt-[2px] text-xs text-text-secondary">
               아래 3단계로 맞춤 건강 관리를 시작해보세요.

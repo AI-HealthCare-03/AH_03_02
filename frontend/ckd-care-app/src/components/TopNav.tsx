@@ -12,7 +12,7 @@ interface TopNavProps {
   brand?: string;
 }
 
-export function TopNav({ brand = "CKD CARE" }: TopNavProps) {
+export function TopNav({ brand = "KiniQ" }: TopNavProps) {
   const { token, user } = useAuth();
   const { diagnosed } = useDiagnosed();
   const { enabled: largeFont, toggle: toggleLargeFont } = useLargeFont();
@@ -43,8 +43,12 @@ export function TopNav({ brand = "CKD CARE" }: TopNavProps) {
   return (
     <nav className="flex h-[56px] w-full items-center justify-between border-b border-border bg-bg px-[16px] py-[12px]">
       <div className="flex items-center gap-[24px]">
-        <Link to="/dashboard" className="text-lg font-bold text-text-primary">
-          {brand}
+        <Link to="/dashboard" className="flex items-center" aria-label={brand}>
+          <img
+            src="/logo/kiniq-horizontal-color.svg"
+            alt={brand}
+            className="h-[28px] w-auto"
+          />
         </Link>
         <div className="hidden items-center gap-[4px] md:flex">
           {navItems.map(({ to, icon: Icon, label }) => (
