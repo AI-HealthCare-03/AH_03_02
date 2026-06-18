@@ -16,6 +16,7 @@ DECLARE
   c_hydration2 bigint;  -- 탄산음료 금지 (ACTIVE 11일)
   c_sleep      bigint;  -- 밤 12시 전 취침 (ACTIVE 15일)
   c_sleep2     bigint;  -- 취침 전 스마트폰 끄기 (ACTIVE 10일)
+  c_diet       bigint;  -- 식물성 식품 섭취 (ACTIVE, DIET 카테고리)
   c_hyd_art    bigint;  -- 수분 아티클 읽기 (COMPLETED)
   c_diet_vid   bigint;  -- 지방 영상 시청 (COMPLETED)
   c_ex_vid     bigint;  -- 운동 영상 시청 (COMPLETED)
@@ -57,6 +58,8 @@ SELECT id INTO c_sleep FROM challenges
   WHERE name LIKE '%밤 12시 이전에 취침%' LIMIT 1;
 SELECT id INTO c_sleep2 FROM challenges
   WHERE name LIKE '%취침 30분 전 스마트폰%' LIMIT 1;
+SELECT id INTO c_diet FROM challenges
+  WHERE name LIKE '%신장 부담을 줄이는 식물성 식품%' LIMIT 1;
 SELECT id INTO c_hyd_art FROM challenges
   WHERE name LIKE '%수분 섭취가 혈압%아티클%' LIMIT 1;
 SELECT id INTO c_diet_vid FROM challenges
@@ -66,11 +69,11 @@ SELECT id INTO c_ex_vid FROM challenges
 SELECT id INTO c_slp_art FROM challenges
   WHERE name LIKE '%수면 부족이 혈압%아티클%' LIMIT 1;
 
-RAISE NOTICE '챌린지 IDs: hydration=%, hydration2=%, sleep=%, sleep2=%, hyd_art=%, diet_vid=%, ex_vid=%, slp_art=%',
-  c_hydration, c_hydration2, c_sleep, c_sleep2, c_hyd_art, c_diet_vid, c_ex_vid, c_slp_art;
+RAISE NOTICE '챌린지 IDs: hydration=%, hydration2=%, sleep=%, sleep2=%, diet=%, hyd_art=%, diet_vid=%, ex_vid=%, slp_art=%',
+  c_hydration, c_hydration2, c_sleep, c_sleep2, c_diet, c_hyd_art, c_diet_vid, c_ex_vid, c_slp_art;
 
 -- 조회 실패 시 중단
-IF c_hydration IS NULL OR c_sleep IS NULL THEN
+IF c_hydration IS NULL OR c_sleep IS NULL OR c_diet IS NULL THEN
   RAISE EXCEPTION '챌린지 데이터를 찾을 수 없습니다. build_challenges_seed.py를 먼저 실행하세요.';
 END IF;
 
@@ -120,6 +123,7 @@ INSERT INTO user_challenges (challenge_id, user_id, status, streak_count, total_
 VALUES
   (c_hydration,  v_uid, 'ACTIVE', 17, 17, CURRENT_DATE - 17, CURRENT_DATE - 1),
   (c_sleep,      v_uid, 'ACTIVE', 15, 15, CURRENT_DATE - 15, CURRENT_DATE - 1),
+  (c_diet,       v_uid, 'ACTIVE', 13, 13, CURRENT_DATE - 13, CURRENT_DATE - 1),
   (c_sleep2,     v_uid, 'ACTIVE', 10, 10, CURRENT_DATE - 10, CURRENT_DATE - 1),
   (c_hydration2, v_uid, 'ACTIVE', 11, 11, CURRENT_DATE - 11, CURRENT_DATE - 1);
 
@@ -164,7 +168,7 @@ VALUES
   (v_uid,  -300, 'PURCHASE', '{"item":"skin_cat_1"}',    NOW() - INTERVAL '5 days'),
   (v_uid,  -200, 'PURCHASE', '{"item":"skin_bear_1"}',   NOW() - INTERVAL '3 days'),
   (v_uid,  -100, 'PURCHASE', '{"item":"skin_blue_cow"}', NOW() - INTERVAL '1 day');
--- 합계: 1360+1360+900+810-100+860+645+645+300+210+300+290+300+300+375+375-1200-800-600-300-200-100 = 5730 ✓
+-- section6 합계: 4870 + section8 CHECKIN(실버280+황금450=730) = 5,600pt ✓
 
 -- ────────────────────────────────────────────────────────────
 -- 7. 일일 체크리스트 (2026-05-01 ~ 2026-06-18, 4개 항목 모두 체크)
@@ -178,20 +182,33 @@ WHERE d::date NOT IN ('2026-05-04','2026-05-11','2026-05-18','2026-05-25',
 ON CONFLICT (user_id, log_date, item_key) DO NOTHING;
 
 -- ────────────────────────────────────────────────────────────
--- 8. 챌린지 체크인 포인트 거래 (달력 실버/골드 레벨용)
---    CHECKIN 타입 extra에 challenge_id 포함
+-- 8. 챌린지 체크인 포인트 거래 (달력 기본/실버/황금 랜덤 혼합)
+--    level = (day×7 + month×3) % 3
+--    · 0 = 기본 (CHECKIN 없음, 체크리스트만 완료)
+--    · 1 = 실버 (HYDRATION+SLEEP, 2카테고리, 14일×2×10=280pt)
+--    · 2 = 황금 (HYDRATION+SLEEP+DIET, 3카테고리, 15일×3×10=450pt)
 -- ────────────────────────────────────────────────────────────
+-- 실버 날짜
 INSERT INTO point_transactions (user_id, amount, reason, extra, created_at)
 SELECT
-  v_uid,
-  10,
-  'CHECKIN',
+  v_uid, 10, 'CHECKIN',
   jsonb_build_object('challenge_id', cid),
   (d + INTERVAL '12 hours')
 FROM generate_series('2026-05-01'::date, '2026-06-18'::date, '1 day') AS d,
      unnest(ARRAY[c_hydration, c_sleep]) AS cid
-WHERE d::date NOT IN ('2026-05-04','2026-05-11','2026-05-18','2026-05-25',
-                      '2026-06-01','2026-06-15');
+WHERE d::date NOT IN ('2026-05-04','2026-05-11','2026-05-18','2026-05-25','2026-06-01','2026-06-15')
+  AND (extract(day from d)::int * 7 + extract(month from d)::int * 3) % 3 = 1;
+
+-- 황금 날짜
+INSERT INTO point_transactions (user_id, amount, reason, extra, created_at)
+SELECT
+  v_uid, 10, 'CHECKIN',
+  jsonb_build_object('challenge_id', cid),
+  (d + INTERVAL '12 hours')
+FROM generate_series('2026-05-01'::date, '2026-06-18'::date, '1 day') AS d,
+     unnest(ARRAY[c_hydration, c_sleep, c_diet]) AS cid
+WHERE d::date NOT IN ('2026-05-04','2026-05-11','2026-05-18','2026-05-25','2026-06-01','2026-06-15')
+  AND (extract(day from d)::int * 7 + extract(month from d)::int * 3) % 3 = 2;
 
 -- ────────────────────────────────────────────────────────────
 -- 9. 체크인 감정 기록 (격일)
