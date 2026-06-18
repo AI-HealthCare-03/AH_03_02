@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-import io
 import os
 import re
 import sys
@@ -16,8 +15,10 @@ from dataclasses import dataclass, field
 _SP = os.path.normpath(
     os.path.join(
         os.path.dirname(__file__),
-        "..", "..",
-        ".venv", "lib",
+        "..",
+        "..",
+        ".venv",
+        "lib",
         f"python{sys.version_info.major}.{sys.version_info.minor}",
         "site-packages",
     )
@@ -25,9 +26,9 @@ _SP = os.path.normpath(
 if os.path.isdir(_SP) and _SP not in sys.path:
     sys.path.insert(0, _SP)
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader  # noqa: E402
 
-from app.dtos.health_check import (
+from app.dtos.health_check import (  # noqa: E402
     ClinicalItem,
     LifestyleDomainSummary,
     LifestyleItem,
@@ -224,8 +225,11 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 _VENV_PYTHON = os.path.normpath(os.path.join(_HERE, "..", "..", ".venv", "bin", "python3"))
 _VENV_SITE_PKG = os.path.normpath(
     os.path.join(
-        _HERE, "..", "..",
-        ".venv", "lib",
+        _HERE,
+        "..",
+        "..",
+        ".venv",
+        "lib",
         f"python{sys.version_info.major}.{sys.version_info.minor}",
         "site-packages",
     )

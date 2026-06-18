@@ -7,8 +7,6 @@ from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, 
 from fastapi.responses import ORJSONResponse as Response
 from fastapi.responses import StreamingResponse
 
-logger = logging.getLogger(__name__)
-
 from app.dependencies.security import get_request_user
 from app.dtos.health_check import (
     HealthCheckCreateRequest,
@@ -20,6 +18,8 @@ from app.models.users import User
 from app.services import ocr as ocr_service
 from app.services.health_check import HealthCheckService
 from app.services.pdf_report import render_report_pdf
+
+logger = logging.getLogger(__name__)
 
 health_check_router = APIRouter(prefix="/health-checks", tags=["health-checks"])
 
