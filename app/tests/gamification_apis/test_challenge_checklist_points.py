@@ -15,7 +15,7 @@ from app.repositories.gamification_repository import PointRepository
 from app.services.challenge import ChallengeService
 from app.services.challenge_reference import REQUIRED_CHECKLIST
 
-TODAY = date(2026, 6, 17)
+TODAY = date.today()
 
 
 async def _make_user(email: str = "checklist_toggle@test.com") -> User:
