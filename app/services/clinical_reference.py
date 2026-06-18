@@ -718,14 +718,18 @@ def m2_normal_range(feature: str, gender: int) -> str:
     return target
 
 
+# M2_STAGES에서 '정상·양호' 단계로 판정되는 라벨 집합
+_M2_NORMAL_STATUS_LABELS: frozenset[str] = frozenset({"정상", "적절", "적정", "양호", "비흡연"})
+
+
 def m2_in_normal(feature: str, value: float, gender: int) -> bool:
-    """M2_NORMAL_RANGES 기준 정상 범위 내 여부 (lo <= value <= hi)."""
-    if feature not in M2_NORMAL_RANGES:
-        return False
-    r = M2_NORMAL_RANGES[feature]
-    if isinstance(r, dict):
-        r = r["M"] if gender == 1 else r["F"]
-    return r[0] <= value <= r[1]
+    """M2_STAGES 기반 정상·양호 단계 여부 반환.
+
+    _m2_get_stage 와 동일한 반열린 구간(lo <= v < hi)을 공유하므로
+    경계값(waist_cm=90 등)에서 m2_status 와 항상 일치.
+    """
+    label, _ = _m2_get_stage(feature, value, gender)
+    return label in _M2_NORMAL_STATUS_LABELS
 
 
 def m2_label(feature: str) -> str:
