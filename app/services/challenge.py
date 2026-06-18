@@ -626,7 +626,7 @@ class ChallengeService:
         """
         today = date.today()
         week_start = today - timedelta(days=today.weekday())  # 이번 주 월요일
-        TOTAL_PER_CATEGORY = 5
+        total_per_category = 5
 
         uc_list = await self._user_repo.list_active_and_completed_by_user(user_id)
 
@@ -652,15 +652,15 @@ class ChallengeService:
             ChallengeCategory.STRESS,
         ]:
             data = by_cat[cat]
-            checked = min(data["checked_this_week"], TOTAL_PER_CATEGORY)
-            percent = int(round(checked / TOTAL_PER_CATEGORY * 100))
+            checked = min(data["checked_this_week"], total_per_category)
+            percent = int(round(checked / total_per_category * 100))
             items.append(
                 CategoryProgress(
                     category=cat,
                     percent=percent,
                     active_count=data["active_count"],
                     total_checkins=checked,
-                    total_duration=TOTAL_PER_CATEGORY,
+                    total_duration=total_per_category,
                 )
             )
         return CategoryProgressResponse(items=items)
