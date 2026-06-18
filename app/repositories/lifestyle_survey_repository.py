@@ -94,9 +94,13 @@ class LifestyleSurveyRepository:
     async def exists_by_user(self, user_id: int) -> bool:
         return await LifestyleSurvey.filter(user_id=user_id).exists()
 
+    async def get_by_date(self, user_id: int, surveyed_date: date) -> LifestyleSurvey | None:
+        return await LifestyleSurvey.filter(user_id=user_id, surveyed_date=surveyed_date).order_by("-id").first()
+
     async def upsert(self, *, user_id: int, **fields) -> LifestyleSurvey:
-        """기존 사용자 설문 있으면 갱신, 없으면 생성. 최신 1건만 유지하는 정책."""
-        existing = await self.get_latest(user_id)
+        """같은 surveyed_date가 있으면 해당 row 갱신, 없으면 새 레코드 생성."""
+        surveyed_date: date = fields.get("surveyed_date")
+        existing = await self.get_by_date(user_id, surveyed_date) if surveyed_date else None
         if existing:
             for key, value in fields.items():
                 setattr(existing, key, value)
