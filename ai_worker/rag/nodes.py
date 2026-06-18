@@ -100,7 +100,7 @@ def post_guard_node(state: RAGState) -> dict:
     ans = state.get("generation") or "확실한 근거를 찾지 못했습니다. 신장내과 전문의와 상담하세요."
     forbidden = safety_guard.find_forbidden(ans)
     if "단백질처방수치" in forbidden:
-        ans = safety_guard.add_protein_caveat_if_missing(ans)
+        ans = safety_guard.add_protein_caveat_if_missing(ans, state.get("user_context", {}).get("app_group"))
         forbidden = [f for f in forbidden if f != "단백질처방수치"]
     if forbidden:
         ans += "\n\n※ 위 내용은 참고용 안내이며 단정적 의미가 아닙니다."

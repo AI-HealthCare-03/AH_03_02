@@ -158,20 +158,36 @@ def find_forbidden(text: str) -> list[str]:
     return result
 
 
-_PROTEIN_CAVEAT_PHRASES = ("신장 단계와 표준체중", "검사 수치·단백뇨", "단백뇨 정도에 따라")
-_PROTEIN_CAVEAT = (
-    "\n\n(※ 이 권장량은 신장 단계와 표준체중을 반영한 참고치입니다. "
+_PROTEIN_CAVEAT_PHRASES = ("신장 기능 단계와 표준체중", "검사 수치·단백뇨", "단백뇨 정도에 따라", "연령·성별 기준")
+_PROTEIN_CAVEAT_G1 = (
+    "\n\n(※ 이 권장량은 신장 기능 단계와 표준체중을 반영한 참고치입니다. "
     "정확한 양은 검사 수치·단백뇨 정도에 따라 다르므로 영양사·의료진과 상담하세요.)"
 )
+_PROTEIN_CAVEAT_GENERAL = (
+    "\n\n(※ 본 권장량은 신장 기능이 정상인 성인의 연령·성별 기준 "
+    "일반 권장 섭취량입니다. 개인의 건강 상태, 검사 수치 및 "
+    "질환 유무에 따라 적정 섭취량은 달라질 수 있으므로 "
+    "영양사 또는 의료진과 상담하시기 바랍니다.)"
+)
+_G_GROUPS = {"G1", "G2", "G3", "G4"}
 
 
-def add_protein_caveat_if_missing(text: str) -> str:
-    """단백질처방수치 감지 시 참고치 단서 누락이면 답변 끝에 추가. 단백질 없거나 이미 있으면 불변."""
+def add_protein_caveat_if_missing(text: str, app_group: str | None = None) -> str:
+    """단백질처방수치 감지 시 참고치 단서 누락이면 답변 끝에 추가. 단백질 없거나 이미 있으면 불변.
+
+    app_group == "G1": 신장 기능 저하 → IBW×0.8 기반 문구
+    app_group in G2·G3·G4: KDRIs 연령·성별 기준 문구
+    CKD·DIALYSIS·None: 투석/진단군은 단백질 수치를 LLM이 출력하지 않아야 하므로
+                        만일 출력하더라도 caveat 미부착 (잘못된 문구 방지)
+    """
     if "단백질" not in text:
         return text
     if any(phrase in text for phrase in _PROTEIN_CAVEAT_PHRASES):
         return text
-    return text + _PROTEIN_CAVEAT
+    if app_group not in _G_GROUPS:
+        return text
+    caveat = _PROTEIN_CAVEAT_G1 if app_group == "G1" else _PROTEIN_CAVEAT_GENERAL
+    return text + caveat
 
 
 def with_disclaimer(text: str) -> str:
