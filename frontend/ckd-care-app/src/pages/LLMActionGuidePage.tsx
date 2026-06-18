@@ -119,7 +119,7 @@ function ShapImpactBars({
 
   return (
     <div className="flex flex-col gap-[12px] rounded-lg border border-border bg-bg p-[16px] shadow-sm">
-      <p className="text-sm font-bold text-text-primary">SHAP 영향 요인 분석</p>
+      <p className="text-sm font-bold text-text-primary">영향 요인 분석</p>
       <div className="flex flex-col gap-[16px] md:flex-row md:gap-[20px]">
         {renderPanel(raiseItems, raiseMax, "#e74c3c", raiseTitle)}
         {/* 구분선 — 중간 divider (md 이상에서만 세로선) */}
