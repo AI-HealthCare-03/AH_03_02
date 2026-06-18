@@ -1,5 +1,5 @@
 import { Link, Outlet, useLocation, Navigate, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Users, Trophy, ScrollText, LogOut, Shield, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, Users, Trophy, ScrollText, LogOut, ShieldAlert } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
 interface NavItem {
@@ -40,10 +40,14 @@ export function AdminLayout() {
   return (
     <div className="flex min-h-screen bg-slate-900 text-slate-100">
       <aside className="flex w-[240px] shrink-0 flex-col border-r border-slate-700 bg-slate-950">
-        <div className="flex items-center gap-[8px] border-b border-slate-700 p-[16px]">
-          <Shield size={20} className="text-amber-400" />
+        <div className="flex items-center gap-[10px] border-b border-slate-700 p-[16px]">
+          <img
+            src="/logo/kiniq-icon-white.svg"
+            alt="KiniQ"
+            className="h-[28px] w-[28px]"
+          />
           <div className="flex flex-col">
-            <span className="text-sm font-bold">CKD CARE</span>
+            <span className="text-sm font-bold">KiniQ</span>
             <span className="text-[10px] uppercase tracking-wider text-amber-400">ADMIN</span>
           </div>
         </div>
