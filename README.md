@@ -14,35 +14,36 @@
   - 한국어 에러 미들웨어 (Pydantic 422 자동 변환)
   - Rate Limit (slowapi, 인증 5/분·일반 60/분)
   - 비밀번호 재설정 이메일 인증 (Resend + `EMAIL_MODE=demo|production` 토글)
-  - 부하 테스트 (Locust, API P95 **18ms** / 동시 50명)
+  - 부하 테스트 (Locust, GET API P95 **15ms** / 동시 50명, 실패율 0%)
   - 글로벌 면책 푸터 (모든 페이지)
   - 게이미피케이션 3단계 진화 (10·40·100회, +100·400·750pt)
   - 캐릭터 일러스트 시스템 (PNG 우선, SVG fallback, 이모지 fallback)
 
 ---
 
-## 🏗️ 아키텍처 — 7컨테이너
+## 🏗️ 아키텍처 — 6컨테이너
 
 ```
-사용자 ──► nginx ──► fastapi (app/)
-                         │ Redis Stream
+사용자 ──► nginx ──► fastapi (app/, Producer)
+                         │ Redis Stream (ckd_jobs / rag_jobs)
                          ▼
-                    ai-worker (ai_worker/)
-                         ├── PostgreSQL
-                         ├── Redis
-                         ├── Qdrant (벡터 DB)
-                         └── Langfuse (LLM 트레이싱)
+                    ai-worker (ai_worker/, Consumer)
+                         ├── PostgreSQL  (검진·예측결과·SHAP·AI가이드)
+                         ├── Redis       (작업 큐·응답 스트림 rag_resp)
+                         └── Qdrant      (RAG 벡터 DB)
 ```
 
 | 컨테이너 | 역할 | 코드 위치 |
 |---|---|---|
-| `nginx` | 리버스 프록시 | `infra/nginx/` |
+| `nginx` | 리버스 프록시 (80→8000) | `infra/nginx/` |
 | `postgres` | DB | 이미지만 |
-| `redis` | 메시지 브로커·캐시 | 이미지만 |
-| `fastapi` ⭐ | API 서버 | **`app/`** |
-| `ai-worker` ⭐ | ML 추론 + LLM + RAG | **`ai_worker/`** |
+| `redis` | 메시지 브로커 (Redis Stream)·응답 스트림 | 이미지만 |
+| `fastapi` ⭐ | API 서버 (Producer) | **`app/`** |
+| `ai-worker` ⭐ | ML 추론(SHAP) + RAG 챗봇 | **`ai_worker/`** |
 | `qdrant` | 벡터 DB (RAG) | 이미지만 |
-| `langfuse` | LLM 관찰성 | 이미지만 |
+
+> **Langfuse(LLM 관찰성)는 옵션** — 메인 스택과 분리된 `docker-compose.langfuse.yml`로 별도 기동(`docker compose -f docker-compose.langfuse.yml up -d` → http://localhost:3001).
+> **운영(prod)**은 위 6개 + `certbot`(Let's Encrypt SSL 자동 갱신) = 7컨테이너 (`infra/docker/docker-compose.prod.yml`).
 
 ---
 
@@ -57,7 +58,7 @@
 ├─ src/
 │  ├─ ckd/           ← ML 모델 학습 라이브러리
 │  └─ rag_indexing/  ← RAG 지식 베이스 인덱싱
-├─ frontend/         ← Vite + React (예정)
+├─ frontend/         ← Vite + React (ckd-care-app, 완성)
 ├─ infra/            ← Nginx 설정·운영 Docker Compose
 ├─ scripts/          ← CI 스크립트 (lint·mypy·test·deploy)
 ├─ envs/             ← 환경변수 (.env, Git 제외)
@@ -75,7 +76,7 @@
 
 ### 사전 준비
 
-- Python 3.13+
+- Python 3.11 (AutoGluon 호환 — 3.13 미지원)
 - [uv](https://github.com/astral-sh/uv) (패키지 매니저)
 - Docker & Docker Compose
 
@@ -116,7 +117,8 @@ docker-compose up -d --build
 
 실행 후 접속:
 - **API Swagger**: http://localhost/api/docs
-- **Langfuse UI**: http://localhost:3000
+
+> Langfuse(LLM 트레이싱)는 옵션 — 쓰려면 별도 스택을 기동: `docker compose -f docker-compose.langfuse.yml up -d` → http://localhost:3001
 
 ### 5. 대용량 자산 + DB 마이그레이션 (ML 예측·RAG 챗봇 필수)
 
