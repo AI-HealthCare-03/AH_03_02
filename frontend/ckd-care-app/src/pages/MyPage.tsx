@@ -178,7 +178,7 @@ export function MyPage() {
               icon={Headphones}
               title="고객센터"
               subtitle="문의 및 FAQ"
-              onClick={() => window.alert("고객센터: support@ckdcare.example")}
+              onClick={() => navigate("/faq")}
             />
           </div>
         </div>

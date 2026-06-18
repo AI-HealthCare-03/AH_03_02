@@ -52,6 +52,8 @@ import { ShopPage } from "./pages/ShopPage";
 import { PointHistoryPage } from "./pages/PointHistoryPage";
 import { CollectionPage } from "./pages/CollectionPage";
 import { RestModePage } from "./pages/RestModePage";
+import { FAQPage } from "./pages/FAQPage";
+import { AboutPage } from "./pages/AboutPage";
 import { AdminLayout } from "./components/AdminLayout";
 import { AdminOverviewPage } from "./pages/admin/AdminOverviewPage";
 import { AdminUsersPage } from "./pages/admin/AdminUsersPage";
@@ -76,6 +78,8 @@ function AppRoutes() {
       <Route path="/" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/email-verify" element={<EmailVerifyPage />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/faq" element={<FAQPage />} />
 
       {/* 인증 필요 라우트 */}
       <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />

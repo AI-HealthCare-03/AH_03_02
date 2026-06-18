@@ -246,12 +246,13 @@ export function SimulationPage() {
             </section>
 
             {/* 면책 */}
-            <section className="rounded-lg border border-border bg-bg p-[16px] text-xs leading-[1.7] text-text-muted shadow-card">
+            <section className="rounded-lg border border-border bg-bg-alt p-4 text-sm leading-relaxed text-text-muted shadow-card">
               <p>
                 ※ 가상 시뮬레이션 결과는 실제 측정값이 아닙니다. 표현은
                 <span className="font-bold text-text-secondary"> "위험을 낮출 수 있다" · "관리·개선에 도움이 됩니다" </span>
                 범위로 제한되며, "막을 수 있다 · 예방됩니다 · 치료 · 확진" 같은 단정형은 사용하지 않습니다.
-                실제 의학적 판단은 의료진과 상의해주세요.
+                실제 의학적 판단은 의료진과 상의해주세요.{" "}
+                <Link to="/faq" className="underline hover:text-text-secondary">FAQ</Link>
               </p>
             </section>
           </>
