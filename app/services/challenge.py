@@ -617,21 +617,21 @@ class ChallengeService:
     # ── 카테고리 진행률 ───────────────────────────────────────────────────────
 
     async def get_category_progress(self, user_id: int) -> CategoryProgressResponse:
-        """카테고리 5종별 이번 주 완료율 (REQ-DASH-001 ⑥).
+        """카테고리 5종별 이번 주 실천 일수 기반 완료율 (REQ-DASH-001 ⑥).
 
-        percent = 이번 주 완료 챌린지 수 / 5 * 100 (매주 월요일 자동 리셋).
-        - 분모는 카테고리당 고정 5 (선택 챌린지 5개 기준)
+        percent = 이번 주 체크인한 unique 날짜 수 / 7 * 100 (매주 월요일 자동 리셋).
+        - last_checkin_date의 고유 날짜를 카테고리별로 집계
         - ACTIVE + 이번 주 체크인, COMPLETED + 이번 주 마지막 체크인 포함
         - ABANDONED / 이번 주 체크인 없는 과거 COMPLETED: 제외
         """
         today = date.today()
         week_start = today - timedelta(days=today.weekday())  # 이번 주 월요일
-        total_per_category = 5
+        days_in_week = 7
 
         uc_list = await self._user_repo.list_active_and_completed_by_user(user_id)
 
         by_cat: dict[ChallengeCategory, dict] = {
-            cat: {"active_count": 0, "checked_this_week": 0} for cat in ChallengeCategory
+            cat: {"active_count": 0, "checked_dates": set()} for cat in ChallengeCategory
         }
         for uc in uc_list:
             ch = await uc.challenge
@@ -641,7 +641,7 @@ class ChallengeService:
                 continue
             by_cat[cat]["active_count"] += 1
             if uc.last_checkin_date and uc.last_checkin_date >= week_start:
-                by_cat[cat]["checked_this_week"] += 1
+                by_cat[cat]["checked_dates"].add(uc.last_checkin_date)
 
         items = []
         for cat in [
@@ -652,15 +652,15 @@ class ChallengeService:
             ChallengeCategory.STRESS,
         ]:
             data = by_cat[cat]
-            checked = min(data["checked_this_week"], total_per_category)
-            percent = int(round(checked / total_per_category * 100))
+            unique_days = len(data["checked_dates"])
+            percent = int(round(unique_days / days_in_week * 100))
             items.append(
                 CategoryProgress(
                     category=cat,
                     percent=percent,
                     active_count=data["active_count"],
-                    total_checkins=checked,
-                    total_duration=total_per_category,
+                    total_checkins=unique_days,
+                    total_duration=days_in_week,
                 )
             )
         return CategoryProgressResponse(items=items)
