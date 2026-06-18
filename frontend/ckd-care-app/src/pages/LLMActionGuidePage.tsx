@@ -523,7 +523,8 @@ function accentBarColor(level: ClinicalItem["status_level"]): string {
 }
 
 // ===== 임상 상세 분석표 — 촘촘한 테이블 스타일 =====
-const CATEGORY_ORDER = ["혈압·혈당", "지질", "간·혈액", "신체", "기타"] as const;
+// 백엔드 M1_CAT_ORDER와 동일하게 유지 — 새 카테고리 추가 시 여기도 맞출 것
+const CATEGORY_ORDER = ["혈압·혈당", "지질", "간·혈액", "신장(소변)", "신체", "기타"] as const;
 
 function ClinicalDetailTable({ items }: { items: ClinicalItem[] }) {
   // 열린 행 인덱스 집합 (원래 items 배열 인덱스 기준)
@@ -549,8 +550,11 @@ function ClinicalDetailTable({ items }: { items: ClinicalItem[] }) {
     grouped[item.category].push({ item, idx });
   });
 
-  // CATEGORY_ORDER 기준 + 비어있는 카테고리 제외
-  const orderedCategories = CATEGORY_ORDER.filter((cat) => grouped[cat]?.length);
+  // CATEGORY_ORDER 순서 우선 + 백엔드가 새 카테고리를 보내도 말미에 자동 렌더
+  const orderedCategories = [
+    ...CATEGORY_ORDER.filter((cat) => grouped[cat]?.length),
+    ...Object.keys(grouped).filter((cat) => !(CATEGORY_ORDER as readonly string[]).includes(cat) && grouped[cat]?.length),
+  ];
 
   if (items.length === 0) return null;
 
@@ -1123,11 +1127,14 @@ export function LLMActionGuidePage() {
             {/* 모델1 SHAP 2단 가로막대 차트 — 모델이 쓰는 전체 변수 기여도 */}
             {!isLoading && model1Items.length > 0 && (
               <ShapImpactBars
-                items={model1Items.map((it) => ({
-                  label: it.feature,
-                  value: it.value,
-                  shap: it.shap,
-                }))}
+                items={model1Items
+                  .filter((it) => it.side !== "exclude")
+                  .map((it) => ({
+                    label: it.feature,
+                    value: it.value,
+                    shap: it.shap,
+                    side: it.side,
+                  }))}
                 raiseTitle="위험을 높이는 요인"
                 lowerTitle="위험을 낮추는 요인"
               />
