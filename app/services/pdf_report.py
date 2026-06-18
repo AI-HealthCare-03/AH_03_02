@@ -34,14 +34,14 @@ from app.dtos.health_check import (  # noqa: E402
     LifestyleItem,
     ReportMeta,
     ReportResponse,
-    ShapItem,
 )
+from app.services.clinical_reference import classify_m2_shap_items, classify_shap_items  # noqa: E402
 
 # ── 상수 ─────────────────────────────────────────────────────────────
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "..", "templates")
 
-CATEGORY_ORDER = ["혈압·혈당", "지질", "간·혈액", "신체", "기타"]
+CATEGORY_ORDER = ["혈압·혈당", "지질", "간·혈액", "신장(소변)", "신체", "기타"]
 
 _STATUS_BG: dict[str, str] = {
     "good": "#d5f5e3",
@@ -106,21 +106,51 @@ def _fmt_value(v: float) -> str:
 
 
 def _build_shap_panels(
-    items: list[ShapItem],
+    items: list,
     raise_title: str,
     lower_title: str,
     raise_color: str = "#c0392b",
     lower_color: str = "#1e8449",
+    clinical_classify: bool = False,
+    m2_classify_gender: int | None = None,
 ) -> tuple[ShapPanel, ShapPanel]:
-    total_abs = sum(abs(it.shap) for it in items) or 1.0
+    """SHAP 항목을 높임/낮춤 두 패널로 분리.
 
-    raise_items = sorted([it for it in items if it.shap > 0], key=lambda x: -abs(x.shap))
-    lower_items = sorted([it for it in items if it.shap < 0], key=lambda x: -abs(x.shap))
+    clinical_classify=True: classify_shap_items (임상 단계 라벨 기반, 모델1용).
+    m2_classify_gender=int: classify_m2_shap_items (m2_in_normal·side 우선, 모델2용).
+    그 외: 부호·side 혼합 fallback (비상용, 평상시 미사용).
+    """
+    if clinical_classify:
+        classified = classify_shap_items(items)
+        total_abs = classified["total_abs"]
+        raise_items = classified["raise_bar"]
+        lower_items = classified["lower_bar"]
+    elif m2_classify_gender is not None:
+        # 서비스가 side를 주입했으므로 classify_m2_shap_items 내 역조회 분기는 0건.
+        classified = classify_m2_shap_items(items, m2_classify_gender)
+        total_abs = classified["total_abs"]
+        raise_items = classified["raise_bar"]
+        lower_items = classified["lower_bar"]
+    else:
+        total_abs = sum(abs(it.shap) for it in items) or 1.0
+        _bar_threshold = 0.001
+        raise_items = []
+        lower_items = []
+        for _it in items:
+            if abs(_it.shap) / total_abs < _bar_threshold:
+                continue
+            _in_raise = (_it.side == "improve") if _it.side is not None else (_it.shap > 0)
+            if _in_raise:
+                raise_items.append(_it)
+            else:
+                lower_items.append(_it)
+        raise_items.sort(key=lambda x: -abs(x.shap))
+        lower_items.sort(key=lambda x: -abs(x.shap))
 
     raise_max = max((abs(it.shap) for it in raise_items), default=1.0)
     lower_max = max((abs(it.shap) for it in lower_items), default=1.0)
 
-    def _bars(panel_items: list[ShapItem], panel_max: float, color: str) -> list[ShapBar]:
+    def _bars(panel_items: list, panel_max: float, color: str) -> list[ShapBar]:
         return [
             ShapBar(
                 rank=i + 1,
@@ -170,22 +200,27 @@ def _group_clinical(items: list[ClinicalItem]) -> list[tuple[str, list[ClinicalI
 
 def build_pdf_context(report: ReportResponse) -> PDFContext:
     # ── 모델1 SHAP ──
+    # report.shap_model1은 _enrich_shap_status가 채운 status·status_level을 그대로 가짐.
+    # 재생성하면 두 필드가 날아가므로 as-is로 전달.
     m1_raise, m1_lower = _build_shap_panels(
-        [
-            ShapItem(feature=it.feature, value=it.value, shap=it.shap, note=getattr(it, "note", None))
-            for it in report.shap_model1
-        ],
+        list(report.shap_model1),
         raise_title="위험을 높이는 요인",
         lower_title="위험을 낮추는 요인",
+        clinical_classify=True,
     )
 
     # ── 모델2 SHAP ──
+    # list(m2.items): side 필드 보존 (M1의 list(report.shap_model1)과 동일 패턴).
+    # m2_classify_gender: report_meta에서 추출 — 역조회 fallback용.
+    # 서비스가 _enrich_m2_side로 side를 주입했으므로 평상시 역조회 분기 0건.
     m2 = report.shap_model2
     if m2 and m2.items:
+        _m2_gender = 1 if (report.report_meta and report.report_meta.gender == "남성") else 0
         m2_raise, m2_lower = _build_shap_panels(
-            m2.items,
+            list(m2.items),
             raise_title="개선이 필요한 항목",
             lower_title="잘 관리되고 있는 항목",
+            m2_classify_gender=_m2_gender,
         )
         ls_score = f"{m2.lifestyle_score * 100:.0f}" if m2.lifestyle_score is not None else None
         peer_parts: list[str] = []

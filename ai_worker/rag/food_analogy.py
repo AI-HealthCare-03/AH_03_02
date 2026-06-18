@@ -20,6 +20,9 @@ _table: dict | None = None
 _MARKER_RE = re.compile(r"⟦([^:⟧]+):([\d.]+):([^⟧]+)⟧")
 # 느슨한 마커 제거용 정규식 — 음수·형식 이상 등 _MARKER_RE가 놓친 잔여 마커까지 제거
 _LOOSE_MARKER_RE = re.compile(r"⟦[^⟧]*⟧")
+# 문장 경계: 마침표·!·? 뒤에 공백/줄바꿈/끝, 또는 줄바꿈 자체
+# 숫자 소수점(2.5g)은 뒤가 공백·줄바꿈·끝이 아니므로 매칭 제외
+_SENT_END_RE = re.compile(r"[.!?](?=[ \t\n]|$)|\n")
 
 ANALOGY_DISCLAIMER = (
     "\n\n> ⚠️ 위 음식 예시는 단백질 양이 어느 정도인지 가늠하기 위한 것이며, "
@@ -116,4 +119,14 @@ def apply_analogies(text: str) -> str:
     if last_idx == -1:
         return out + ANALOGY_DISCLAIMER  # 폴백: 분량) 못 찾으면 맨 끝
     insert_at = last_idx + len("분량)")
-    return out[:insert_at] + ANALOGY_DISCLAIMER + out[insert_at:]
+    # "분량)" 뒤 첫 문장 경계 다음에 삽입 → 마커가 문장 중간이어도 면책이 그 문장 끝 이후에 위치
+    tail = out[insert_at:]
+    sent_m = _SENT_END_RE.search(tail)
+    if sent_m:
+        shift = sent_m.end()
+        remainder = out[insert_at + shift :]
+        # 잔여 텍스트가 줄바꿈 없이 이어지면 blockquote 밖으로 분리
+        if remainder and not remainder.startswith("\n"):
+            return out[: insert_at + shift] + ANALOGY_DISCLAIMER + "\n\n" + remainder.lstrip()
+        return out[: insert_at + shift] + ANALOGY_DISCLAIMER + remainder
+    return out + ANALOGY_DISCLAIMER  # 문장 경계 없음(분량)이 이미 끝) → 맨 끝 append

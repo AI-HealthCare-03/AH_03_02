@@ -25,7 +25,9 @@ from app.services.clinical_reference import (
     M1_DESC,
     M1_DISEASE,
     M1_LABEL,
+    M2_LABEL,
     build_domain_summary_text,
+    classify_shap_items,
     m1_direction,
     m1_format,
     m1_group_message,
@@ -438,50 +440,124 @@ class HealthCheckService:
     # ── 모델1 리포트 헬퍼 (순수 함수, app_group 기반) ─────────────────────────
 
     @staticmethod
-    def _recommend_tests(app_group: AppGroup | None, egfr: float | None) -> list[str]:
-        """app_group(G1~G4) 기반 권장 검사 리스트.
+    def _recommend_tests(
+        app_group: AppGroup | None,
+        *,
+        sbp: int,
+        dbp: int,
+        fasting_glucose: float,
+        hemoglobin: float | None,
+        urine_protein: UrineResult | None,
+        gender_int: int,
+        htn_dx: bool = False,
+        dm_dx: bool = False,
+    ) -> list[str]:
+        """app_group 코어 + 임상 상태 게이트 조건부 권장 검사 리스트.
 
-        노트북 m1_recommended_tests 로직 참고 (셀12·251~268줄).
-        서비스에 요단백 컬럼이 없어 app_group + eGFR 기반으로 단순화.
+        코어: 그룹별 재검 주기·CKD 특이 항목 (eGFR 수치 무관 고정).
+        조건부: status != good 또는 진단 플래그 → 그룹 무관 추가.
         톤: 선별 서비스 — "진단"·"환자" 단정 표현 배제.
         """
         if app_group is None:
             return []
 
+        # ── 그룹별 코어 ──────────────────────────────────────────────────
         if app_group == AppGroup.G1:
-            # eGFR < 60 → 신장 기능 저하 의심 → 정밀 추적 필요
-            tests = [
+            core: list[str] = [
                 "eGFR·혈청 크레아티닌 재검(3개월 내)",
                 "요단백(소변 알부민/크레아티닌비) 검사",
                 "신장내과 상담 권고",
             ]
-            # eGFR이 매우 낮을 경우 혈압·빈혈 동반 평가 추가
-            if egfr is not None and egfr < 45:
-                tests.append("혈압 정밀 모니터링 및 빈혈(헤모글로빈) 확인")
-            return tests
-
-        if app_group == AppGroup.G2:
-            # eGFR ≥ 60 + 임상 마커(혈압·혈당) 이상 → 위험인자 관리 중심
-            return [
+        elif app_group == AppGroup.G2:
+            core = [
                 "eGFR·혈청 크레아티닌 정기 재검(6개월 내)",
-                "혈압 정밀 측정 및 관리 상태 확인",
-                "공복혈당·당화혈색소(HbA1c) 검사",
                 "요단백(소변) 선별 검사",
             ]
-
-        if app_group == AppGroup.G3:
-            # 위험점수 임계 이상 — 뚜렷한 임상 이상은 없으나 모델이 위험 신호 감지
-            return [
+        elif app_group == AppGroup.G3:
+            core = [
                 "생활습관 개선 후 신장 기능 재평가",
-                "연 1~2회 eGFR·공복혈당 정기 검사",
-                "혈압 자가 모니터링",
+                "연 1~2회 eGFR 정기 검사",
+            ]
+        else:  # G4
+            core = [
+                "현 상태 유지",
+                "연 1회 정기 건강검진 권장",
             ]
 
-        # G4: 정상
-        return [
-            "현 상태 유지",
-            "연 1회 정기 건강검진 권장",
-        ]
+        # ── 조건부 추가 (그룹 무관, 임상 상태 게이트) ────────────────────
+        conditional: list[str] = []
+
+        # 혈압: sbp 또는 dbp status_level != good, 또는 고혈압 진단
+        _, sbp_level = m1_status("sbp", float(sbp), gender_int)
+        _, dbp_level = m1_status("dbp", float(dbp), gender_int)
+        if sbp_level != "good" or dbp_level != "good" or htn_dx:
+            conditional.append("혈압 정밀 측정·관리 상태 확인")
+
+        # 공복혈당: status_level != good, 또는 당뇨 진단
+        _, fbs_level = m1_status("fasting_glucose", fasting_glucose, gender_int)
+        if fbs_level != "good" or dm_dx:
+            conditional.append("공복혈당·당화혈색소(HbA1c) 검사")
+
+        # 헤모글로빈 빈혈
+        if hemoglobin is not None:
+            hb_label, _ = m1_status("hemoglobin", hemoglobin, gender_int)
+            if hb_label == "빈혈":
+                conditional.append("빈혈(헤모글로빈) 확인")
+
+        # 요단백 양성 — 코어 선별 검사와 별도 escalation
+        if urine_protein == UrineResult.POSITIVE:
+            conditional.append("요단백 양성 — 정밀 추적 및 전문의 소견 권고")
+
+        return core + conditional
+
+    @staticmethod
+    def _enrich_shap_status(shap_list: list, gender: int) -> list:
+        """각 ShapItem dict에 status(단계 라벨)·status_level을 추가한다.
+
+        DB에 저장된 shap_model1 항목은 feature(한글)·value·shap·note만 가진다.
+        classify_shap_items는 status 필드로 임상 분류를 수행하므로 두 필드 모두 필요.
+        SHAP 수치 자체는 변경하지 않는다(부호 왜곡 금지).
+        """
+        _reverse_label: dict[str, str] = {v: k for k, v in M1_LABEL.items()}
+        enriched = []
+        for item in shap_list:
+            if not isinstance(item, dict):
+                continue
+            entry = dict(item)
+            if "status" not in entry or "status_level" not in entry:
+                var = _reverse_label.get(entry.get("feature", ""))
+                if var:
+                    st_label, sl = m1_status(var, float(entry.get("value", 0.0)), gender)
+                    entry.setdefault("status", st_label)
+                    entry.setdefault("status_level", sl)
+            enriched.append(entry)
+        return enriched
+
+    @staticmethod
+    def _enrich_m2_side(shap2_raw: dict | None, gender_int: int) -> dict | None:
+        """shap_model2 raw dict의 items에 side("improve"/"maintain") 필드를 추가한다.
+
+        m2_in_normal 게이트로 분류 — 정상범위 밖이면 "improve", 내이면 "maintain".
+        var_key(DB 저장 키)를 우선 사용; 없으면 feature 한글 라벨로 M2_LABEL 역조회.
+        """
+        if not shap2_raw or not isinstance(shap2_raw, dict):
+            return shap2_raw
+        items = shap2_raw.get("items", [])
+        if not items:
+            return shap2_raw
+        _rev: dict[str, str] = {v: k for k, v in M2_LABEL.items()}
+        enriched_items = []
+        for item in items:
+            if not isinstance(item, dict):
+                enriched_items.append(item)
+                continue
+            entry = dict(item)
+            var = entry.get("var_key") or _rev.get(entry.get("feature", ""))
+            val = float(entry.get("value", 0.0))
+            in_normal = m2_in_normal(var, val, gender_int) if var else False
+            entry["side"] = "maintain" if in_normal else "improve"
+            enriched_items.append(entry)
+        return {**shap2_raw, "items": enriched_items}
 
     @staticmethod
     def _model1_summary(
@@ -496,13 +572,12 @@ class HealthCheckService:
         if app_group is None:
             return ""
 
-        # 상위 위험변수 추출 (shap > 0, feature 기준 상위 2개)
         top_features: list[str] = []
         if shap_model1:
-            # shap_model1은 dict list (feature, shap, value, note)
-            positive_items = [item for item in shap_model1 if isinstance(item, dict) and item.get("shap", 0) > 0]
-            positive_items.sort(key=lambda x: x.get("shap", 0), reverse=True)
-            top_features = [item["feature"] for item in positive_items[:2] if "feature" in item]
+            classified = classify_shap_items(shap_model1)
+            top_features = [
+                it.get("feature", "") if isinstance(it, dict) else it.feature for it in classified["raise_items"][:2]
+            ]
 
         # 라벨 한국어 매핑 (노트북 M1_LABEL 기반)
         label_ko = {
@@ -855,19 +930,30 @@ class HealthCheckService:
         # gender int 변환: MALE=1, FEMALE=0
         gender_int = 1 if user.gender == Gender.MALE else 0
 
-        shap_list = hc.shap_model1 or []
-        recommended = self._recommend_tests(hc.app_group, hc.egfr_estimated)
+        shap_list = self._enrich_shap_status(hc.shap_model1 or [], gender_int)
+        recommended = self._recommend_tests(
+            hc.app_group,
+            sbp=hc.systolic_bp,
+            dbp=hc.diastolic_bp,
+            fasting_glucose=hc.fasting_glucose,
+            hemoglobin=hc.hemoglobin,
+            urine_protein=hc.urine_protein,
+            gender_int=gender_int,
+            htn_dx=bool(ls.htn_diagnosed) if ls else False,
+            dm_dx=bool(ls.dm_diagnosed) if ls else False,
+        )
         summary = self._model1_summary(hc.app_group, hc.egfr_estimated, shap_list)
 
         clinical_items = self._build_clinical_items(hc, ls, gender_int)
         lifestyle_items = self._build_lifestyle_items(hc, ls, gender_int)
         lifestyle_domain_summary = self._build_lifestyle_domain_summary(lifestyle_items)
         report_meta = self._build_report_meta(hc, user, ls)
+        shap2_enriched = self._enrich_m2_side(hc.shap_model2, gender_int)
 
         return ReportResponse(
             health_check_id=hc.id,
             shap_model1=shap_list,
-            shap_model2=hc.shap_model2,
+            shap_model2=shap2_enriched,
             ai_guide=hc.ai_guide or "",  # ai_worker가 선생성·저장 → 읽기만
             recommended_tests=recommended,
             model1_summary=summary,

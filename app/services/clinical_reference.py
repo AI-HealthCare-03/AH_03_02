@@ -447,6 +447,28 @@ M1_STATUS_LEVEL_OVERRIDE: dict[tuple[str, str], str] = {
     ("hdl_cholesterol", "낮음"): "danger",
 }
 
+# 노트북 m1_local_report 분류 기준: 이 라벨이면 shap 부호와 무관하게 '위험 높임'.
+# HDL "낮음"은 여기 없음 — status_level override와 별개이므로 충실 구현 불가 케이스.
+_BAD_LABELS: frozenset[str] = frozenset(
+    {
+        "높음",
+        "위험",
+        "복부비만",
+        "양성",
+        "빈혈",
+        "매우 높음",
+        "중등도 비만",
+        "고도 비만",
+        "현재 흡연",
+        "주의",
+        "경계",
+        "과체중",
+        "경도 비만",
+        "높음(모니터링)",
+        "저체중",
+    }
+)
+
 
 def m1_status(feature: str, value: float, gender: int) -> tuple[str, str]:
     """(status_label, status_level) 반환.
@@ -557,6 +579,105 @@ def m1_group_title(group: str) -> str:
 def m1_group_message(group: str) -> str:
     """그룹 코드 → 그룹 메시지."""
     return M1_GROUP_MESSAGE.get(group, "")
+
+
+def classify_shap_items(
+    items: list,
+    *,
+    bar_threshold: float = 0.001,
+) -> dict:
+    """SHAP 항목을 임상 단계 라벨 기반으로 높임/낮춤/제외로 분류.
+
+    노트북 m1_local_report 규칙 이식:
+      - 단계 라벨이 _BAD_LABELS ∈ → '위험 높임' (shap 부호 무관)
+      - 라벨 정상이고 shap <= 0 → '위험 낮춤'
+      - 라벨 정상이고 shap > 0 → 양쪽 제외
+      - |shap| / total_abs < bar_threshold → 막대 제외 (raise_bar/lower_bar에서만 제거)
+
+    items: dict 또는 ShapItem 객체 혼용 가능.
+    반환 키: raise_items, lower_items, total_abs, raise_bar, lower_bar
+    """
+
+    def _get(item, key, default=None):
+        return item.get(key, default) if isinstance(item, dict) else getattr(item, key, default)
+
+    total_abs = sum(abs(_get(it, "shap", 0.0)) for it in items) or 1.0
+
+    raise_items: list = []
+    lower_items: list = []
+    for item in items:
+        stage = _get(item, "status") or ""
+        shap = _get(item, "shap", 0.0)
+        level = _get(item, "status_level") or ""
+        # M1_STATUS_LEVEL_OVERRIDE 케이스(HDL '낮음' 등) 보정:
+        # stage가 _BAD_LABELS 밖이어도 status_level이 danger이면 위험 높임으로 처리.
+        if stage in _BAD_LABELS or level == "danger":
+            raise_items.append(item)
+        elif shap <= 0:
+            lower_items.append(item)
+        # (라벨 정상 + level 정상) + shap > 0 → 양쪽 제외
+
+    raise_items.sort(key=lambda it: -abs(_get(it, "shap", 0.0)))
+    lower_items.sort(key=lambda it: -abs(_get(it, "shap", 0.0)))
+
+    def _bar(lst: list) -> list:
+        return [it for it in lst if abs(_get(it, "shap", 0.0)) / total_abs >= bar_threshold]
+
+    return {
+        "raise_items": raise_items,
+        "lower_items": lower_items,
+        "total_abs": total_abs,
+        "raise_bar": _bar(raise_items),
+        "lower_bar": _bar(lower_items),
+    }
+
+
+def classify_m2_shap_items(items: list, gender: int, *, bar_threshold: float = 0.001) -> dict:
+    """M2 SHAP 항목을 m2_in_normal 게이트로 개선/유지 두 패널로 분류.
+
+    item.side == "improve" 또는 not in_normal → 개선이 필요한 항목(raise).
+    item.side == "maintain" 또는 in_normal → 잘 관리되고 있는 항목(lower).
+    side 필드 우선, 없으면 feature 한글 라벨로 M2_LABEL 역조회 후 m2_in_normal 계산.
+    """
+    _rev: dict[str, str] = {v: k for k, v in M2_LABEL.items()}
+
+    def _get(item, key, default=None):
+        return item.get(key, default) if isinstance(item, dict) else getattr(item, key, default)
+
+    total_abs = sum(abs(_get(it, "shap", 0.0)) for it in items) or 1.0
+    raise_items: list = []
+    lower_items: list = []
+
+    for item in items:
+        shap = _get(item, "shap", 0.0)
+        value = _get(item, "value", 0.0)
+        side = _get(item, "side", None)
+
+        if side is not None:
+            in_normal = side == "maintain"
+        else:
+            feature_label = _get(item, "feature", "")
+            var = _rev.get(feature_label)
+            in_normal = m2_in_normal(var, float(value), gender) if var else (shap <= 0)
+
+        if not in_normal:
+            raise_items.append(item)
+        else:
+            lower_items.append(item)
+
+    raise_items.sort(key=lambda it: -abs(_get(it, "shap", 0.0)))
+    lower_items.sort(key=lambda it: -abs(_get(it, "shap", 0.0)))
+
+    def _bar(lst: list) -> list:
+        return [it for it in lst if abs(_get(it, "shap", 0.0)) / total_abs >= bar_threshold]
+
+    return {
+        "raise_items": raise_items,
+        "lower_items": lower_items,
+        "total_abs": total_abs,
+        "raise_bar": _bar(raise_items),
+        "lower_bar": _bar(lower_items),
+    }
 
 
 # ──────────────────────────────────────────────────────────────────────────────
