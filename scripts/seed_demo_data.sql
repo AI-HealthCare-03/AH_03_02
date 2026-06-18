@@ -16,10 +16,6 @@ DECLARE
   c_hydration2 bigint;  -- 탄산음료 금지 (ACTIVE 11일)
   c_sleep      bigint;  -- 밤 12시 전 취침 (ACTIVE 15일)
   c_sleep2     bigint;  -- 취침 전 스마트폰 끄기 (ACTIVE 10일)
-  c_hyd_art    bigint;  -- 수분 아티클 읽기 (COMPLETED)
-  c_diet_vid   bigint;  -- 지방 영상 시청 (COMPLETED)
-  c_ex_vid     bigint;  -- 운동 영상 시청 (COMPLETED)
-  c_slp_art    bigint;  -- 수면 아티클 읽기 (COMPLETED)
 
 BEGIN
 
@@ -57,17 +53,9 @@ SELECT id INTO c_sleep FROM challenges
   WHERE name LIKE '%밤 12시 이전에 취침%' LIMIT 1;
 SELECT id INTO c_sleep2 FROM challenges
   WHERE name LIKE '%취침 30분 전 스마트폰%' LIMIT 1;
-SELECT id INTO c_hyd_art FROM challenges
-  WHERE name LIKE '%수분 섭취가 혈압%영상%' LIMIT 1;
-SELECT id INTO c_diet_vid FROM challenges
-  WHERE name LIKE '%포화지방%혈관%영상%' LIMIT 1;
-SELECT id INTO c_ex_vid FROM challenges
-  WHERE name LIKE '%운동이 혈압%콜레스테롤%영상%' LIMIT 1;
-SELECT id INTO c_slp_art FROM challenges
-  WHERE name LIKE '%수면 부족이 혈압%아티클%' LIMIT 1;
 
-RAISE NOTICE '챌린지 IDs: hydration=%, hydration2=%, sleep=%, sleep2=%, hyd_art=%, diet_vid=%, ex_vid=%, slp_art=%',
-  c_hydration, c_hydration2, c_sleep, c_sleep2, c_hyd_art, c_diet_vid, c_ex_vid, c_slp_art;
+RAISE NOTICE '챌린지 IDs: hydration=%, hydration2=%, sleep=%, sleep2=%',
+  c_hydration, c_hydration2, c_sleep, c_sleep2;
 
 -- 필수 챌린지 없으면 중단
 IF c_hydration IS NULL OR c_sleep IS NULL THEN
@@ -78,10 +66,6 @@ END IF;
 -- 선택 챌린지 NULL이면 경고 후 스킵
 IF c_hydration2 IS NULL THEN RAISE WARNING 'c_hydration2 챌린지를 찾을 수 없어 스킵합니다.'; END IF;
 IF c_sleep2     IS NULL THEN RAISE WARNING 'c_sleep2 챌린지를 찾을 수 없어 스킵합니다.'; END IF;
-IF c_hyd_art    IS NULL THEN RAISE WARNING 'c_hyd_art 챌린지를 찾을 수 없어 스킵합니다.'; END IF;
-IF c_diet_vid   IS NULL THEN RAISE WARNING 'c_diet_vid 챌린지를 찾을 수 없어 스킵합니다.'; END IF;
-IF c_ex_vid     IS NULL THEN RAISE WARNING 'c_ex_vid 챌린지를 찾을 수 없어 스킵합니다.'; END IF;
-IF c_slp_art    IS NULL THEN RAISE WARNING 'c_slp_art 챌린지를 찾을 수 없어 스킵합니다.'; END IF;
 
 -- ────────────────────────────────────────────────────────────
 -- 3. 기존 데이터 정리 (재실행 시 중복 방지)
@@ -135,16 +119,7 @@ FROM (VALUES
 ) AS t(cid, streak, checkins, days)
 WHERE cid IS NOT NULL;
 
--- COMPLETED 챌린지 (NULL인 챌린지는 자동 스킵)
-INSERT INTO user_challenges (challenge_id, user_id, status, streak_count, total_checkins, started_at, last_checkin_date)
-SELECT cid, v_uid, 'COMPLETED', streak, checkins, CURRENT_DATE - 12, CURRENT_DATE - last_day
-FROM (VALUES
-  (c_hyd_art,  10, 10, 2),
-  (c_diet_vid,  9,  9, 3),
-  (c_ex_vid,   10, 10, 2),
-  (c_slp_art,   8,  8, 4)
-) AS t(cid, streak, checkins, last_day)
-WHERE cid IS NOT NULL;
+-- (교육 챌린지 4종 COMPLETED 시드 제거 — 선택 챌린지 목록 클릭 충돌 방지)
 
 -- ────────────────────────────────────────────────────────────
 -- 6. 포인트 거래 내역 (총 5,730점)
