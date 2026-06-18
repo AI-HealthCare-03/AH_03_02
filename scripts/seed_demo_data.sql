@@ -16,10 +16,6 @@ DECLARE
   c_hydration2 bigint;  -- 탄산음료 금지 (ACTIVE 11일)
   c_sleep      bigint;  -- 밤 12시 전 취침 (ACTIVE 15일)
   c_sleep2     bigint;  -- 취침 전 스마트폰 끄기 (ACTIVE 10일)
-  c_hyd_art    bigint;  -- 수분 아티클 읽기 (COMPLETED)
-  c_diet_vid   bigint;  -- 지방 영상 시청 (COMPLETED)
-  c_ex_vid     bigint;  -- 운동 영상 시청 (COMPLETED)
-  c_slp_art    bigint;  -- 수면 아티클 읽기 (COMPLETED)
 
 BEGIN
 
@@ -57,22 +53,19 @@ SELECT id INTO c_sleep FROM challenges
   WHERE name LIKE '%밤 12시 이전에 취침%' LIMIT 1;
 SELECT id INTO c_sleep2 FROM challenges
   WHERE name LIKE '%취침 30분 전 스마트폰%' LIMIT 1;
-SELECT id INTO c_hyd_art FROM challenges
-  WHERE name LIKE '%수분 섭취가 혈압%아티클%' LIMIT 1;
-SELECT id INTO c_diet_vid FROM challenges
-  WHERE name LIKE '%나쁜 지방%포화지방%영상%' LIMIT 1;
-SELECT id INTO c_ex_vid FROM challenges
-  WHERE name LIKE '%운동이 혈압%콜레스테롤%영상%' LIMIT 1;
-SELECT id INTO c_slp_art FROM challenges
-  WHERE name LIKE '%수면 부족이 혈압%아티클%' LIMIT 1;
 
-RAISE NOTICE '챌린지 IDs: hydration=%, hydration2=%, sleep=%, sleep2=%, hyd_art=%, diet_vid=%, ex_vid=%, slp_art=%',
-  c_hydration, c_hydration2, c_sleep, c_sleep2, c_hyd_art, c_diet_vid, c_ex_vid, c_slp_art;
+RAISE NOTICE '챌린지 IDs: hydration=%, hydration2=%, sleep=%, sleep2=%',
+  c_hydration, c_hydration2, c_sleep, c_sleep2;
 
--- 조회 실패 시 중단
+-- 필수 챌린지 없으면 중단
 IF c_hydration IS NULL OR c_sleep IS NULL THEN
-  RAISE EXCEPTION '챌린지 데이터를 찾을 수 없습니다. build_challenges_seed.py를 먼저 실행하세요.';
+  RAISE EXCEPTION 'ACTIVE 필수 챌린지(hydration=%, sleep=%)를 찾을 수 없습니다. build_challenges_seed.py를 먼저 실행하세요.',
+    c_hydration, c_sleep;
 END IF;
+
+-- 선택 챌린지 NULL이면 경고 후 스킵
+IF c_hydration2 IS NULL THEN RAISE WARNING 'c_hydration2 챌린지를 찾을 수 없어 스킵합니다.'; END IF;
+IF c_sleep2     IS NULL THEN RAISE WARNING 'c_sleep2 챌린지를 찾을 수 없어 스킵합니다.'; END IF;
 
 -- ────────────────────────────────────────────────────────────
 -- 3. 기존 데이터 정리 (재실행 시 중복 방지)
@@ -115,21 +108,18 @@ INSERT INTO user_eggs (
 -- ────────────────────────────────────────────────────────────
 -- 5. 챌린지 참여 현황
 -- ────────────────────────────────────────────────────────────
--- ACTIVE 챌린지
+-- ACTIVE 챌린지 (NULL인 챌린지는 자동 스킵)
 INSERT INTO user_challenges (challenge_id, user_id, status, streak_count, total_checkins, started_at, last_checkin_date)
-VALUES
-  (c_hydration,  v_uid, 'ACTIVE', 17, 17, CURRENT_DATE - 17, CURRENT_DATE - 1),
-  (c_sleep,      v_uid, 'ACTIVE', 15, 15, CURRENT_DATE - 15, CURRENT_DATE - 1),
-  (c_sleep2,     v_uid, 'ACTIVE', 10, 10, CURRENT_DATE - 10, CURRENT_DATE - 1),
-  (c_hydration2, v_uid, 'ACTIVE', 11, 11, CURRENT_DATE - 11, CURRENT_DATE - 1);
+SELECT cid, v_uid, 'ACTIVE', streak, checkins, CURRENT_DATE - days, CURRENT_DATE - 1
+FROM (VALUES
+  (c_hydration,  17, 17, 17),
+  (c_sleep,      15, 15, 15),
+  (c_sleep2,     10, 10, 10),
+  (c_hydration2, 11, 11, 11)
+) AS t(cid, streak, checkins, days)
+WHERE cid IS NOT NULL;
 
--- COMPLETED 챌린지
-INSERT INTO user_challenges (challenge_id, user_id, status, streak_count, total_checkins, started_at, last_checkin_date)
-VALUES
-  (c_hyd_art,  v_uid, 'COMPLETED', 10, 10, CURRENT_DATE - 12, CURRENT_DATE - 2),
-  (c_diet_vid, v_uid, 'COMPLETED',  9,  9, CURRENT_DATE - 12, CURRENT_DATE - 3),
-  (c_ex_vid,   v_uid, 'COMPLETED', 10, 10, CURRENT_DATE - 12, CURRENT_DATE - 2),
-  (c_slp_art,  v_uid, 'COMPLETED',  8,  8, CURRENT_DATE - 12, CURRENT_DATE - 4);
+-- (교육 챌린지 4종 COMPLETED 시드 제거 — 선택 챌린지 목록 클릭 충돌 방지)
 
 -- ────────────────────────────────────────────────────────────
 -- 6. 포인트 거래 내역 (총 5,730점)

@@ -50,10 +50,14 @@ def test_resolve_range_bounds():
     assert resolve_range("ldl", "FEMALE") == (None, 100.0)
     assert resolve_range("systolic_bp", "MALE") == (None, 130.0)
     assert resolve_range("potassium", "FEMALE") == (3.5, 5.0)
+    assert resolve_range("fasting_glucose", "MALE") == (70.0, 100.0)
+    assert resolve_range("postprandial_glucose", "MALE") == (90.0, 140.0)
+    assert resolve_range("hba1c", "MALE") == (None, 5.7)
+    assert resolve_range("hdl", "FEMALE") == (60.0, 90.0)
 
 
 def test_resolve_range_none():
-    assert resolve_range("hba1c", "MALE") is None
+    assert resolve_range("proteinuria", "MALE") is None
     assert resolve_range("weight", "FEMALE") is None
 
 

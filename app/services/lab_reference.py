@@ -43,10 +43,10 @@ _m("proteinuria", "단백뇨", "mg/dL", 1, None)
 _m("systolic_bp", "수축기혈압", "mmHg", 0, {"*": (None, 130.0)})
 _m("diastolic_bp", "이완기혈압", "mmHg", 0, {"*": (None, 80.0)})
 _m("fasting_glucose", "공복혈당", "mg/dL", 0, {"*": (70.0, 100.0)})
-_m("postprandial_glucose", "식후혈당", "mg/dL", 0, None)
-_m("hba1c", "HbA1c", "%", 1, None)
+_m("postprandial_glucose", "식후혈당", "mg/dL", 0, {"*": (90.0, 140.0)})
+_m("hba1c", "HbA1c", "%", 1, {"*": (None, 5.7)})
 _m("ldl", "LDL", "mg/dL", 0, {"*": (None, 100.0)})
-_m("hdl", "HDL", "mg/dL", 0, None)
+_m("hdl", "HDL", "mg/dL", 0, {"*": (60.0, 90.0)})
 _m("weight", "체중", "kg", 1, None)
 
 

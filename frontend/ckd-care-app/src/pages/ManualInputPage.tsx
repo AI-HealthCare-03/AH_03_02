@@ -16,10 +16,10 @@ function toNum(v: string): number | null {
   return isNaN(n) ? null : n;
 }
 
-// 분류 상태 → 배지 색상 (정상=success, 주의/경계=warning, 위험/높음/낮음=danger)
+// 분류 상태 → 배지 색상 (정상=success, 주의/경계=warning, 위험/높음/낮음/저혈당=danger)
 function statusTone(status: string): string {
   if (status === "정상") return "border-success text-success";
-  if (status === "위험" || status === "높음" || status === "낮음") return "border-danger text-danger";
+  if (status === "위험" || status === "높음" || status === "낮음" || status === "저혈당") return "border-danger text-danger";
   return "border-warning text-warning"; // 주의, 경계
 }
 
@@ -319,6 +319,9 @@ export function ManualInputPage() {
                     <StatusBadge status={fgStatus} />
                     {fgStatus === "높음" && (
                       <p className="mt-[4px] text-xs text-text-muted">당뇨 범위 · 확진 아님 · 의료기관 상담 권장</p>
+                    )}
+                    {fgStatus === "저혈당" && (
+                      <p className="mt-[4px] text-xs text-text-muted">저혈당 의심 · 즉시 의료기관 상담 권장</p>
                     )}
                   </div>
                 )}
