@@ -9,11 +9,12 @@ export function bloodPressureStatus(sbp: number | null, dbp: number | null): str
   return "정상";
 }
 
-// 혈당상태 (공복혈당)
+// 혈당상태 (공복혈당) — 정상 범위 70~99 mg/dL
 export function glucoseStatus(glucose: number | null): string | null {
   if (glucose == null) return null;
   if (glucose >= 126) return "당뇨";
   if (glucose >= 100) return "공복혈당장애";
+  if (glucose < 70) return "저혈당";
   return "정상";
 }
 
