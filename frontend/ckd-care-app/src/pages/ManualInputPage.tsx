@@ -16,11 +16,11 @@ function toNum(v: string): number | null {
   return isNaN(n) ? null : n;
 }
 
-// 분류 상태 → 배지 색상 (정상=success, 경계=warning, 위험=danger)
+// 분류 상태 → 배지 색상 (정상=success, 주의/경계=warning, 위험/높음/낮음/저혈당=danger)
 function statusTone(status: string): string {
   if (status === "정상") return "border-success text-success";
-  if (status === "고혈압" || status === "당뇨" || status === "빈혈") return "border-danger text-danger";
-  return "border-warning text-warning"; // 고혈압 전단계, 공복혈당장애
+  if (status === "위험" || status === "높음" || status === "낮음" || status === "저혈당") return "border-danger text-danger";
+  return "border-warning text-warning"; // 주의, 경계
 }
 
 function StatusBadge({ status }: { status: string | null }) {
@@ -148,6 +148,34 @@ export function ManualInputPage() {
       const cr = parseFloat(form.creatinine);
       if (isNaN(cr) || cr < 0.1 || cr > 30) { setError("크레아티닌은 0.1~30 mg/dL 범위로 입력해주세요."); return; }
     }
+    if (form.triglycerides) {
+      const tg = parseFloat(form.triglycerides);
+      if (isNaN(tg) || tg < 10 || tg > 5000) { setError("중성지방은 10~5000 mg/dL 범위로 입력해주세요."); return; }
+    }
+    if (form.hdl) {
+      const hdl = parseFloat(form.hdl);
+      if (isNaN(hdl) || hdl < 5 || hdl > 150) { setError("HDL은 5~150 mg/dL 범위로 입력해주세요."); return; }
+    }
+    if (form.ldl) {
+      const ldl = parseFloat(form.ldl);
+      if (isNaN(ldl) || ldl < 10 || ldl > 500) { setError("LDL은 10~500 mg/dL 범위로 입력해주세요."); return; }
+    }
+    if (form.total_cholesterol) {
+      const tc = parseFloat(form.total_cholesterol);
+      if (isNaN(tc) || tc < 50 || tc > 800) { setError("총 콜레스테롤은 50~800 mg/dL 범위로 입력해주세요."); return; }
+    }
+    if (form.hemoglobin) {
+      const hb = parseFloat(form.hemoglobin);
+      if (isNaN(hb) || hb < 3 || hb > 25) { setError("헤모글로빈은 3~25 g/dL 범위로 입력해주세요."); return; }
+    }
+    if (form.ast) {
+      const ast = parseFloat(form.ast);
+      if (isNaN(ast) || ast < 1 || ast > 5000) { setError("AST는 1~5000 U/L 범위로 입력해주세요."); return; }
+    }
+    if (form.alt) {
+      const alt = parseFloat(form.alt);
+      if (isNaN(alt) || alt < 1 || alt > 5000) { setError("ALT는 1~5000 U/L 범위로 입력해주세요."); return; }
+    }
     setError(""); setWarning("");
     setLoading(true);
     try {
@@ -261,6 +289,9 @@ export function ManualInputPage() {
                   <div className="flex flex-col">
                     <span className="text-xs text-text-muted">혈압 상태</span>
                     <StatusBadge status={bpStatus} />
+                    {bpStatus === "위험" && (
+                      <p className="mt-[4px] text-xs text-text-muted">고혈압 범위 · 확진 아님 · 의료기관 상담</p>
+                    )}
                   </div>
                 )}
               </div>
@@ -286,6 +317,12 @@ export function ManualInputPage() {
                   <div className="flex flex-col">
                     <span className="text-xs text-text-muted">혈당 상태</span>
                     <StatusBadge status={fgStatus} />
+                    {fgStatus === "높음" && (
+                      <p className="mt-[4px] text-xs text-text-muted">당뇨 범위 · 확진 아님 · 의료기관 상담 권장</p>
+                    )}
+                    {fgStatus === "저혈당" && (
+                      <p className="mt-[4px] text-xs text-text-muted">저혈당 의심 · 즉시 의료기관 상담 권장</p>
+                    )}
                   </div>
                 )}
                 <TextInput label="중성지방 (mg/dL)" placeholder="150" value={form.triglycerides} onChange={set("triglycerides")} />
@@ -295,8 +332,14 @@ export function ManualInputPage() {
                 <TextInput label="헤모글로빈 (g/dL)" placeholder="14" value={form.hemoglobin} onChange={set("hemoglobin")} />
                 {hbStatus && (
                   <div className="flex flex-col">
-                    <span className="text-xs text-text-muted">빈혈 여부</span>
+                    <span className="text-xs text-text-muted">헤모글로빈 상태</span>
                     <StatusBadge status={hbStatus} />
+                    {hbStatus === "낮음" && (
+                      <p className="mt-[4px] text-xs text-text-muted">빈혈 의심 · 의료기관 상담</p>
+                    )}
+                    {hbStatus === "높음" && (
+                      <p className="mt-[4px] text-xs text-text-muted">헤모글로빈 높음 · 의료기관 상담</p>
+                    )}
                   </div>
                 )}
                 <TextInput label="AST (U/L)" placeholder="25" value={form.ast} onChange={set("ast")} />
