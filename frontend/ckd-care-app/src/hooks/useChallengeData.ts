@@ -84,7 +84,7 @@ export function useChallengeData() {
   const today = todayStr();
   const ucByChallenge = new Map<number, UserChallenge>();
   myChallenges
-    .filter((uc) => uc.status === "ACTIVE" || (uc.status === "COMPLETED" && uc.last_checkin_date === today))
+    .filter((uc) => (uc.status === "ACTIVE" && uc.started_at === today) || (uc.status === "COMPLETED" && uc.last_checkin_date === today))
     .forEach((uc) => ucByChallenge.set(uc.challenge_id, uc));
   const rowsAll: ChallengeRow[] = challenges.map((c) => {
     const uc = ucByChallenge.get(c.id);
