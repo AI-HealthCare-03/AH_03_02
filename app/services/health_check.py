@@ -974,6 +974,11 @@ class HealthCheckService:
         lifestyle_domain_summary = self._build_lifestyle_domain_summary(lifestyle_items)
         report_meta = self._build_report_meta(hc, user, ls)
         shap2_enriched = self._enrich_m2_side(hc.shap_model2, gender_int)
+        # 표시용 클램프 — lifestyle_score는 양(+) SHAP 합이라 1.0을 초과할 수 있음
+        # 웹·PDF 모두 * 100 후 "/100"으로 표시하므로, raw 값을 여기서 1.0 상한으로 제한.
+        # 게이트·SHAP·피어 비교 로직은 ai-worker에서 이미 완료 → 여기서 건드려도 안전.
+        if isinstance(shap2_enriched, dict) and "lifestyle_score" in shap2_enriched:
+            shap2_enriched["lifestyle_score"] = max(0.0, min(1.0, float(shap2_enriched["lifestyle_score"])))
 
         return ReportResponse(
             health_check_id=hc.id,
