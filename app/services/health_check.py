@@ -50,7 +50,6 @@ _EGFR_G5_THRESHOLD = 15  # mL/min/1.73m² — 신부전 단계
 
 # 그룹 분류 임계값 (설계서 § 4)
 _G1_EGFR_THRESHOLD = 60.0  # eGFR < 60 → G1
-_G3_EGFR_THRESHOLD = 90.0  # eGFR 60~89 → G3 (신장사전관리군)
 _G2_SBP_THRESHOLD = 130  # SBP ≥ 130 → G2
 _G2_DBP_THRESHOLD = 80  # DBP ≥ 80  → G2
 _G2_GLUCOSE_THRESHOLD = 100.0  # 공복혈당 ≥ 100 → G2
@@ -148,9 +147,7 @@ class HealthCheckService:
             or fasting_glucose >= _G2_GLUCOSE_THRESHOLD
         ):
             return AppGroup.G2
-        if egfr is not None and egfr < _G3_EGFR_THRESHOLD:
-            return AppGroup.G3  # eGFR 60~89: 신장사전관리군
-        return AppGroup.G4
+        return AppGroup.G4  # G3: Model 1 연동 전 G4로 fallback
 
     @staticmethod
     async def recompute_app_group(user_id: int) -> AppGroup | None:
